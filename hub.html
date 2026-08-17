@@ -96,18 +96,26 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
 const LK='lucronamao_liberado';
+/* ===== LIBERACAO: QUEM MANDA E O LINK =====
+   A chave do link SUBSTITUI o que estava salvo (nao soma).
+   O localStorage guarda so a ultima chave usada, pra ela poder abrir o app pelo icone
+   da tela inicial (que abre sem query string) e continuar com o mesmo acesso. */
+const MAPA = {
+  c:      ['controle'],
+  d:      ['divulga'],
+  p:      ['preco'],
+  cd:     ['controle','divulga'],
+  cp:     ['controle','preco'],          // compatibilidade
+  u:      ['preco'],                     // compatibilidade
+  tudo:   ['controle','divulga','preco']
+};
 (function(){
-  const q=new URLSearchParams(location.search).get('libera');
-  if(!q) return;
-  const atual=new Set((localStorage.getItem(LK)||'').split(',').filter(Boolean));
-  if(q.startsWith('so-')||q==='zerar') atual.clear();
-  const add=x=>atual.add(x);
-  if(q==='c'||q==='so-c') add('controle');
-  if(q==='d') add('divulga');
-  if(q==='p') add('preco');
-  if(q==='cd'||q==='so-cd'){ add('controle'); add('divulga'); }
-  if(q==='tudo'||q==='so-tudo'){ add('controle'); add('divulga'); add('preco'); }
-  localStorage.setItem(LK,[...atual].join(','));
+  const q = (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
+  if(!q) return;                                  // sem chave: usa a ultima salva
+  if(q === 'zerar'){ localStorage.removeItem(LK); history.replaceState(null,'',location.pathname); return; }
+  const libs = MAPA[q];
+  if(!libs) return;                               // chave desconhecida: nao mexe
+  localStorage.setItem(LK, libs.join(','));       // SUBSTITUI (o link e a verdade)
   history.replaceState(null,'',location.pathname);
 })();
 const tem = x => (localStorage.getItem(LK)||'').split(',').includes(x);
