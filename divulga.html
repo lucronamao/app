@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#8e2757">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Divulga na Mão · Lucro na Mão</title>
+<style>
+:root{
+  --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
+  --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
+  --verde:#1e7d4f; --verde-bg:#e6f4ec;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--rose-2);color:var(--tinta);font-size:16px;min-height:100vh;padding-bottom:30px}
+header{background:var(--vinho);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+header a{color:#fff;text-decoration:none;display:flex;align-items:center}
+header h1{font-size:17px;font-weight:700}
+header .sub{font-size:12px;opacity:.85}
+header svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+main{padding:14px;max-width:560px;margin:0 auto}
+.chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.chips button{padding:9px 13px;background:var(--rose);color:var(--vinho);border:0;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.chips button.on{background:var(--vinho);color:#fff}
+.abas{display:flex;background:#fff;border:1.5px solid var(--linha);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.abas button{flex:1;padding:12px 4px;background:none;border:0;font-size:14px;font-weight:700;color:var(--cinza);cursor:pointer;font-family:inherit}
+.abas button.on{background:var(--vinho);color:#fff}
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:14px;color:var(--cinza);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+label{font-size:13px;color:var(--cinza);font-weight:600;display:block;margin-top:12px}
+input,select{width:100%;padding:13px;border:1.5px solid var(--linha);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
+input:focus,select:focus{outline:none;border-color:var(--vinho)}
+.grupo{font-size:12px;font-weight:800;color:var(--vinho);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px}
+.situacoes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.situacoes button{padding:13px 10px;background:var(--rose);color:var(--tinta);border:0;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;line-height:1.35}
+.situacoes button.on{background:var(--vinho);color:#fff}
+.saida{background:#fff;border:1.5px dashed var(--linha);border-radius:12px;padding:13px;font-size:15px;line-height:1.55;white-space:pre-wrap;margin-top:12px;min-height:90px}
+.btn{background:var(--vinho);color:#fff;width:100%;padding:15px;font-weight:700;border:0;border-radius:12px;font-size:16px;cursor:pointer;margin-top:8px;font-family:inherit}
+.btn.sec{background:var(--rose);color:var(--vinho)}
+.btn.mini{width:auto;padding:9px 14px;font-size:13.5px;margin-top:10px}
+.dica{font-size:12.5px;color:var(--cinza);margin-top:8px;line-height:1.45}
+.linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.logo-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.logo-prev{width:64px;height:64px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:var(--vinho);overflow:hidden;flex-shrink:0;border:2px solid var(--linha)}
+.logo-prev img{width:100%;height:100%;object-fit:cover}
+canvas{width:100%;border-radius:14px;border:1px solid var(--linha);margin-top:12px;display:block}
+.oculto{display:none!important}
+
+.cfg-fundo{position:fixed;inset:0;background:rgba(43,34,48,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.cfg-fundo.aberto{display:flex}
+.cfg-box{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:18px 16px 26px}
+.cfg-box h3{font-size:17px;margin-bottom:2px}
+.cfg-box .cfg-sub{font-size:13px;color:var(--cinza);margin-bottom:14px}
+.cfg-box h4{font-size:12.5px;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+.cfg-cores{display:flex;gap:12px}
+.cfg-cores button{width:42px;height:42px;border-radius:50%;border:3px solid transparent;outline:2px solid var(--linha);cursor:pointer}
+.cfg-cores button.on{border-color:var(--tinta)}
+.cfg-btn{background:var(--vinho);color:#fff;width:100%;padding:14px;font-weight:700;border:0;border-radius:12px;font-size:15.5px;cursor:pointer;margin-top:8px;font-family:inherit}
+.cfg-btn.sec{background:var(--rose);color:var(--vinho)}
+.cfg-passos{font-size:14.5px;line-height:1.75;color:var(--cinza);padding-left:22px;margin:6px 0 2px}
+.btn-cfg{background:none;border:0;color:#fff;display:flex;align-items:center;cursor:pointer;padding:4px}
+.btn-cfg svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+.foto-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.foto-prev{width:76px;height:76px;border-radius:12px;background:var(--rose);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1.5px dashed var(--linha)}
+.foto-prev span{font-size:11px;color:var(--cinza);text-align:center;padding:4px}
+.foto-prev img{width:100%;height:100%;object-fit:cover}
+.cores-arte{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.cores-arte button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;outline:2px solid var(--linha);cursor:pointer}
+.cores-arte button.on{border-color:var(--tinta)}
+.cores-arte label.custom{width:38px;height:38px;border-radius:50%;outline:2px solid var(--linha);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#1e88e5,#8e24aa,#e53935)}
+.cores-arte label.custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="hub.html" aria-label="voltar ao menu"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <div><h1>Divulga na Mão</h1><div class="sub">mensagem e arte prontas pra vender</div></div>
+  <div style="margin-left:auto"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
+</header>
+
+<main>
+  <div class="abas">
+    <button id="aba-msg" class="on" onclick="aba('msg')">Mensagens</button>
+    <button id="aba-arte" onclick="aba('arte')">Arte pro status</button>
+    <button id="aba-perfil" onclick="aba('perfil')">Minha lojinha</button>
+  </div>
+
+  <!-- ================= MENSAGENS ================= -->
+  <section id="sec-msg">
+    <div class="card">
+      <h2>qual é a situação?</h2>
+      <div id="listaSituacoes"></div>
+    </div>
+    <div class="card" id="campos"><h2>me conta os detalhes</h2><p class="dica">Escolha a situação ali em cima.</p></div>
+    <div class="card">
+      <h2>sua mensagem</h2>
+      <div class="saida" id="saida">Escolha a situação que eu escrevo pra você.</div>
+      <button class="btn mini sec" id="btnOutra">Escrever de outro jeito</button>
+      <button class="btn" id="btnZap">Enviar no WhatsApp</button>
+      <button class="btn sec" id="btnCopiar">Copiar mensagem</button>
+      <div class="dica">Pra postar no status: Copiar e colar lá. Troque qualquer palavra do seu jeitinho.</div>
+    </div>
+  </section>
+
+  <!-- ================= ARTE ================= -->
+  <section id="sec-arte" class="oculto">
+    <div class="card">
+      <h2>arte pronta pro status ou feed</h2>
+      <label>tipo de arte</label>
+      <div class="chips" id="arteTipoChips">
+        <button data-v="novidade" class="on">Chegou novidade</button>
+        <button data-v="oferta">Oferta do dia</button>
+        <button data-v="ultimas">Últimas peças</button>
+        <button data-v="aviso">Aviso da lojinha</button>
+      </div>
+      <input type="hidden" id="arteTipo" value="novidade">
+      <label>foto da peça</label>
+      <div class="foto-row">
+        <div class="foto-prev" id="fotoPrev"><span>sem foto</span></div>
+        <div style="flex:1">
+          <button class="btn sec" style="margin-top:0" onclick="document.getElementById('fotoArq').click()">Escolher foto</button>
+          <button class="btn sec oculto" id="btnTirarFoto" style="margin-top:6px" onclick="Arte.tirarFoto()">Tirar foto</button>
+          <input type="file" id="fotoArq" accept="image/*" class="oculto">
+          <div class="dica">Use a foto da peça. Sem foto, a arte sai só com texto (também fica bonita).</div>
+        </div>
+      </div>
+      <div id="blocoEstilo" class="oculto">
+        <label>como montar a foto</label>
+        <div class="chips" id="arteEstiloChips">
+          <button data-v="fundo" class="on">foto de fundo</button>
+          <button data-v="meio">metade e metade</button>
+          <button data-v="circulo">foto em círculo</button>
+        </div>
+      </div>
+      <label>peça / texto principal</label>
+      <input id="artePeca" placeholder="ex: Vestido midi floral">
+      <div class="linha2">
+        <div><label>preço (opcional)</label><input id="artePreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+        <div><label>preço antigo (risca em oferta)</label><input id="arteDe" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+      </div>
+      <label>cor da arte</label>
+      <div class="cores-arte" id="coresArte"></div>
+      <button class="btn" onclick="gerarArte()">Gerar arte</button>
+      <canvas id="tela" width="1080" height="1080" class="oculto"></canvas>
+      <button class="btn sec oculto" id="btnBaixar" onclick="baixarArte()">Salvar imagem</button>
+      <button class="btn sec oculto" id="btnCompart" onclick="compartilharArte()">Compartilhar</button>
+      <div class="dica">A arte sai com a sua logo (ou a inicial da lojinha), o seu @ e a cor do seu tema. Formato quadrado, perfeito pro status, feed e grupos.</div>
+    </div>
+  </section>
+
+  <!-- ================= PERFIL ================= -->
+  <section id="sec-perfil" class="oculto">
+    <div class="card">
+      <h2>minha lojinha</h2>
+      <p class="dica" style="margin-top:0">Preencha uma vez: as mensagens e as artes usam tudo isso automaticamente.</p>
+      <div class="logo-row">
+        <div class="logo-prev" id="logoPrev">?</div>
+        <div style="flex:1">
+          <button class="btn mini sec" style="margin-top:0" onclick="document.getElementById('logoArq').click()">Enviar minha logo</button>
+          <button class="btn mini sec oculto" id="btnTirarLogo" style="margin-top:6px" onclick="Perfil.tirarLogo()">Tirar logo</button>
+          <input type="file" id="logoArq" accept="image/*" class="oculto">
+          <div class="dica">Sem logo? Sem problema: usamos a inicial da lojinha, fica lindo igual.</div>
+        </div>
+      </div>
+      <label>nome da lojinha</label><input id="pfNome" placeholder="ex: Closet da Ju">
+      <label>seu @ do Instagram (opcional)</label><input id="pfInsta" placeholder="ex: @closetdaju">
+      <label>sua chave Pix (entra na mensagem de cobrança)</label><input id="pfPix" placeholder="ex: 11 99999-9999">
+      <button class="btn" onclick="Perfil.salvar()">Salvar</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const TEMAS={
+  vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
+  violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
+  esmeralda:{a:'#1c7a5c',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
+  petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa',nome:'Petróleo'},
+  grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9',nome:'Grafite'}
+};
+function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documentElement.style;
+  r.setProperty('--vinho',t.a); r.setProperty('--vinho-escuro',t.b);
+  r.setProperty('--rose',t.c); r.setProperty('--rose-2',t.d);
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
+  localStorage.setItem('lucronamao_tema',n); }
+aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
+function temaAtual(){ return TEMAS[localStorage.getItem('lucronamao_tema')||'vinho']; }
+
+const $=id=>document.getElementById(id);
+function semReais(v){ return String(v||'').replace(/^R\$\s*/,'').trim(); }
+document.addEventListener('input',function(e){
+  const el=e.target; if(!el.matches||!el.matches('[data-moeda]')) return;
+  const d=el.value.replace(/\D/g,'').replace(/^0+(?=\d{3})/,'').slice(0,10);
+  el.value=d?'R$ '+(parseInt(d)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+  if(el.id&&el.id.startsWith('campo-')) atualiza();
+});
+
+document.addEventListener('DOMContentLoaded',()=>{});
+document.querySelectorAll?.call(document,'#arteTipoChips'); // noop
+
+
+/* ============ PERFIL ============ */
+const Perfil={
+  chave:'lucronamao_divulga', dados:{nome:'',insta:'',pix:'',logo:null},
+  carregar(){ try{ Object.assign(this.dados, JSON.parse(localStorage.getItem(this.chave))||{}); }catch(e){}
+    if(!this.dados.nome){ try{ this.dados.nome=(JSON.parse(localStorage.getItem('lucronamao_v1'))||{}).config.loja||''; }catch(e){} }
+    $('pfNome').value=this.dados.nome; $('pfInsta').value=this.dados.insta; $('pfPix').value=this.dados.pix;
+    this.mostraLogo(); },
+  salvar(){ this.dados.nome=$('pfNome').value.trim(); this.dados.insta=$('pfInsta').value.trim();
+    this.dados.pix=$('pfPix').value.trim();
+    localStorage.setItem(this.chave, JSON.stringify(this.dados));
+    toastSimples('Salvo! Suas mensagens e artes já estão personalizadas.'); },
+  mostraLogo(){ const el=$('logoPrev');
+    if(this.dados.logo){ el.innerHTML='<img src="'+this.dados.logo+'">'; $('btnTirarLogo').classList.remove('oculto'); }
+    else { el.textContent=(this.dados.nome||'?').trim().charAt(0).toUpperCase()||'?'; $('btnTirarLogo').classList.add('oculto'); } },
+  tirarLogo(){ this.dados.logo=null; localStorage.setItem(this.chave, JSON.stringify(this.dados)); this.mostraLogo(); }
+};
+$('logoArq').addEventListener('change',function(){
+  const f=this.files[0]; if(!f) return;
+  const img=new Image(); const fr=new FileReader();
+  fr.onload=()=>{ img.onload=()=>{
+      // reduz pra 320px e guarda leve
+      const cv=document.createElement('canvas'); const lado=Math.min(img.width,img.height);
+      cv.width=320; cv.height=320; const cx=cv.getContext('2d');
+      cx.drawImage(img,(img.width-lado)/2,(img.height-lado)/2,lado,lado,0,0,320,320);
+      Perfil.dados.logo=cv.toDataURL('image/jpeg',.85);
+      localStorage.setItem(Perfil.chave, JSON.stringify(Perfil.dados));
+      Perfil.mostraLogo(); toastSimples('Logo salva!'); };
+    img.src=fr.result; };
+  fr.readAsDataURL(f); this.value='';
+});
+function toastSimples(m){ const t=document.createElement('div');
+  t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:30px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:60;max-width:92vw;text-align:center';
+  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),2400); }
+
+/* ============ ABAS ============ */
+function aba(x){ ['msg','arte','perfil'].forEach(a=>{
+  $('sec-'+a).classList.toggle('oculto',a!==x);
+  $('aba-'+a).classList.toggle('on',a===x); }); }
+
+/* ============ MENSAGENS (grupos, situações e variações) ============ */
+function loja(){ return Perfil.dados.nome||'minha lojinha'; }
+function pixLinha(){ return Perfil.dados.pix ? '\n\nMeu Pix: '+Perfil.dados.pix : ''; }
+
+const GRUPOS=[
+ {g:'Pra vender', itens:[
+  {id:'novidade', rotulo:'Chegou novidade', campos:[['peca','qual peça chegou?','vestido midi'],['preco','preço (opcional)','89,90']],
+   msgs:[ d=>`Gente, chegou novidade na ${loja()}! 😍\n\nAcabou de chegar: *${d.peca}*${d.preco?'\npor apenas *R$ '+d.preco+'*':''}\n\nÉ pouquinha quantidade! Quem quiser garantir, me chama aqui 💬`,
+          d=>`Cheguei com coisa nova! ✨\n\n*${d.peca}* acabou de entrar na ${loja()}${d.preco?' por *R$ '+d.preco+'*':''}.\n\nQuer ver as fotos? Me chama que eu te mando em primeira mão!` ]},
+  {id:'oferta', rotulo:'Oferta do dia', campos:[['peca','qual peça?','blusa canelada'],['de','preço de','79,90'],['por','preço por','59,90']],
+   msgs:[ d=>`OFERTA DE HOJE ⚡\n\n*${d.peca}*\nde R$ ${d.de} por *R$ ${d.por}*\n\nSó hoje e só enquanto tiver peça. Me chama que eu separo a sua! 💬`,
+          d=>`Hoje tem preço especial na ${loja()}! 💥\n\n*${d.peca}* saindo de R$ ${d.de} por *R$ ${d.por}*.\n\nAproveita que amanhã volta ao normal!` ]},
+  {id:'ultimas', rotulo:'Últimas peças', campos:[['peca','qual peça está acabando?','saia jeans'],['qtd','quantas restam?','2']],
+   msgs:[ d=>`⚠️ ÚLTIMAS UNIDADES!\n\nSó restam *${d.qtd}* da *${d.peca}* e não vai repor tão cedo.\n\nQuem tava namorando, essa é a hora! Me chama 💬`,
+          d=>`Correee! 🏃‍♀️\n\nA *${d.peca}* está acabando: só *${d.qtd}* na ${loja()}.\n\nMe chama agora se quiser a sua!` ]},
+  {id:'combo', rotulo:'Promoção em dupla', campos:[['pecas','quais peças?','blusas básicas'],['qtd','leve quantas?','2'],['valor','pelo valor de','99,90']],
+   msgs:[ d=>`PROMOÇÃO NA ${loja().toUpperCase()}! 🛍️\n\nLeve *${d.qtd} ${d.pecas}* por só *R$ ${d.valor}*!\n\nÉ por tempo limitado, me chama e monta o seu combo!`,
+          d=>`Olha essa: *${d.qtd} ${d.pecas} por R$ ${d.valor}*! 😱\n\nPromoção especial da ${loja()}. Quem chegar primeiro escolhe as melhores!` ]},
+  {id:'voltou', rotulo:'Voltou ao estoque', campos:[['peca','o que voltou?','conjunto canelado preto']],
+   msgs:[ d=>`Voltouuu! 🙌\n\nA pedidos: *${d.peca}* de volta na ${loja()}!\n\nDa última vez esgotou rapidinho. Quer garantir? Me chama!`,
+          d=>`Você pediu e ela voltou: *${d.peca}* disponível de novo! ✨\n\nMe chama antes que esgote de novo!` ]}]},
+ {g:'Pra se aproximar', itens:[
+  {id:'sumida', rotulo:'Cliente sumida', campos:[['nome','nome dela','Ana'],['peca','o que combina com ela?','os conjuntos novos']],
+   msgs:[ d=>`Oi ${d.nome}, tudo bem? 💛\n\nLembrei de você hoje: chegou ${d.peca} com a sua cara!\n\nQuer que eu te mande as fotos? Sem compromisso!`,
+          d=>`${d.nome}! Quanto tempo! 😊\n\nSeparei umas coisas aqui que são muito você: ${d.peca}.\n\nPosso te mandar? Se não curtir, sem problema nenhum!` ]},
+  {id:'posvenda', rotulo:'Agradecer a compra', campos:[['nome','nome dela','Ana']],
+   msgs:[ d=>`${d.nome}, muito obrigada pela compra! 💛\n\nEspero que você ame! Depois me conta o que achou, tá?\n\nDa sua amiga da ${loja()} 😊`,
+          d=>`Obrigada por comprar comigo, ${d.nome}! 🥰\n\nQualquer coisa (troca, dúvida, qualquer coisa mesmo) é só me chamar.\n\n${loja()} agradece!` ]},
+  {id:'bemvinda', rotulo:'Boas-vindas', campos:[['nome','nome dela','Ana']],
+   msgs:[ d=>`Oi ${d.nome}, seja muito bem-vinda à ${loja()}! 💛\n\nAqui você vê as novidades em primeira mão. Qualquer peça que te interessar, me chama sem cerimônia!`,
+          d=>`${d.nome}, que bom ter você aqui! 😊\n\nEu sou da ${loja()} e agora você vai receber as novidades fresquinhas. Precisou de algo, é só chamar!` ]},
+  {id:'niver', rotulo:'Aniversário dela', campos:[['nome','nome dela','Ana'],['mimo','qual mimo? (desconto, brinde...)','10% de desconto']],
+   msgs:[ d=>`${d.nome}!! Feliz aniversário! 🎉💛\n\nPra comemorar, você ganhou *${d.mimo}* na ${loja()} esse mês.\n\nVem escolher seu presente!`,
+          d=>`Parabéns, ${d.nome}! 🎂\n\nA ${loja()} te deseja um ano incrível, e te dá *${d.mimo}* de presente. Aproveita!` ]}]},
+ {g:'Pra receber', itens:[
+  {id:'fiado1', rotulo:'Lembrete leve', campos:[['nome','nome dela','Ana'],['valor','valor combinado','59,90']],
+   msgs:[ d=>`Oi ${d.nome}, tudo bem? 😊\n\nPassando só pra lembrar do valor da pecinha: *R$ ${d.valor}*.\n\nPode pagar quando der, tá?${pixLinha()}`,
+          d=>`${d.nome}, oi! Tudo certo? 💛\n\nSó lembrando com carinho: ficou *R$ ${d.valor}* da sua compra.\n\nSem pressa, combinado?${pixLinha()}` ]},
+  {id:'fiado2', rotulo:'Lembrete direto (educado)', campos:[['nome','nome dela','Ana'],['valor','valor','59,90'],['data','comprou quando?','no início do mês']],
+   msgs:[ d=>`Oi ${d.nome}! 😊\n\nPreciso fechar as contas da lojinha e ficou pendente o valor da peça que você levou ${d.data}: *R$ ${d.valor}*.\n\nConsegue acertar essa semana? Me ajuda demais!${pixLinha()}`,
+          d=>`${d.nome}, tudo bem? Tô organizando os pagamentos da ${loja()} e o seu ficou em aberto: *R$ ${d.valor}* (${d.data}).\n\nPode ser no Pix, no dia que você conseguir essa semana.${pixLinha()}` ]},
+  {id:'recebido', rotulo:'Confirmar pagamento', campos:[['nome','nome dela','Ana']],
+   msgs:[ d=>`Recebido, ${d.nome}! 💛\n\nMuito obrigada! Qualquer novidade que chegar com a sua cara, te aviso em primeira mão!`,
+          d=>`Caiu certinho, ${d.nome}, obrigada! 😊\n\nVocê é dessas clientes que dá gosto. A ${loja()} agradece!` ]}]}
+];
+
+let atual=null, varIdx=0;
+function montaSituacoes(){
+  $('listaSituacoes').innerHTML=GRUPOS.map(g=>
+    `<div class="grupo">${g.g}</div><div class="situacoes">${g.itens.map(s=>
+      `<button id="sit-${s.id}" onclick="escolhe('${s.id}')">${s.rotulo}</button>`).join('')}</div>`).join('');
+}
+function todas(){ return GRUPOS.flatMap(g=>g.itens); }
+function escolhe(id){
+  atual=todas().find(s=>s.id===id); varIdx=0;
+  todas().forEach(s=>{const b=$('sit-'+s.id); if(b) b.classList.toggle('on',s.id===id);});
+  const MONEY=['preco','de','por','valor'];
+  $('campos').innerHTML='<h2>me conta os detalhes</h2>'+atual.campos.map(c=>
+    `<label>${c[1]}</label><input id="campo-${c[0]}" ${MONEY.includes(c[0])?'data-moeda inputmode="numeric"':''} placeholder="ex: ${MONEY.includes(c[0])?'R$ '+c[2]:c[2]}" oninput="atualiza()">`).join('');
+  atualiza();
+}
+function dadosAtuais(){ const d={}; const MONEY=['preco','de','por','valor'];
+  atual.campos.forEach(c=>{ let v=($('campo-'+c[0])?.value||'').trim()||c[2];
+    if(MONEY.includes(c[0])) v=semReais(v); d[c[0]]=v; }); return d; }
+function atualiza(){ if(!atual) return; $('saida').textContent=atual.msgs[varIdx%atual.msgs.length](dadosAtuais()); }
+$('btnOutra').addEventListener('click',()=>{ if(!atual) return; varIdx++; atualiza(); });
+$('btnCopiar').addEventListener('click',()=>{ if(!atual) return;
+  navigator.clipboard.writeText($('saida').textContent).then(()=>{
+    $('btnCopiar').textContent='Copiado!'; setTimeout(()=>$('btnCopiar').textContent='Copiar mensagem',1800); }); });
+$('btnZap').addEventListener('click',()=>{ if(!atual) return;
+  window.open('https://wa.me/?text='+encodeURIComponent($('saida').textContent),'_blank'); });
+
+/* ============ ARTE (canvas 1080x1080) ============ */
+const PALETA_ARTE = ['#8e2757','#6b3fa0','#1c7a5c','#22677a','#3f3a45','#c2185b','#d84315','#00695c','#283593','#b28704'];
+const Arte = {
+  chave:'lucronamao_arte',
+  cfg:{foto:null, estilo:'fundo', cor:null},
+  carregar(){ try{ Object.assign(this.cfg, JSON.parse(localStorage.getItem(this.chave))||{}); }catch(e){}
+    if(!this.cfg.cor) this.cfg.cor = temaAtual().a;
+    this.pintarFoto(); this.pintarCores(); this.pintarEstilo(); },
+  salvar(){ localStorage.setItem(this.chave, JSON.stringify(this.cfg)); },
+  pintarFoto(){ const el=$('fotoPrev');
+    if(this.cfg.foto){ el.innerHTML='<img src="'+this.cfg.foto+'">';
+      $('btnTirarFoto').classList.remove('oculto'); $('blocoEstilo').classList.remove('oculto'); }
+    else { el.innerHTML='<span>sem foto</span>';
+      $('btnTirarFoto').classList.add('oculto'); $('blocoEstilo').classList.add('oculto'); } },
+  pintarCores(){
+    $('coresArte').innerHTML = PALETA_ARTE.map(cor=>
+      '<button class="'+(cor.toLowerCase()===String(this.cfg.cor).toLowerCase()?'on':'')+'" style="background:'+cor+'"'
+      + ' aria-label="cor" onclick="Arte.setCor(\'' + cor + '\')"></button>').join('')
+      + '<label class="custom" aria-label="outra cor"><input type="color" value="'+this.cfg.cor+'" oninput="Arte.setCor(this.value)"></label>';
+  },
+  pintarEstilo(){ document.querySelectorAll('#arteEstiloChips button').forEach(b=>
+    b.classList.toggle('on', b.dataset.v===this.cfg.estilo)); },
+  setCor(c){ this.cfg.cor=c; this.salvar(); this.pintarCores(); this.regerar(); },
+  setEstilo(e){ this.cfg.estilo=e; this.salvar(); this.pintarEstilo(); this.regerar(); },
+  tirarFoto(){ this.cfg.foto=null; this.salvar(); this.pintarFoto(); this.regerar(); },
+  regerar(){ if(!$('tela').classList.contains('oculto')) gerarArte(); },
+  escolherFoto(f){
+    const img=new Image(), fr=new FileReader();
+    fr.onload=()=>{ img.onload=()=>{
+      const cv=document.createElement('canvas'); const lado=Math.min(img.width,img.height);
+      cv.width=1080; cv.height=1080; const cx=cv.getContext('2d');
+      cx.drawImage(img,(img.width-lado)/2,(img.height-lado)/2,lado,lado,0,0,1080,1080);
+      this.cfg.foto=cv.toDataURL('image/jpeg',.82); this.salvar(); this.pintarFoto();
+      toastSimples('Foto adicionada!'); this.regerar(); };
+      img.src=fr.result; };
+    fr.readAsDataURL(f);
+  },
+  cover(cx,img,x,y,w,h){
+    const r=Math.max(w/img.width,h/img.height), nw=img.width*r, nh=img.height*r;
+    cx.drawImage(img, x+(w-nw)/2, y+(h-nh)/2, nw, nh);
+  }
+};
+document.getElementById('fotoArq').addEventListener('change',function(){
+  if(this.files[0]) Arte.escolherFoto(this.files[0]); this.value=''; });
+
+function rgbaEscura(hex,f,a){
+  const n=parseInt(String(hex).replace('#',''),16);
+  const r=Math.max(0,((n>>16)&255)*f|0), g=Math.max(0,((n>>8)&255)*f|0), b=Math.max(0,(n&255)*f|0);
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+function corEscura(hex,f){ return rgbaEscura(hex,f,1); }
+
+function gerarArte(){
+  const cor = Arte.cfg.cor || temaAtual().a;
+  const cv=$('tela'), cx=cv.getContext('2d');
+  const tipo=$('arteTipo').value;
+  const peca=($('artePeca').value.trim()||'Sua peça linda');
+  const preco=semReais($('artePreco').value), de=semReais($('arteDe').value);
+  const CHAP={novidade:'CHEGOU NOVIDADE', oferta:'OFERTA DO DIA', ultimas:'ÚLTIMAS PEÇAS', aviso:(Perfil.dados.nome||'AVISO').toUpperCase()};
+  const estilo = Arte.cfg.foto ? Arte.cfg.estilo : 'sem';
+  const F = '-apple-system,Segoe UI,Roboto,sans-serif';
+  const S = 1080, MEIO = 540, MAXW = 880;
+
+  const desenhar = (foto, logo)=>{
+    cx.clearRect(0,0,S,S);
+    cx.textAlign='center'; cx.textBaseline='alphabetic';
+
+    // ================= FUNDO =================
+    const g=cx.createLinearGradient(0,0,S,S);
+    g.addColorStop(0,cor); g.addColorStop(1,corEscura(cor,.72));
+    cx.fillStyle=g; cx.fillRect(0,0,S,S);
+
+    let limiteTopo;   // abaixo disso o texto pode entrar sem cobrir a foto
+    if(estilo==='fundo'){
+      Arte.cover(cx,foto,0,0,S,S);
+      const v=cx.createLinearGradient(0,0,0,S);
+      v.addColorStop(0,'rgba(0,0,0,.5)'); v.addColorStop(.34,'rgba(0,0,0,.08)');
+      v.addColorStop(.58, rgbaEscura(cor,.5,.5)); v.addColorStop(1, rgbaEscura(cor,.42,.97));
+      cx.fillStyle=v; cx.fillRect(0,0,S,S);
+      limiteTopo = 560;
+    } else if(estilo==='meio'){
+      Arte.cover(cx,foto,0,0,S,520);
+      cx.fillStyle=g; cx.fillRect(0,520,S,S-520);
+      const fade=cx.createLinearGradient(0,410,0,540);
+      fade.addColorStop(0,'rgba(0,0,0,0)'); fade.addColorStop(1,cor);
+      cx.fillStyle=fade; cx.fillRect(0,410,S,130);
+      limiteTopo = 585;
+    } else if(estilo==='circulo'){
+      // circulo menor quando o texto precisa de mais espaco (nome longo / oferta com preco antigo)
+      const precisaEspaco = peca.length > 24 || !!(de && tipo==='oferta');
+      const r = precisaEspaco ? 205 : 250, cyF = precisaEspaco ? 320 : 360;
+      cx.save(); cx.beginPath(); cx.arc(MEIO,cyF,r,0,7); cx.closePath(); cx.clip();
+      Arte.cover(cx,foto,MEIO-r,cyF-r,r*2,r*2); cx.restore();
+      cx.strokeStyle='rgba(255,255,255,.85)'; cx.lineWidth=8;
+      cx.beginPath(); cx.arc(MEIO,cyF,r,0,7); cx.stroke();
+      limiteTopo = cyF + r + 56;
+    } else {
+      cx.strokeStyle='rgba(255,255,255,.32)'; cx.lineWidth=6; cx.strokeRect(46,46,S-92,S-92);
+      limiteTopo = 300;
+    }
+
+    // ================= MEDIR TUDO (sem desenhar) =================
+    // rodape
+    const temInsta = !!Perfil.dados.insta;
+    const rLogo = 38, hInsta = temInsta ? 40 : 0, hNome = 42;
+    const alturaRodape = rLogo*2 + 16 + hNome + hInsta + 34;   // logo + gaps + textos + margem inferior
+    const yBaseRodape = S - 46;                                 // ultima linha do rodape
+    const topoRodape = yBaseRodape - alturaRodape + 34;
+
+    // preco (pilula) e preco antigo
+    const temPreco = !!preco, temDe = !!(de && tipo==='oferta');
+    const hPilula = temPreco ? 116 : 0;
+    const hDe = temDe ? 66 : 0;
+    const gapPrecoRodape = 30, gapTextoPreco = 62;   // folga entre o nome e o bloco de preco
+
+    const baseBlocoPreco = topoRodape - gapPrecoRodape;         // fim do bloco de preco
+    const topoBlocoPreco = baseBlocoPreco - hPilula - hDe;
+
+    // nome da peca: TEM que caber na caixa [limiteTopo .. topoBlocoPreco - gap]
+    const fimCaixa = topoBlocoPreco - gapTextoPreco;      // ultima linha nao passa daqui
+    const alturaCaixa = Math.max(80, fimCaixa - limiteTopo);
+    let fs = (estilo==='sem') ? 84 : 72;
+    const quebrar = (tam)=>{ cx.font='800 '+tam+'px '+F;
+      const linhas=['']; peca.split(' ').forEach(w=>{
+        const t=(linhas[linhas.length-1]+' '+w).trim();
+        if(cx.measureText(t).width<=MAXW || linhas[linhas.length-1]==='') linhas[linhas.length-1]=t;
+        else linhas.push(w); });
+      return linhas; };
+    let linhas = quebrar(fs);
+    // reduz a fonte ate o bloco (n linhas) caber na caixa
+    while(fs>34 && ((linhas.length-1)*fs*1.18 + fs) > alturaCaixa){ fs-=4; linhas=quebrar(fs); }
+    if(linhas.length>3){ linhas = linhas.slice(0,3); }
+
+    // ================= DESENHAR (de cima pra baixo) =================
+    // chapeu
+    const yChapeu = (estilo==='circulo') ? 92 : (estilo==='sem' ? 180 : 128);
+    cx.fillStyle='rgba(255,255,255,.95)'; cx.font='700 40px '+F;
+    cx.letterSpacing='7px'; cx.fillText(CHAP[tipo],MEIO,yChapeu); cx.letterSpacing='0px';
+
+    // nome da peca: ultima linha encostada no fim da caixa
+    cx.font='800 '+fs+'px '+F; cx.fillStyle='#fff';
+    const lh = fs*1.18;
+    const yUltima = fimCaixa;
+    const yPrimeira = yUltima - (linhas.length-1)*lh;
+    linhas.forEach((l,i)=> cx.fillText(l, MEIO, yPrimeira + i*lh));
+
+    // preco antigo
+    let yCursor = topoBlocoPreco;
+    if(temDe){
+      cx.font='600 46px '+F; cx.fillStyle='rgba(255,255,255,.85)';
+      const deTxt='R$ '+de, dw=cx.measureText(deTxt).width;
+      const yDe = yCursor + 46;
+      cx.fillText(deTxt, MEIO, yDe);
+      cx.strokeStyle='rgba(255,255,255,.9)'; cx.lineWidth=4;
+      cx.beginPath(); cx.moveTo(MEIO-dw/2-12, yDe-15); cx.lineTo(MEIO+dw/2+12, yDe-15); cx.stroke();
+      yCursor += hDe;
+    }
+    // pilula do preco
+    if(temPreco){
+      cx.font='800 82px '+F;
+      const pTxt='R$ '+preco, pw=cx.measureText(pTxt).width;
+      cx.fillStyle='#fff';
+      cx.beginPath(); cx.roundRect(MEIO-pw/2-46, yCursor, pw+92, hPilula, 58); cx.fill();
+      cx.fillStyle=cor; cx.fillText(pTxt, MEIO, yCursor + hPilula/2 + 29);
+    }
+
+    // rodape: logo, nome, @
+    const cyLogo = topoRodape + rLogo;
+    if(logo){
+      cx.save(); cx.beginPath(); cx.arc(MEIO,cyLogo,rLogo,0,7); cx.clip();
+      cx.drawImage(logo,MEIO-rLogo,cyLogo-rLogo,rLogo*2,rLogo*2); cx.restore();
+    } else {
+      cx.fillStyle='rgba(255,255,255,.2)'; cx.beginPath(); cx.arc(MEIO,cyLogo,rLogo,0,7); cx.fill();
+      cx.fillStyle='#fff'; cx.font='800 40px '+F;
+      cx.fillText((Perfil.dados.nome||'L').charAt(0).toUpperCase(),MEIO,cyLogo+14);
+    }
+    cx.strokeStyle='rgba(255,255,255,.9)'; cx.lineWidth=4;
+    cx.beginPath(); cx.arc(MEIO,cyLogo,rLogo,0,7); cx.stroke();
+
+    const yNome = cyLogo + rLogo + 46;
+    cx.fillStyle='rgba(255,255,255,.97)'; cx.font='700 36px '+F;
+    cx.fillText(Perfil.dados.nome||'', MEIO, yNome);
+    if(temInsta){ cx.font='500 30px '+F; cx.fillStyle='rgba(255,255,255,.8)';
+      cx.fillText(Perfil.dados.insta, MEIO, yNome + 40); }
+
+    mostraArte();
+  };
+
+  const carregar = (src)=> new Promise(res=>{ if(!src) return res(null);
+    const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src; });
+  Promise.all([carregar(Arte.cfg.foto), carregar(Perfil.dados.logo)])
+    .then(([foto,logo])=>desenhar(foto,logo));
+}
+function mostraArte(){ $('tela').classList.remove('oculto');
+  $('btnBaixar').classList.remove('oculto'); $('btnCompart').classList.remove('oculto'); }
+function baixarArte(){ $('tela').toBlob(b=>{
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='arte-'+($('arteTipo').value)+'.png'; a.click(); URL.revokeObjectURL(a.href); },'image/png'); }
+function compartilharArte(){ $('tela').toBlob(async b=>{
+  const f=new File([b],'arte-lojinha.png',{type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[f]})){
+    try{ await navigator.share({files:[f]}); }catch(e){}
+  } else baixarArte(); },'image/png'); }
+
+/* ============ INICIO ============ */
+Perfil.carregar();
+Arte.carregar();
+montaSituacoes();
+document.querySelectorAll('#arteEstiloChips button').forEach(b=>
+  b.addEventListener('click',()=>Arte.setEstilo(b.dataset.v)));
+document.querySelectorAll('#arteTipoChips button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#arteTipoChips button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); document.getElementById('arteTipo').value=b.dataset.v; }));
+
+
+
+
+/* ============ AJUSTES (engrenagem): cor + instalar ============ */
+const Config = {
+  abrir(){ this.pintar(); document.getElementById('cfgFundo').classList.add('aberto'); },
+  fechar(){ document.getElementById('cfgFundo').classList.remove('aberto'); },
+  pintar(){
+    const atual = localStorage.getItem('lucronamao_tema')||'vinho';
+    document.getElementById('cfgCores').innerHTML = Object.keys(TEMAS).map(k=>
+      `<button class="${k===atual?'on':''}" style="background:${TEMAS[k].a}" aria-label="${TEMAS[k].nome}"
+        onclick="aplicarTema('${k}');Config.pintar();if(typeof Tela!=='undefined'&&Tela.render)Tela.render();"></button>`).join('');
+    const inst = Instalar.instalado();
+    document.getElementById('cfgInstalarBloco').style.display = inst ? 'none' : '';
+  },
+  instalar(){ Instalar.instalar(); },
+  mostrarPassos(passos){
+    document.getElementById('cfgPassos').innerHTML =
+      `<ol class="cfg-passos">${passos.map(p=>`<li>${p}</li>`).join('')}</ol>`;
+  }
+};
+
+/* ============ INSTALACAO (PWA) ============ */
+const Instalar = {
+  prompt:null,
+  init(){
+    // registra o cache offline SO quando o app ja esta instalado na tela inicial.
+    // (no navegador comum a pagina sempre vem da rede, sem versao velha em cache)
+    if('serviceWorker' in navigator){
+      if(this.instalado()) navigator.serviceWorker.register('sw.js').catch(()=>{});
+      else navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+    }
+    window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; });
+    window.addEventListener('appinstalled', ()=>{ this.prompt=null;
+      if(typeof Config!=='undefined') Config.pintar(); });
+  },
+  instalado(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; },
+  iOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); },
+  async instalar(){
+    if(this.prompt){ this.prompt.prompt(); const r=await this.prompt.userChoice;
+      if(r.outcome==='accepted'){ this.prompt=null; if(typeof Config!=='undefined') Config.pintar(); }
+      return; }
+    const passos = this.iOS()
+      ? ['Toque no botao de <b>compartilhar</b> (quadrado com a seta pra cima)',
+         'Role a lista e toque em <b>Adicionar a Tela de Inicio</b>',
+         'Confirme em <b>Adicionar</b>']
+      : ['Toque nos <b>tres pontinhos</b> no canto de cima do navegador',
+         'Toque em <b>Adicionar a tela inicial</b> (ou Instalar aplicativo)',
+         'Confirme em <b>Instalar</b>'];
+    if(typeof Config!=='undefined') Config.mostrarPassos(passos);
+  }
+};
+Instalar.init();
+
+</script>
+
+<div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
+  <div class="cfg-box">
+    <h3>Ajustes</h3>
+    <div class="cfg-sub">Deixe o app com a sua cara.</div>
+    <h4>cor do aplicativo</h4>
+    <div class="cfg-cores" id="cfgCores"></div>
+    <div id="cfgInstalarBloco">
+      <h4>aplicativo no celular</h4>
+      <p style="font-size:14px;line-height:1.5;color:var(--cinza)">Ícone próprio na tela, abre sem navegador e funciona sem internet.</p>
+      <button class="cfg-btn" onclick="Config.instalar()">Adicionar à tela inicial</button>
+      <div id="cfgPassos"></div>
+    </div>
+    <button class="cfg-btn sec" onclick="Config.fechar()">Fechar</button>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#8e2757">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Precificação na Mão · Lucro na Mão</title>
+<style>
+:root{
+  --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
+  --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
+  --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
+  --verm:#b3261e; --verm-bg:#fbeae9;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--rose-2);color:var(--tinta);font-size:16px;min-height:100vh;padding-bottom:30px}
+header{background:var(--vinho);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+header a{color:#fff;text-decoration:none;display:flex;align-items:center}
+header h1{font-size:17px;font-weight:700}
+header .sub{font-size:12px;opacity:.85}
+header svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+main{padding:14px;max-width:560px;margin:0 auto}
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:14px;color:var(--cinza);font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+label{font-size:13px;color:var(--cinza);font-weight:600;display:block;margin-top:12px}
+input{width:100%;padding:13px;border:1.5px solid var(--linha);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
+input:focus{outline:none;border-color:var(--vinho)}
+.linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.chips button{padding:8px 13px;background:var(--rose);color:var(--vinho);border:0;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer}
+.chips button.on{background:var(--vinho);color:#fff}
+.resultado{background:var(--vinho);color:#fff;border-radius:14px;padding:18px;text-align:center;margin-bottom:12px}
+.resultado .rotulo{font-size:13px;opacity:.85}
+.resultado .preco{font-size:38px;font-weight:800;margin:2px 0}
+.resultado .lucro{font-size:14.5px;background:rgba(255,255,255,.14);border-radius:10px;padding:8px;margin-top:8px}
+.tabela{width:100%;border-collapse:collapse;font-size:14.5px}
+.tabela td{padding:9px 4px;border-bottom:1px solid var(--linha)}
+.tabela tr:last-child td{border-bottom:0}
+.tabela .d{text-align:right;font-weight:700}
+.tabela .verde{color:var(--verde)} .tabela .verm{color:var(--verm)}
+.aviso{border-radius:12px;padding:11px 12px;font-size:13.5px;margin-top:10px;display:none}
+.aviso.mostra{display:flex;gap:8px;align-items:flex-start}
+.aviso.ruim{background:var(--verm-bg);color:var(--verm)}
+.btn{background:var(--vinho);color:#fff;width:100%;padding:15px;font-weight:700;border:0;border-radius:12px;font-size:16px;cursor:pointer;margin-top:8px;font-family:inherit}
+.btn.sec{background:var(--rose);color:var(--vinho)}
+.dica{font-size:12.5px;color:var(--cinza);margin-top:6px;line-height:1.45}
+
+.cfg-fundo{position:fixed;inset:0;background:rgba(43,34,48,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.cfg-fundo.aberto{display:flex}
+.cfg-box{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:18px 16px 26px}
+.cfg-box h3{font-size:17px;margin-bottom:2px}
+.cfg-box .cfg-sub{font-size:13px;color:var(--cinza);margin-bottom:14px}
+.cfg-box h4{font-size:12.5px;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+.cfg-cores{display:flex;gap:12px}
+.cfg-cores button{width:42px;height:42px;border-radius:50%;border:3px solid transparent;outline:2px solid var(--linha);cursor:pointer}
+.cfg-cores button.on{border-color:var(--tinta)}
+.cfg-btn{background:var(--vinho);color:#fff;width:100%;padding:14px;font-weight:700;border:0;border-radius:12px;font-size:15.5px;cursor:pointer;margin-top:8px;font-family:inherit}
+.cfg-btn.sec{background:var(--rose);color:var(--vinho)}
+.cfg-passos{font-size:14.5px;line-height:1.75;color:var(--cinza);padding-left:22px;margin:6px 0 2px}
+.btn-cfg{background:none;border:0;color:#fff;display:flex;align-items:center;cursor:pointer;padding:4px}
+.btn-cfg svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+.abas{display:flex;background:#fff;border:1.5px solid var(--linha);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.abas button{flex:1;padding:12px 4px;background:none;border:0;font-size:14px;font-weight:700;color:var(--cinza);cursor:pointer;font-family:inherit}
+.abas button.on{background:var(--vinho);color:#fff}
+.oculto{display:none!important}
+.lote-item{border:1px solid var(--linha);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.lote-item .topo{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.lote-item .topo input{margin-top:0}
+.lote-item .linha3{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.lote-item .res{margin-top:9px;background:var(--rose);border-radius:10px;padding:9px 11px;font-size:13.5px;line-height:1.5}
+.lote-item .res b{color:var(--vinho)}
+.lote-item .res.ruim{background:var(--verm-bg);color:var(--verm)}
+.btn-x{background:var(--verm-bg);color:var(--verm);border:0;border-radius:10px;width:42px;height:46px;font-size:18px;font-weight:800;cursor:pointer;flex-shrink:0}
+.tabela-lote{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+.tabela-lote th{text-align:left;color:var(--cinza);font-weight:600;padding:6px 4px;border-bottom:1.5px solid var(--linha);font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+.tabela-lote td{padding:8px 4px;border-bottom:1px solid var(--linha)}
+.tabela-lote td.d{text-align:right;font-weight:700}
+.etq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.etq-grid button{padding:12px 8px;background:var(--rose);color:var(--tinta);border:0;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.etq-grid button.on{background:var(--vinho);color:#fff}
+canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12px;display:block;background:#fff}
+.mini{font-size:12.5px;color:var(--cinza);margin-top:8px;line-height:1.45}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="hub.html" aria-label="voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <div><h1>Precificação na Mão</h1><div class="sub">o preço certo, sem chute</div></div>
+  <div style="margin-left:auto"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
+</header>
+
+<main>
+  <div class="abas">
+    <button id="aba-uma" class="on" onclick="Aba.ir('uma')">Uma peça</button>
+    <button id="aba-lote" onclick="Aba.ir('lote')">Em lote</button>
+    <button id="aba-etq" onclick="Aba.ir('etq')">Etiquetas</button>
+  </div>
+
+  <!-- ============== UMA PEÇA ============== -->
+  <section id="sec-uma">
+    <div class="card">
+      <h2>quanto essa peça te custa</h2>
+      <label>nome da peça (aparece na etiqueta)</label>
+      <input id="pecaNome" placeholder="ex: Blusa canelada P">
+      <label>quanto você PAGOU nela (por peça)</label>
+      <input id="custo" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+      <div class="linha2">
+        <div><label>frete rateado por peça</label><input id="frete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+          <div class="dica">frete do pedido ÷ nº de peças</div></div>
+        <div><label>embalagem / extras</label><input id="extras" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+      </div>
+      <label>taxa de quem recebe (%)</label>
+      <div class="chips" id="chipsTaxa">
+        <button data-v="0">Pix direto (0%)</button>
+        <button data-v="5">maquininha (~5%)</button>
+        <button data-v="12">cartão parcelado (~12%)</button>
+      </div>
+      <input id="taxa" data-pct inputmode="decimal" placeholder="ou digite a taxa %" style="margin-top:8px">
+    </div>
+
+    <div class="card">
+      <h2>quanto você quer ganhar</h2>
+      <label>margem de lucro desejada (%)</label>
+      <div class="chips" id="chipsMargem">
+        <button data-v="50">50%</button>
+        <button data-v="80" class="on">80%</button>
+        <button data-v="100">100%</button>
+        <button data-v="150">150%</button>
+      </div>
+      <input id="margem" data-pct inputmode="decimal" placeholder="ou digite a margem %" style="margin-top:8px">
+    </div>
+
+    <div class="resultado">
+      <div class="rotulo">venda por</div>
+      <div class="preco" id="rPreco">R$ 0,00</div>
+      <div class="lucro" id="rLucro">preencha os campos acima</div>
+    </div>
+
+    <button class="btn" onclick="Precos.salvarAtual()">Salvar na minha lista de preços</button>
+
+    <div class="card">
+      <h2>e se eu vender por outro preço?</h2>
+      <label>testar um preço</label>
+      <input id="testePreco" data-moeda inputmode="numeric" placeholder="ex: R$ 49,90">
+      <div class="aviso ruim" id="avisoTeste"></div>
+      <table class="tabela" id="tabelaCenarios"></table>
+    </div>
+
+    <button class="btn sec" id="btnCopiar">Copiar resumo do preço</button>
+  </section>
+
+  <!-- ============== EM LOTE ============== -->
+  <section id="sec-lote" class="oculto">
+    <div class="card">
+      <h2>vale para todas as peças do lote</h2>
+      <div class="linha2">
+        <div><label>frete do pedido (total)</label><input id="loteFrete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+          <div class="dica">dividido entre as peças abaixo</div></div>
+        <div><label>embalagem por peça</label><input id="loteEmb" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+      </div>
+      <div class="linha2">
+        <div><label>taxa de recebimento (%)</label><input id="loteTaxa" data-pct inputmode="decimal" placeholder="0"></div>
+        <div><label>margem desejada (%)</label><input id="loteMargem" data-pct inputmode="decimal" placeholder="80"></div>
+      </div>
+    </div>
+
+    <div id="loteLista"></div>
+    <button class="btn sec" onclick="Lote.adicionar()">+ Adicionar peça</button>
+
+    <div class="card" id="loteResumo"></div>
+    <button class="btn" onclick="Lote.salvarTodos()">Salvar todas na lista de preços</button>
+    <button class="btn sec" onclick="Lote.exportar()">Exportar planilha do lote</button>
+  </section>
+
+  <!-- ============== ETIQUETAS ============== -->
+  <section id="sec-etq" class="oculto">
+    <div class="card">
+      <h2>minha lista de preços</h2>
+      <div id="listaPrecos"></div>
+    </div>
+
+    <div class="card" id="cardEtq">
+      <h2>etiqueta</h2>
+      <label>modelo</label>
+      <div class="etq-grid" id="etqModelos">
+        <button data-v="preco" class="on">Só o preço</button>
+        <button data-v="completa">Nome + preço</button>
+        <button data-v="promo">Promoção (de/por)</button>
+        <button data-v="folha">Folha com 8 etiquetas</button>
+      </div>
+      <div id="etqCampos"></div>
+      <button class="btn" onclick="Etiqueta.gerar()">Gerar etiqueta</button>
+      <canvas id="telaEtq" class="oculto"></canvas>
+      <button class="btn sec oculto" id="btnEtqBaixar" onclick="Etiqueta.baixar()">Salvar imagem</button>
+      <button class="btn sec oculto" id="btnEtqCompart" onclick="Etiqueta.compartilhar()">Compartilhar</button>
+      <div class="mini">A etiqueta sai com o nome da sua lojinha. Imprima em papel comum ou adesivo, ou mande a imagem direto pra cliente.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+const TEMAS={
+  vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
+  violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
+  esmeralda:{a:'#1c7a5c',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
+  petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa',nome:'Petróleo'},
+  grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9',nome:'Grafite'}
+};
+function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documentElement.style;
+  r.setProperty('--vinho',t.a); r.setProperty('--vinho-escuro',t.b);
+  r.setProperty('--rose',t.c); r.setProperty('--rose-2',t.d);
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
+  localStorage.setItem('lucronamao_tema',n); }
+aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
+function num(v){ const s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isNaN(n)?0:n; }
+function fmtMoeda(n){ return n||n===0 ? 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
+document.addEventListener('input',function(e){
+  const el=e.target; if(!el.matches) return;
+  if(el.matches('[data-moeda]')){
+    const d=el.value.replace(/\D/g,'').replace(/^0+(?=\d{3})/,'').slice(0,10);
+    el.value=d?'R$ '+(parseInt(d)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+  }
+  if(el.matches('[data-pct]')){
+    let v=el.value.replace(/[^\d,]/g,''); const i=v.indexOf(',');
+    if(i>=0) v=v.slice(0,i+1)+v.slice(i+1).replace(/,/g,'').slice(0,1);
+    el.value=v.slice(0,6);
+  }
+  if(typeof POSMASK==='function') POSMASK(el);
+});
+function POSMASK(el){ try{calc();}catch(e){} }
+function semReais(v){ return String(v||'').replace(/^R\$\s*/,'').trim(); }
+function rs(n){ return 'R$ '+(Math.round(n*100)/100).toFixed(2).replace('.',','); }
+const $=id=>document.getElementById(id);
+
+function chips(idBox, idInput){
+  $(idBox).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    $(idBox).querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); $(idInput).value=b.dataset.v.replace('.',','); calc(); }));
+  $(idInput).addEventListener('input',()=>{
+    $(idBox).querySelectorAll('button').forEach(x=>x.classList.remove('on')); calc(); });
+}
+chips('chipsTaxa','taxa'); chips('chipsMargem','margem');
+['custo','frete','extras','testePreco'].forEach(i=>$(i).addEventListener('input',calc));
+
+function custoTotal(){ return num($('custo').value)+num($('frete').value)+num($('extras').value); }
+function margemAtiva(){ const on=$('chipsMargem').querySelector('.on');
+  return num($('margem').value) || (on?num(on.dataset.v):0); }
+function taxaAtiva(){ const on=$('chipsTaxa').querySelector('.on');
+  const v=$('taxa').value.trim(); return v!==''?num(v):(on?num(on.dataset.v):0); }
+
+function precoPara(margemPct){
+  const c=custoTotal(), t=taxaAtiva()/100;
+  // preco liquido da taxa precisa cobrir custo + margem sobre o custo
+  const alvo=c*(1+margemPct/100);
+  return t>=1?0:alvo/(1-t);
+}
+function lucroDe(preco){ const c=custoTotal(), t=taxaAtiva()/100;
+  return preco*(1-t)-c; }
+
+function calc(){
+  const c=custoTotal(), m=margemAtiva();
+  if(c<=0){ $('rPreco').textContent='R$ 0,00'; $('rLucro').textContent='preencha os campos acima'; $('tabelaCenarios').innerHTML=''; return; }
+  const p=precoPara(m), l=lucroDe(p);
+  $('rPreco').textContent=rs(p);
+  $('rLucro').innerHTML=`custo total ${rs(c)} · você fica com <b>${rs(l)}</b> por peça (já tirando a taxa)`;
+  // cenarios
+  const linhas=[50,80,100,150].map(mp=>{
+    const pp=precoPara(mp), ll=lucroDe(pp);
+    return `<tr><td>margem ${mp}%</td><td class="d">${rs(pp)}</td><td class="d verde">+${rs(ll)}</td></tr>`; }).join('');
+  $('tabelaCenarios').innerHTML=`<tr><td style="color:var(--cinza)">cenário</td><td class="d" style="color:var(--cinza)">preço</td><td class="d" style="color:var(--cinza)">lucro/peça</td></tr>`+linhas;
+  // teste de preco
+  const tp=num($('testePreco').value), av=$('avisoTeste');
+  if(tp>0){ const lt=lucroDe(tp);
+    av.classList.add('mostra');
+    if(lt<=0){ av.className='aviso ruim mostra';
+      av.textContent='Vendendo a '+rs(tp)+' você PERDE '+rs(Math.abs(lt))+' por peça. Não vale.'; }
+    else { av.className='aviso mostra'; av.style.background='var(--verde-bg)'; av.style.color='var(--verde)';
+      av.textContent='Vendendo a '+rs(tp)+' sobra '+rs(lt)+' por peça (margem de '+Math.round(lt/custoTotal()*100)+'% sobre o custo).'; }
+  } else av.classList.remove('mostra');
+}
+
+$('btnCopiar').addEventListener('click',()=>{
+  const c=custoTotal(); if(c<=0) return;
+  const p=precoPara(margemAtiva()), l=lucroDe(p);
+  const txt=`Precificação\n· custo total por peça: ${rs(c)}\n· preço de venda: ${rs(p)}\n· lucro por peça: ${rs(l)} (taxa de ${taxaAtiva()}% já descontada)`;
+  navigator.clipboard.writeText(txt).then(()=>{ $('btnCopiar').textContent='Copiado!';
+    setTimeout(()=>$('btnCopiar').textContent='Copiar resumo do preço',1800); });
+});
+
+
+
+
+
+/* ================= ABAS ================= */
+const Aba = {
+  ir(x){ ['uma','lote','etq'].forEach(a=>{
+      document.getElementById('sec-'+a).classList.toggle('oculto', a!==x);
+      document.getElementById('aba-'+a).classList.toggle('on', a===x); });
+    if(x==='lote'){ if(!Lote.itens.length) Lote.adicionar(); else Lote.render(); }
+    if(x==='etq'){ Precos.render(); Etiqueta.camposDoModelo(); } }
+};
+
+/* ================= LISTA DE PRECOS (salva no aparelho) ================= */
+const Precos = {
+  chave:'lucronamao_precos', itens:[],
+  carregar(){ try{ this.itens = JSON.parse(localStorage.getItem(this.chave)) || []; }catch(e){ this.itens=[]; } },
+  salvar(){ localStorage.setItem(this.chave, JSON.stringify(this.itens)); },
+  add(nome, custo, preco){
+    if(!preco || preco<=0) { toastP('Calcule um preço antes de salvar'); return false; }
+    this.itens.unshift({id:Date.now()+Math.random(), nome:nome||'Sem nome', custo:+custo.toFixed(2), preco:+preco.toFixed(2), em:new Date().toISOString().slice(0,10)});
+    this.itens = this.itens.slice(0,200); this.salvar(); return true;
+  },
+  salvarAtual(){
+    const c=custoTotal(), p=precoPara(margemAtiva());
+    if(c<=0){ toastP('Preencha o custo primeiro'); return; }
+    if(this.add(($('pecaNome').value||'').trim(), c, p)){
+      toastP('Preço salvo! Está na aba Etiquetas.'); }
+  },
+  excluir(id){ this.itens = this.itens.filter(x=>x.id!==id); this.salvar(); this.render(); Etiqueta.camposDoModelo(); },
+  render(){
+    const el=$('listaPrecos');
+    if(!this.itens.length){ el.innerHTML='<div class="mini">Nenhum preço salvo ainda. Calcule na aba <b>Uma peça</b> ou <b>Em lote</b> e toque em salvar.</div>'; return; }
+    el.innerHTML = '<table class="tabela-lote"><tr><th>peça</th><th style="text-align:right">preço</th><th></th></tr>' +
+      this.itens.slice(0,40).map(i=>
+        `<tr><td>${escapa(i.nome)}<div style="font-size:11.5px;color:var(--cinza)">custo ${rs(i.custo)} · lucro ${rs(i.preco-i.custo)}</div></td>
+         <td class="d">${rs(i.preco)}</td>
+         <td style="text-align:right"><button class="btn-x" style="width:34px;height:34px;font-size:15px" onclick="Precos.excluir(${i.id})">×</button></td></tr>`).join('') +
+      '</table>' + (this.itens.length>40?`<div class="mini">mostrando 40 de ${this.itens.length}</div>`:'');
+  }
+};
+function escapa(s){ return String(s).replace(/[<>&]/g, m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m])); }
+function toastP(m){ const t=document.createElement('div');
+  t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:30px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:70;max-width:92vw;text-align:center';
+  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),2400); }
+
+/* ================= EM LOTE ================= */
+const Lote = {
+  itens:[],
+  adicionar(){ this.itens.push({id:Date.now()+Math.random(), nome:'', custo:0, qtd:1}); this.render(); },
+  remover(id){ this.itens=this.itens.filter(i=>i.id!==id); if(!this.itens.length) this.adicionar(); else this.render(); },
+  setCampo(id, campo, valor){ const i=this.itens.find(x=>x.id===id); if(!i) return;
+    i[campo] = campo==='nome' ? valor : num(valor); this.calcular(); },
+  totalPecas(){ return this.itens.reduce((s,i)=>s+(i.qtd||0),0); },
+  cfg(){ return { freteTotal:num($('loteFrete').value), emb:num($('loteEmb').value),
+                  taxa:num($('loteTaxa').value)/100, margem:num($('loteMargem').value)||80 }; },
+  precoDe(item){
+    const cfg=this.cfg(), tp=this.totalPecas()||1;
+    const freteUn = cfg.freteTotal/tp;
+    const custoUn = item.custo + freteUn + cfg.emb;
+    const alvo = custoUn*(1+cfg.margem/100);
+    const preco = cfg.taxa>=1 ? 0 : alvo/(1-cfg.taxa);
+    const lucroUn = preco*(1-cfg.taxa) - custoUn;
+    return {custoUn, preco, lucroUn};
+  },
+  calcular(){
+    this.itens.forEach(i=>{
+      const el=document.getElementById('res-'+i.id); if(!el) return;
+      if(i.custo<=0){ el.className='res'; el.innerHTML='Preencha o custo pra ver o preço.'; return; }
+      const r=this.precoDe(i);
+      el.className = r.lucroUn>0 ? 'res' : 'res ruim';
+      el.innerHTML = `custo real por peça <b>${rs(r.custoUn)}</b> · venda por <b>${rs(r.preco)}</b> · sobra <b>${rs(r.lucroUn)}</b> por peça`;
+    });
+    this.resumo();
+  },
+  resumo(){
+    const validos=this.itens.filter(i=>i.custo>0);
+    const el=$('loteResumo');
+    if(!validos.length){ el.innerHTML='<h2>resumo do lote</h2><div class="mini">Adicione peças e o resumo aparece aqui.</div>'; return; }
+    let invest=0, receita=0, lucro=0;
+    const linhas = validos.map(i=>{
+      const r=this.precoDe(i); const q=i.qtd||1;
+      invest += r.custoUn*q; receita += r.preco*q; lucro += r.lucroUn*q;
+      return `<tr><td>${escapa(i.nome||'sem nome')} <span style="color:var(--cinza)">x${q}</span></td>
+        <td class="d">${rs(r.preco)}</td><td class="d verde">${rs(r.lucroUn*q)}</td></tr>`; }).join('');
+    el.innerHTML = `<h2>resumo do lote</h2>
+      <table class="tabela-lote"><tr><th>peça</th><th style="text-align:right">preço</th><th style="text-align:right">lucro total</th></tr>${linhas}</table>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        <div class="kpi" style="background:var(--rose);border-radius:12px;padding:11px">
+          <div style="font-size:19px;font-weight:800;color:var(--vinho)">${rs(invest)}</div>
+          <div style="font-size:12px;color:var(--cinza)">investido no lote</div></div>
+        <div class="kpi" style="background:var(--verde-bg);border-radius:12px;padding:11px">
+          <div style="font-size:19px;font-weight:800;color:var(--verde)">${rs(lucro)}</div>
+          <div style="font-size:12px;color:var(--cinza)">lucro se vender tudo</div></div>
+      </div>
+      <div class="mini">Vendendo o lote inteiro você recebe <b>${rs(receita)}</b>.</div>`;
+  },
+  render(){
+    $('loteLista').innerHTML = this.itens.map((i,idx)=>`
+      <div class="lote-item">
+        <div class="topo">
+          <input placeholder="peça ${idx+1} (ex: Blusa canelada)" value="${escapa(i.nome)}"
+            oninput="Lote.setCampo(${i.id},'nome',this.value)">
+          <button class="btn-x" onclick="Lote.remover(${i.id})">×</button>
+        </div>
+        <div class="linha2">
+          <div><label>quanto pagou (un)</label>
+            <input data-moeda inputmode="numeric" placeholder="R$ 0,00" value="${i.custo?fmtM(i.custo):''}"
+              oninput="Lote.setCampo(${i.id},'custo',this.value)"></div>
+          <div><label>quantas peças</label>
+            <input inputmode="numeric" placeholder="1" value="${i.qtd||1}"
+              oninput="Lote.setCampo(${i.id},'qtd',this.value)"></div>
+        </div>
+        <div class="res" id="res-${i.id}">Preencha o custo pra ver o preço.</div>
+      </div>`).join('');
+    this.calcular();
+  },
+  salvarTodos(){
+    const validos=this.itens.filter(i=>i.custo>0);
+    if(!validos.length){ toastP('Nenhuma peça com custo preenchido'); return; }
+    validos.forEach(i=>{ const r=this.precoDe(i); Precos.add(i.nome, r.custoUn, r.preco); });
+    toastP(validos.length+' preços salvos na lista!');
+  },
+  exportar(){
+    const validos=this.itens.filter(i=>i.custo>0);
+    if(!validos.length){ toastP('Nada pra exportar ainda'); return; }
+    const n=v=>String(Math.round(v*100)/100).replace('.',',');
+    let csv='peça;quantidade;custo real por peça;preço de venda;lucro por peça;lucro total\r\n';
+    validos.forEach(i=>{ const r=this.precoDe(i); const q=i.qtd||1;
+      csv+=[`"${String(i.nome||'sem nome').replace(/"/g,'""')}"`,q,n(r.custoUn),n(r.preco),n(r.lucroUn),n(r.lucroUn*q)].join(';')+'\r\n'; });
+    const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+    a.download='Precos do lote '+new Date().toISOString().slice(0,10).split('-').reverse().join('-')+'.csv';
+    a.click(); toastP('Planilha do lote exportada');
+  }
+};
+function fmtM(n){ return 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* ================= ETIQUETAS ================= */
+const Etiqueta = {
+  modelo:'preco',
+  loja(){ try{ const d=JSON.parse(localStorage.getItem('lucronamao_divulga'))||{}; if(d.nome) return d.nome; }catch(e){}
+    try{ const v=JSON.parse(localStorage.getItem('lucronamao_v1'))||{}; return (v.config&&v.config.loja)||''; }catch(e){ return ''; } },
+  camposDoModelo(){
+    const lista = Precos.itens.slice(0,40);
+    const opcoes = lista.length
+      ? `<label>peça salva</label><select id="etqPeca" onchange="Etiqueta.preencher()">
+          <option value="">— escolher da lista —</option>
+          ${lista.map((i,ix)=>`<option value="${ix}">${escapa(i.nome)} · ${rs(i.preco)}</option>`).join('')}
+         </select>` : '';
+    const extra = this.modelo==='promo'
+      ? `<div class="linha2"><div><label>preço antigo</label><input id="etqDe" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+         <div><label>preço promocional</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div></div>`
+      : `<label>preço</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00">`;
+    const nome = this.modelo==='preco' ? '' : `<label>nome da peça</label><input id="etqNome" placeholder="ex: Blusa canelada">`;
+    $('etqCampos').innerHTML = opcoes + nome + extra;
+  },
+  preencher(){
+    const ix=$('etqPeca').value; if(ix==='') return;
+    const it=Precos.itens[+ix];
+    if($('etqNome')) $('etqNome').value=it.nome;
+    if($('etqPreco')) $('etqPreco').value=fmtM(it.preco);
+  },
+  gerar(){
+    const cv=$('telaEtq'), cx=cv.getContext('2d');
+    const cor = (typeof temaAtual==='function') ? temaAtual().a : '#8e2757';
+    const F='-apple-system,Segoe UI,Roboto,sans-serif';
+    const nome=($('etqNome')?$('etqNome').value.trim():'')||'';
+    const preco=($('etqPreco')?semReais($('etqPreco').value):'')||'';
+    const de=($('etqDe')?semReais($('etqDe').value):'');
+    const loja=this.loja();
+    if(!preco){ toastP('Preencha o preço da etiqueta'); return; }
+
+    const uma = (x,y,w,h)=>{
+      cx.fillStyle='#fff'; cx.fillRect(x,y,w,h);
+      cx.strokeStyle=cor; cx.lineWidth=Math.max(3,w*0.012);
+      cx.strokeRect(x+cx.lineWidth, y+cx.lineWidth, w-cx.lineWidth*2, h-cx.lineWidth*2);
+      // faixa superior com o nome da loja
+      cx.fillStyle=cor; cx.fillRect(x+cx.lineWidth, y+cx.lineWidth, w-cx.lineWidth*2, h*0.17);
+      cx.fillStyle='#fff'; cx.textAlign='center';
+      cx.font='700 '+Math.round(h*0.085)+'px '+F;
+      cx.fillText(loja||'', x+w/2, y+h*0.125);
+      let yy = y+h*0.42;
+      if(this.modelo!=='preco' && nome){
+        cx.fillStyle='#2b2230'; cx.font='700 '+Math.round(h*0.10)+'px '+F;
+        const linhas=[]; let atual='';
+        nome.split(' ').forEach(p=>{ const t=(atual+' '+p).trim();
+          if(cx.measureText(t).width < w*0.82 || !atual) atual=t; else { linhas.push(atual); atual=p; } });
+        linhas.push(atual);
+        linhas.slice(0,2).forEach((l,i)=> cx.fillText(l, x+w/2, y+h*0.36+i*h*0.115));
+        yy = y+h*0.36+Math.min(linhas.length,2)*h*0.115 + h*0.10;
+      }
+      if(de && this.modelo==='promo'){
+        cx.fillStyle='#7a6f80'; cx.font='600 '+Math.round(h*0.085)+'px '+F;
+        const dt='R$ '+de, dw=cx.measureText(dt).width;
+        cx.fillText(dt, x+w/2, yy);
+        cx.strokeStyle='#b3261e'; cx.lineWidth=Math.max(2,h*0.012);
+        cx.beginPath(); cx.moveTo(x+w/2-dw/2-6, yy-h*0.028); cx.lineTo(x+w/2+dw/2+6, yy-h*0.028); cx.stroke();
+        yy += h*0.10;
+      }
+      cx.fillStyle=cor; cx.font='800 '+Math.round(h*0.20)+'px '+F;
+      cx.fillText('R$ '+preco, x+w/2, yy+h*0.13);
+    };
+
+    if(this.modelo==='folha'){
+      // A4 em 150dpi = 1240x1754, com 8 etiquetas (2 col x 4 linhas)
+      cv.width=1240; cv.height=1754;
+      cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height);
+      const mx=60, my=70, gap=30;
+      const w=(cv.width-mx*2-gap)/2, h=(cv.height-my*2-gap*3)/4;
+      for(let r=0;r<4;r++) for(let col=0;col<2;col++)
+        uma(mx+col*(w+gap), my+r*(h+gap), w, h);
+    } else {
+      cv.width=1000; cv.height=640;
+      cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height);
+      uma(0,0,cv.width,cv.height);
+    }
+    cv.classList.remove('oculto');
+    $('btnEtqBaixar').classList.remove('oculto');
+    $('btnEtqCompart').classList.remove('oculto');
+  },
+  baixar(){ $('telaEtq').toBlob(b=>{ const a=document.createElement('a');
+    a.href=URL.createObjectURL(b); a.download='etiqueta.png'; a.click(); URL.revokeObjectURL(a.href); },'image/png'); },
+  compartilhar(){ $('telaEtq').toBlob(async b=>{
+    const f=new File([b],'etiqueta.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f]}); }catch(e){} }
+    else this.baixar(); },'image/png'); }
+};
+
+/* ================= INICIO v2 ================= */
+Precos.carregar();
+document.querySelectorAll('#etqModelos button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#etqModelos button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); Etiqueta.modelo=b.dataset.v; Etiqueta.camposDoModelo(); }));
+['loteFrete','loteEmb','loteTaxa','loteMargem'].forEach(id=>{
+  const el=document.getElementById(id); if(el) el.addEventListener('input',()=>Lote.calcular()); });
+
+/* ============ AJUSTES (engrenagem): cor + instalar ============ */
+const Config = {
+  abrir(){ this.pintar(); document.getElementById('cfgFundo').classList.add('aberto'); },
+  fechar(){ document.getElementById('cfgFundo').classList.remove('aberto'); },
+  pintar(){
+    const atual = localStorage.getItem('lucronamao_tema')||'vinho';
+    document.getElementById('cfgCores').innerHTML = Object.keys(TEMAS).map(k=>
+      `<button class="${k===atual?'on':''}" style="background:${TEMAS[k].a}" aria-label="${TEMAS[k].nome}"
+        onclick="aplicarTema('${k}');Config.pintar();if(typeof Tela!=='undefined'&&Tela.render)Tela.render();"></button>`).join('');
+    const inst = Instalar.instalado();
+    document.getElementById('cfgInstalarBloco').style.display = inst ? 'none' : '';
+  },
+  instalar(){ Instalar.instalar(); },
+  mostrarPassos(passos){
+    document.getElementById('cfgPassos').innerHTML =
+      `<ol class="cfg-passos">${passos.map(p=>`<li>${p}</li>`).join('')}</ol>`;
+  }
+};
+
+/* ============ INSTALACAO (PWA) ============ */
+const Instalar = {
+  prompt:null,
+  init(){
+    // registra o cache offline SO quando o app ja esta instalado na tela inicial.
+    // (no navegador comum a pagina sempre vem da rede, sem versao velha em cache)
+    if('serviceWorker' in navigator){
+      if(this.instalado()) navigator.serviceWorker.register('sw.js').catch(()=>{});
+      else navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+    }
+    window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; });
+    window.addEventListener('appinstalled', ()=>{ this.prompt=null;
+      if(typeof Config!=='undefined') Config.pintar(); });
+  },
+  instalado(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; },
+  iOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); },
+  async instalar(){
+    if(this.prompt){ this.prompt.prompt(); const r=await this.prompt.userChoice;
+      if(r.outcome==='accepted'){ this.prompt=null; if(typeof Config!=='undefined') Config.pintar(); }
+      return; }
+    const passos = this.iOS()
+      ? ['Toque no botao de <b>compartilhar</b> (quadrado com a seta pra cima)',
+         'Role a lista e toque em <b>Adicionar a Tela de Inicio</b>',
+         'Confirme em <b>Adicionar</b>']
+      : ['Toque nos <b>tres pontinhos</b> no canto de cima do navegador',
+         'Toque em <b>Adicionar a tela inicial</b> (ou Instalar aplicativo)',
+         'Confirme em <b>Instalar</b>'];
+    if(typeof Config!=='undefined') Config.mostrarPassos(passos);
+  }
+};
+Instalar.init();
+
+</script>
+
+<div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
+  <div class="cfg-box">
+    <h3>Ajustes</h3>
+    <div class="cfg-sub">Deixe o app com a sua cara.</div>
+    <h4>cor do aplicativo</h4>
+    <div class="cfg-cores" id="cfgCores"></div>
+    <div id="cfgInstalarBloco">
+      <h4>aplicativo no celular</h4>
+      <p style="font-size:14px;line-height:1.5;color:var(--cinza)">Ícone próprio na tela, abre sem navegador e funciona sem internet.</p>
+      <button class="cfg-btn" onclick="Config.instalar()">Adicionar à tela inicial</button>
+      <div id="cfgPassos"></div>
+    </div>
+    <button class="cfg-btn sec" onclick="Config.fechar()">Fechar</button>
+  </div>
+</div>
+
+</body>
+</html>
