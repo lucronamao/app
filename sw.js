@@ -4,10 +4,11 @@
    ESTRATÉGIA: rede primeiro, cache como reserva. Assim a compradora sempre
    recebe a versão nova quando tem internet, e continua funcionando sem ela.
    Não guarda dado da usuária: os dados vivem no localStorage do aparelho. */
-const CACHE = 'lucronamao-v2';
+const CACHE = 'lucronamao-v3';
 const ARQS = [
   'hub.html', 'index.html', 'precificacao.html', 'divulga.html',
-  'manifest.webmanifest', 'icone-192.png', 'icone-512.png'
+  'manifest.webmanifest', 'icone-192.png', 'icone-512.png',
+  'favicon-32.png', 'favicon-96.png', 'favicon-180.png', 'logo-branca.png'
 ];
 
 self.addEventListener('install', e => {
