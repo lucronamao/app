@@ -120,8 +120,15 @@ const MAPA = {
 })();
 const tem = x => (localStorage.getItem(LK)||'').split(',').includes(x);
 
-/* checkout dos degraus (preencher com os links da Cakto na montagem do funil) */
-const CHECKOUT = { divulga:'#CHECKOUT_BUMP_CAKTO', preco:'#CHECKOUT_UPSELL_CAKTO' };
+/* checkout dos degraus. Links lidos da API da Cakto em 19/08/2026 (a Cakto e a fonte da
+   verdade, nao este arquivo). Conferidos no "Resumo do pedido" do checkout real: 27,00 e 97,00.
+   Se mudar produto ou oferta na Cakto, reconfira com GET /public_api/offers/ (o campo `id` da
+   oferta E o short_id do link). */
+const CHECKOUT = {
+  controle:'https://pay.cakto.com.br/3ko7pit',   /* Controle da Lojinha, R$ 47 */
+  divulga: 'https://pay.cakto.com.br/47dvagf',   /* Divulga na Mao,      R$ 27 */
+  preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Precificacao na Mao, R$ 97 */
+};
 
 const ICO = {
   controle:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
@@ -147,14 +154,14 @@ function card(app){
     <div class="pitch">${app.pitch}</div>
     ${bens}
     <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
-      <a href="${app.checkout}">Liberar agora</a></div></div>`;
+      <a href="${app.checkout}" target="_blank" rel="noopener">Liberar agora</a></div></div>`;
 }
 
 const APPS=[
   { id:'controle', nome:'Controle da Lojinha', icone:ICO.controle, url:'index.html',
     desc:'sua lojinha inteira organizada, direto do celular',
     tags:['registrar venda em 3 toques','lista de vendas','estoque automático','fiado anotado','resumo do mês com lucro'],
-    liberado:tem('controle'), preco:'R$ 47', checkout:'#',
+    liberado:tem('controle'), preco:'R$ 47', checkout:CHECKOUT.controle,
     pitch:'Vendas, estoque com baixa automática, fiado, despesas e o resumo do mês. Sem planilha, sem mensalidade.' },
   { id:'divulga', nome:'Divulga na Mão', icone:ICO.divulga, url:'divulga.html',
     desc:'mensagens e artes prontas pra vender mais',
