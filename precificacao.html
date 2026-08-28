@@ -128,6 +128,113 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
 .ps-aviso svg{width:17px;height:17px;flex-shrink:0;margin-top:1px;fill:none;stroke:var(--vinho);
   stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .ps-aviso b{font-weight:800}
+/* ====== ANIMACAO: o caminho do iPhone, desenhado ======
+   Fiel ao fluxo real do iOS 26 (conferido em video do aparelho do Vini, 27/08/2026).
+   Desenho e nao video: ~5 KB, funciona offline junto com o app, nao tem nada de
+   pessoal na tela e nao envelhece quando a Apple muda o visual.
+   O que o desenho reproduz, e que eu tinha errado antes:
+     - a folha de compartilhar do iOS e ESCURA (#262528), nao clara
+     - "Ver mais" nao e link no meio da lista: e um BOTAO REDONDO com seta,
+       na fileira de acoes, e vira "Ver menos" depois
+     - "Adicionar a Tela de Inicio" e o ULTIMO item da lista que se abre
+     - existe uma tela final, com o nome do app e o botao Adicionar em azul */
+.demo{background:var(--rose-2);border:1px solid var(--linha);border-radius:14px;
+  padding:13px 12px 11px;margin-bottom:16px}
+.demo-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.demo-rot{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--cinza)}
+.demo-passo{font-size:12px;font-weight:700;color:var(--vinho);background:var(--rose);
+  border-radius:99px;padding:3px 10px}
+.fone{position:relative;width:172px;height:268px;margin:0 auto;background:#0e0d10;
+  border-radius:23px;padding:5px;box-shadow:0 10px 26px -14px rgba(20,4,12,.7)}
+.fone-tela{position:relative;width:100%;height:100%;background:#fff;border-radius:19px;
+  overflow:hidden;display:flex;flex-direction:column}
+/* a pagina do proprio app, ao fundo */
+.pag{flex:1;background:#fdf4f8;overflow:hidden}
+.pag-top{background:var(--vinho);padding:9px 8px 8px;text-align:center}
+.pag-top b{display:block;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.02em}
+.pag-top i{display:block;color:rgba(255,255,255,.75);font-size:5.5px;font-style:normal;margin-top:2px}
+.pag-card{background:#fff;border:1px solid #eadfe6;border-radius:7px;margin:7px 6px;padding:6px}
+.pag-card b{display:block;font-size:6.5px;color:#2b2230}
+.pag-card i{display:block;font-size:5px;color:#7a6f80;font-style:normal;margin-top:1px}
+.pag-btn{background:var(--vinho);border-radius:5px;height:13px;margin-top:5px}
+/* barra do safari */
+.barra{height:30px;background:#f7f7f8;border-top:1px solid #e2e2e6;display:flex;
+  align-items:center;justify-content:space-between;padding:0 9px;flex-shrink:0}
+.barra i{display:block;width:11px;height:11px;border-radius:2px;background:#b8b8bd}
+.b-url{flex:1;height:14px;border-radius:7px;background:#ececf0;margin:0 7px}
+.b-pontos{position:relative;width:15px;height:19px;flex-shrink:0}
+.b-pontos span{position:absolute;left:50%;width:2.6px;height:2.6px;border-radius:50%;
+  background:#3c3c43;transform:translateX(-50%)}
+.b-pontos span:nth-child(1){top:3px}.b-pontos span:nth-child(2){top:8px}.b-pontos span:nth-child(3){top:13px}
+/* menu dos tres pontinhos */
+.menu{position:absolute;left:7px;right:7px;bottom:36px;background:#fbfbfd;border-radius:11px;
+  box-shadow:0 8px 26px -8px rgba(0,0,0,.5);padding:3px;opacity:0;transform:translateY(10px);
+  transition:opacity .28s,transform .28s;overflow:hidden}
+.menu div{display:flex;align-items:center;gap:6px;padding:6px 7px;border-radius:7px;
+  font-size:8px;color:#111;border-bottom:1px solid #ececf0}
+.menu div:last-child{border-bottom:0}
+.menu div.on{background:var(--rose);font-weight:800;color:var(--vinho)}
+.menu .mi{width:10px;height:10px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round}
+/* a folha de compartilhar: ESCURA, como no iOS de verdade */
+.folha{position:absolute;left:0;right:0;bottom:0;max-height:94%;background:#262528;
+  border-radius:13px 13px 0 0;box-shadow:0 -8px 26px -8px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(100%);transition:opacity .3s,transform .3s;
+  padding:8px 7px;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+.f-cab{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.f-cab .f-ico{width:22px;height:22px;border-radius:5px;background:var(--vinho);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:800}
+.f-cab b{font-size:7px;color:#fff;display:block;line-height:1.2}
+.f-cab i{font-size:5.5px;color:#8e8e93;font-style:normal;display:block;margin-top:1px}
+/* fileira de acoes redondas: e AQUI que fica o "Ver mais" */
+.f-acoes{display:flex;justify-content:space-between;gap:4px;flex-shrink:0;padding:0 2px}
+.f-acoes div{flex:1;text-align:center}
+.f-acoes .c{width:26px;height:26px;border-radius:50%;background:#3a393d;margin:0 auto 3px;
+  display:flex;align-items:center;justify-content:center;transition:background .2s}
+.f-acoes .c svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.f-acoes span{font-size:5px;color:#c7c7cc;line-height:1.15;display:block}
+.f-acoes div.on .c{background:var(--vinho)}
+.f-acoes div.on span{color:#fff;font-weight:800}
+/* a lista que o "Ver mais" abre */
+.f-lista{background:#19181b;border-radius:9px;overflow:hidden;
+  max-height:0;opacity:0;transition:max-height .4s ease,opacity .3s}
+.f-lista.aberta{max-height:130px;opacity:1}
+.f-lista div{display:flex;align-items:center;gap:6px;padding:5px 7px;font-size:6.5px;color:#fff;
+  border-bottom:1px solid #2c2b2f;white-space:nowrap;overflow:hidden}
+.f-lista div:last-child{border-bottom:0}
+.f-lista .li{width:10px;height:10px;flex-shrink:0;fill:none;stroke:#fff;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.f-lista div.on{background:var(--vinho);font-weight:800}
+/* tela final: nome do app e botao Adicionar */
+.final{position:absolute;inset:0;background:#1c1b1f;opacity:0;pointer-events:none;
+  transition:opacity .3s;padding:20px 8px 9px;display:flex;flex-direction:column;gap:9px}
+.final.on{opacity:1}
+.final-cab{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.final-cab b{font-size:8px;color:#fff}
+.final-cab .x{width:16px;height:16px;border-radius:50%;background:#3a393d;color:#c7c7cc;
+  font-size:9px;display:flex;align-items:center;justify-content:center}
+.final-cab .add{background:#0a84ff;color:#fff;font-size:7.5px;font-weight:800;
+  border-radius:99px;padding:3px 9px;transition:transform .2s}
+.final-cab .add.pisca{transform:scale(1.12)}
+.final-nome{display:flex;align-items:center;gap:7px;background:#262528;border-radius:8px;padding:7px}
+.final-nome .fi{width:22px;height:22px;border-radius:5px;background:var(--vinho);flex-shrink:0}
+.final-nome b{font-size:7.5px;color:#fff;display:block}
+.final-nome i{font-size:5.5px;color:#8e8e93;font-style:normal;display:block;margin-top:1px}
+/* o dedo */
+.dedo{position:absolute;width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,.3);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);
+  opacity:0;pointer-events:none;z-index:5;transform:translate(-50%,-50%);
+  transition:opacity .22s, left .4s cubic-bezier(.4,0,.2,1), top .4s cubic-bezier(.4,0,.2,1)}
+.dedo.bate{animation:bate .42s ease}
+@keyframes bate{0%,100%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(.7)}}
+.demo-leg{text-align:center;font-size:12.5px;line-height:1.4;color:var(--tinta);
+  margin-top:9px;min-height:34px;font-weight:600}
+.demo-leg b{color:var(--vinho)}
+.demo-ctrl{display:flex;justify-content:center;margin-top:6px}
+.demo-ctrl button{background:none;border:1px solid var(--linha);border-radius:99px;
+  padding:5px 13px;font-size:11.5px;color:var(--cinza);cursor:pointer;font-family:inherit;font-weight:600}
+@media (prefers-reduced-motion: reduce){.dedo,.menu,.folha,.f-lista,.final{transition:none}}
 </style>
 </head>
 <body>
@@ -598,6 +705,78 @@ const Config = {
   instalar(){ Instalar.instalar(); }
 };
 
+/* ====== ANIMACAO DO CAMINHO NO IPHONE ======
+   Roteiro fiel ao fluxo real do iOS 26, conferido em video do aparelho (27/08/2026).
+   Cada toque sao DUAS cenas ("dedo no alvo" e depois "tela ja aberta"), pra transicao
+   CSS terminar antes do dedo andar: senao a legenda manda tocar num item que ainda
+   esta subindo. Um so relogio percorre a lista, entao ciclo antigo nao atropela o novo. */
+const Anim = {
+  ciclo:null, passo:0, ligada:false,
+  el(id){ return document.getElementById(id); },
+
+  CENAS: [
+    /* 1. tres pontinhos na barra */
+    { ms:900,  n:2, leg:'Toque nos <b>três pontinhos</b>',            dedo:'dPontos'  },
+    { ms:700,  n:2, leg:'Toque nos <b>três pontinhos</b>',            dedo:'dPontos', bate:1 },
+    /* 2. menu aberto: Compartilhar */
+    { ms:900,  n:3, leg:'Toque em <b>Compartilhar</b>',               dedo:'dPontos',    menu:1 },
+    { ms:800,  n:3, leg:'Toque em <b>Compartilhar</b>',               dedo:'dMenuShare', menu:1, on:'dMenuShare' },
+    { ms:650,  n:3, leg:'Toque em <b>Compartilhar</b>',               dedo:'dMenuShare', menu:1, on:'dMenuShare', bate:1 },
+    /* 3. folha aberta: o "Ver mais" e o botao redondo da direita */
+    { ms:1100, n:4, leg:'Toque em <b>Ver mais</b>',                   folha:1 },
+    { ms:800,  n:4, leg:'Toque em <b>Ver mais</b>',                   folha:1, dedo:'dVerMais' },
+    { ms:650,  n:4, leg:'Toque em <b>Ver mais</b>',                   folha:1, dedo:'dVerMais', on:'dVerMais', bate:1 },
+    /* 4. a lista abre, e o item aparece no fim dela */
+    { ms:1000, n:5, leg:'Toque em <b>Adicionar à Tela de Início</b>', folha:1, lista:1, menos:1, dedo:'dVerMais' },
+    { ms:850,  n:5, leg:'Toque em <b>Adicionar à Tela de Início</b>', folha:1, lista:1, menos:1, dedo:'dAdd', on:'dAdd' },
+    { ms:650,  n:5, leg:'Toque em <b>Adicionar à Tela de Início</b>', folha:1, lista:1, menos:1, dedo:'dAdd', on:'dAdd', bate:1 },
+    /* 5. a tela final, com o botao Adicionar em azul */
+    { ms:1000, n:6, leg:'Toque em <b>Adicionar</b>',                  final:1 },
+    { ms:800,  n:6, leg:'Toque em <b>Adicionar</b>',                  final:1, dedo:'dAddBtn', pisca:1 },
+    { ms:650,  n:6, leg:'Toque em <b>Adicionar</b>',                  final:1, dedo:'dAddBtn', pisca:1, bate:1 },
+    /* 6. pronto */
+    { ms:2400, n:6, leg:'Pronto! O ícone vai pra sua tela',           final:1 }
+  ],
+
+  pintar(c){
+    const menu = this.el('dMenu'), folha = this.el('dFolha');
+    menu.style.opacity    = c.menu ? '1' : '0';
+    menu.style.transform  = c.menu ? 'translateY(0)' : 'translateY(10px)';
+    folha.style.opacity   = c.folha ? '1' : '0';
+    folha.style.transform = c.folha ? 'translateY(0)' : 'translateY(100%)';
+    this.el('dLista').classList.toggle('aberta', !!c.lista);
+    this.el('dFinal').classList.toggle('on', !!c.final);
+    this.el('dMenuShare').classList.toggle('on', c.on === 'dMenuShare');
+    this.el('dVerMais').classList.toggle('on',   c.on === 'dVerMais');
+    this.el('dAdd').classList.toggle('on',       c.on === 'dAdd');
+    this.el('dAddBtn').classList.toggle('pisca', !!c.pisca);
+    /* depois de abrir, "Ver mais" vira "Ver menos" e a seta inverte, como no iOS */
+    this.el('dVerMaisTxt').textContent = c.menos ? 'Ver menos' : 'Ver mais';
+    this.el('dSeta').innerHTML = c.menos ? '<path d="M6 9l6 6 6-6"/>' : '<path d="M6 15l6-6 6 6"/>';
+    this.el('dPasso').textContent = 'passo ' + c.n;
+    this.el('dLeg').innerHTML = c.leg;
+
+    const dedo = this.el('dDedo');
+    if(!c.dedo){ dedo.style.opacity = '0'; return; }
+    const alvo = this.el(c.dedo), base = dedo.parentElement.getBoundingClientRect();
+    const r = alvo.getBoundingClientRect();
+    dedo.style.left = (r.left - base.left + r.width/2) + 'px';
+    dedo.style.top  = (r.top  - base.top  + r.height/2) + 'px';
+    dedo.style.opacity = '1';
+    if(c.bate){ dedo.classList.remove('bate'); void dedo.offsetWidth; dedo.classList.add('bate'); }
+  },
+
+  proxima(){
+    if(!this.ligada) return;
+    const c = this.CENAS[this.passo];
+    this.pintar(c);
+    this.passo = (this.passo + 1) % this.CENAS.length;
+    this.ciclo = setTimeout(() => this.proxima(), c.ms);
+  },
+  ligar(){ if(this.ligada || !this.el('dDedo')) return; this.ligada = true; this.passo = 0; this.proxima(); },
+  desligar(){ this.ligada = false; clearTimeout(this.ciclo); }
+};
+
 /* ============ INSTALACAO (PWA) ============
    O prompt nativo do Chrome ("Instalar aplicativo", 1 toque) SO e disparado se houver
    service worker ativo COM handler de fetch. Ate 27/08/2026 este arquivo desregistrava o
@@ -657,11 +836,21 @@ const Instalar = {
     document.getElementById('psSub').innerHTML =
       'Depois disso o app abre pelo ícone, igual aos seus outros aplicativos, e funciona até sem internet.';
     document.getElementById('psLista').innerHTML = passos.map(p=>`<li>${p}</li>`).join('');
+    /* o desenho do caminho so faz sentido no iPhone: no Android o prompt nativo
+       instala em 1 toque e nao ha passo a passo pra ensinar */
+    const demo = document.querySelector('.demo');
+    if(demo) demo.style.display = this.iOS() ? '' : 'none';
     document.getElementById('psFundo').classList.add('aberto');
+    if(this.iOS() && typeof Anim !== 'undefined') Anim.ligar();
   },
-  fecharPassos(){ document.getElementById('psFundo').classList.remove('aberto'); }
+  fecharPassos(){
+    document.getElementById('psFundo').classList.remove('aberto');
+    if(typeof Anim !== 'undefined') Anim.desligar();   /* nao roda escondido */
+  }
 };
 Instalar.init();
+(function(){ const b = document.getElementById('dBtn');
+  if(b) b.onclick = () => { Anim.desligar(); Anim.ligar(); }; })();
 
 </script>
 
@@ -685,6 +874,68 @@ Instalar.init();
   <div class="ps-box">
     <h3>Colocar o app na tela inicial</h3>
     <div class="ps-sub" id="psSub"></div>
+    <div class="demo">
+      <div class="demo-topo">
+        <span class="demo-rot">como fazer</span>
+        <span class="demo-passo" id="dPasso">passo 2</span>
+      </div>
+      <div class="fone">
+        <div class="fone-tela">
+          <div class="pag">
+            <div class="pag-top"><b>Lucro na Mão</b><i>seus apps, pagos uma vez, seus pra sempre</i></div>
+            <div class="pag-card"><b>Controle da Lojinha</b><i>sua lojinha organizada, direto do celular</i><div class="pag-btn"></div></div>
+            <div class="pag-card"><b>Divulga na Mão</b><i>mensagens e artes prontas pra vender</i></div>
+          </div>
+
+          <div class="menu" id="dMenu">
+            <div id="dMenuShare"><svg class="mi" viewBox="0 0 24 24"><path d="M12 16V3M12 3L8 7M12 3l4 4"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>Compartilhar</div>
+            <div><svg class="mi" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg>Adicionar aos Favoritos</div>
+            <div><svg class="mi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nova Aba</div>
+          </div>
+
+          <div class="folha" id="dFolha">
+            <div class="f-cab">
+              <div class="f-ico">L</div>
+              <div><b>Meus apps · Lucro na Mão</b><i>lucronamao.github.io</i></div>
+            </div>
+            <div class="f-acoes">
+              <div><div class="c"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg></div><span>Copiar</span></div>
+              <div><div class="c"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></div><span>Favoritos</span></div>
+              <div><div class="c"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/></svg></div><span>Ler depois</span></div>
+              <div id="dVerMais"><div class="c"><svg id="dSeta" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></div><span id="dVerMaisTxt">Ver mais</span></div>
+            </div>
+            <div class="f-lista" id="dLista">
+              <div><svg class="li" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/></svg>Adicionar Favorito a...</div>
+              <div><svg class="li" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.4l6-.8z"/></svg>Adicionar aos Favoritos</div>
+              <div><svg class="li" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Adicionar à Nota Rápida</div>
+              <div><svg class="li" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar na Página</div>
+              <div id="dAdd"><svg class="li" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Adicionar à Tela de Início</div>
+            </div>
+          </div>
+
+          <div class="final" id="dFinal">
+            <div class="final-cab">
+              <span class="x">&times;</span>
+              <b>Adicionar à Tela de Início</b>
+              <span class="add" id="dAddBtn">Adicionar</span>
+            </div>
+            <div class="final-nome">
+              <div class="fi"></div>
+              <div><b>Lucro na Mão</b><i>lucronamao.github.io/app/hu...</i></div>
+            </div>
+          </div>
+
+          <div class="barra">
+            <i></i><div class="b-url"></div>
+            <span class="b-pontos" id="dPontos"><span></span><span></span><span></span></span>
+          </div>
+
+          <div class="dedo" id="dDedo"></div>
+        </div>
+      </div>
+      <div class="demo-leg" id="dLeg"></div>
+      <div class="demo-ctrl"><button type="button" id="dBtn">repetir</button></div>
+    </div>
     <ol id="psLista"></ol>
     <button class="ps-btn" onclick="Instalar.fecharPassos()">Entendi</button>
   </div>
