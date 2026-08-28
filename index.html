@@ -114,7 +114,6 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .cfg-cores button.on{border-color:var(--tinta)}
 .cfg-btn{background:var(--vinho);color:#fff;width:100%;padding:14px;font-weight:700;border:0;border-radius:12px;font-size:15.5px;cursor:pointer;margin-top:8px;font-family:inherit}
 .cfg-btn.sec{background:var(--rose);color:var(--vinho)}
-.cfg-passos{font-size:14.5px;line-height:1.75;color:var(--cinza);padding-left:22px;margin:6px 0 2px}
 .btn-cfg{background:none;border:0;color:#fff;display:flex;align-items:center;cursor:pointer;padding:4px}
 .btn-cfg svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:360px){
@@ -131,6 +130,38 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .pag button.on{background:var(--vinho);color:#fff;border-color:var(--vinho)}
 .pag button:disabled{opacity:.35}
 .pag .info{width:100%;text-align:center;font-size:12.5px;color:var(--cinza);margin-top:2px}
+/* faixa de instalacao: o caminho VISIVEL pra virar app na tela inicial */
+.faixa-inst{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--linha);
+  border-left:4px solid var(--vinho);border-radius:14px;padding:12px 12px 12px 13px;margin:0 auto 14px;max-width:560px}
+.faixa-inst .fi-ico{width:40px;height:40px;border-radius:11px;background:var(--rose);display:flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.faixa-inst .fi-ico svg{width:21px;height:21px;fill:none;stroke:var(--vinho);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.faixa-inst .fi-txt{flex:1;min-width:0}
+.faixa-inst .fi-txt b{display:block;font-size:14.5px;line-height:1.25}
+.faixa-inst .fi-txt span{display:block;font-size:12.5px;color:var(--cinza);line-height:1.35;margin-top:2px}
+.faixa-inst .fi-btn{background:var(--vinho);color:#fff;border:0;border-radius:11px;padding:11px 15px;
+  font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap}
+.faixa-inst .fi-x{background:none;border:0;color:var(--cinza);font-size:20px;line-height:1;padding:2px 4px;
+  cursor:pointer;flex-shrink:0;font-family:inherit}
+@media(max-width:400px){
+  .faixa-inst{flex-wrap:wrap}
+  .faixa-inst .fi-btn{width:100%;order:9}
+}
+/* passo a passo de instalacao (iPhone, e Android que nao ofereceu o prompt) */
+.ps-fundo{position:fixed;inset:0;background:rgba(43,34,48,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.ps-fundo.aberto{display:flex}
+.ps-box{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px 18px 26px}
+.ps-box h3{font-size:18px;margin-bottom:3px}
+.ps-box .ps-sub{font-size:13.5px;color:var(--cinza);line-height:1.45;margin-bottom:15px}
+.ps-box ol{list-style:none;counter-reset:ps;margin:0;padding:0}
+.ps-box ol li{counter-increment:ps;position:relative;padding:0 0 15px 40px;font-size:14.5px;line-height:1.5}
+.ps-box ol li::before{content:counter(ps);position:absolute;left:0;top:-1px;width:27px;height:27px;
+  border-radius:50%;background:var(--vinho);color:#fff;font-weight:800;font-size:13.5px;
+  display:flex;align-items:center;justify-content:center}
+.ps-box .ps-ico{width:18px;height:18px;vertical-align:-4px;fill:none;stroke:var(--vinho);
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:0 1px}
+.ps-box .ps-btn{background:var(--vinho);color:#fff;width:100%;padding:14px;font-weight:700;border:0;
+  border-radius:12px;font-size:15.5px;cursor:pointer;font-family:inherit;margin-top:4px}
 </style>
 </head>
 <body>
@@ -147,6 +178,16 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
     <button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button>
   </div>
 </header>
+
+<div style="padding:14px 16px 0">
+<div class="faixa-inst" id="faixaInstalar" style="display:none">
+  <div class="fi-ico"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 19h2"/><path d="M12 7v6M9.5 10.5L12 13l2.5-2.5"/></svg></div>
+  <div class="fi-txt"><b>Coloque o app no seu celular</b><span>ícone na tela inicial, abre sem navegador e funciona sem internet</span></div>
+  <button class="fi-btn" onclick="Instalar.instalar()">Instalar</button>
+  <button class="fi-x" onclick="Instalar.dispensarFaixa()" aria-label="dispensar">&times;</button>
+</div>
+</div>
+
 
 <main id="app"></main>
 
@@ -710,42 +751,61 @@ const Config = {
     const inst = Instalar.instalado();
     document.getElementById('cfgInstalarBloco').style.display = inst ? 'none' : '';
   },
-  instalar(){ Instalar.instalar(); },
-  mostrarPassos(passos){
-    document.getElementById('cfgPassos').innerHTML =
-      `<ol class="cfg-passos">${passos.map(p=>`<li>${p}</li>`).join('')}</ol>`;
-  }
+  instalar(){ Instalar.instalar(); }
 };
 
-/* ============ INSTALACAO (PWA) ============ */
+/* ============ INSTALACAO (PWA) ============
+   O prompt nativo do Chrome ("Instalar aplicativo", 1 toque) SO e disparado se houver
+   service worker ativo COM handler de fetch. Ate 27/08/2026 este arquivo desregistrava o
+   SW quando a pagina abria no navegador comum, que e exatamente onde a compradora esta
+   ANTES de instalar: o `beforeinstallprompt` nunca chegava e o botao caia sempre no passo
+   a passo. Agora o SW e registrado sempre (ele ja e rede-primeiro, entao nao serve versao
+   velha) e o prompt de 1 toque volta a funcionar no Android. */
 const Instalar = {
   prompt:null,
   init(){
-    // registra o cache offline SO quando o app ja esta instalado na tela inicial.
-    // (no navegador comum a pagina sempre vem da rede, sem versao velha em cache)
-    if('serviceWorker' in navigator){
-      if(this.instalado()) navigator.serviceWorker.register('sw.js').catch(()=>{});
-      else navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
-    }
-    window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; });
-    window.addEventListener('appinstalled', ()=>{ this.prompt=null;
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; this.pintarFaixa(); });
+    window.addEventListener('appinstalled', ()=>{ this.prompt=null; this.pintarFaixa();
       if(typeof Config!=='undefined') Config.pintar(); });
+    this.pintarFaixa();
   },
   instalado(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; },
   iOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); },
+  /* a faixa some quando ja esta instalado, ou quando a pessoa dispensou */
+  pintarFaixa(){
+    const f = document.getElementById('faixaInstalar');
+    if(!f) return;
+    const esconder = this.instalado() || localStorage.getItem('lucronamao_instalar_dispensado')==='1';
+    f.style.display = esconder ? 'none' : '';
+  },
+  dispensarFaixa(){ localStorage.setItem('lucronamao_instalar_dispensado','1'); this.pintarFaixa(); },
   async instalar(){
-    if(this.prompt){ this.prompt.prompt(); const r=await this.prompt.userChoice;
-      if(r.outcome==='accepted'){ this.prompt=null; if(typeof Config!=='undefined') Config.pintar(); }
-      return; }
+    /* caminho bom: prompt nativo, 1 toque, sem passo a passo nenhum */
+    if(this.prompt){
+      this.prompt.prompt();
+      const r = await this.prompt.userChoice;
+      if(r.outcome==='accepted'){ this.prompt=null; this.pintarFaixa();
+        if(typeof Config!=='undefined') Config.pintar(); }
+      return;
+    }
+    /* iPhone nao tem API de instalacao: o passo a passo ilustrado e o teto */
+    this.abrirPassos();
+  },
+  abrirPassos(){
+    const seta = '<svg viewBox="0 0 24 24" class="ps-ico"><path d="M12 16V3M12 3L8 7M12 3l4 4"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>';
+    const pontos = '<svg viewBox="0 0 24 24" class="ps-ico"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
     const passos = this.iOS()
-      ? ['Toque no botao de <b>compartilhar</b> (quadrado com a seta pra cima)',
-         'Role a lista e toque em <b>Adicionar a Tela de Inicio</b>',
-         'Confirme em <b>Adicionar</b>']
-      : ['Toque nos <b>tres pontinhos</b> no canto de cima do navegador',
-         'Toque em <b>Adicionar a tela inicial</b> (ou Instalar aplicativo)',
+      ? [`Toque no botão ${seta} <b>Compartilhar</b>, na barra de baixo do navegador`,
+         'Role a lista para baixo e toque em <b>Adicionar à Tela de Início</b>',
+         'Toque em <b>Adicionar</b>, no canto de cima']
+      : [`Toque no botão ${pontos} <b>menu</b>, no canto de cima do navegador`,
+         'Toque em <b>Instalar aplicativo</b> (ou <b>Adicionar à tela inicial</b>)',
          'Confirme em <b>Instalar</b>'];
-    if(typeof Config!=='undefined') Config.mostrarPassos(passos);
-  }
+    document.getElementById('psLista').innerHTML = passos.map(p=>`<li>${p}</li>`).join('');
+    document.getElementById('psFundo').classList.add('aberto');
+  },
+  fecharPassos(){ document.getElementById('psFundo').classList.remove('aberto'); }
 };
 Instalar.init();
 
@@ -761,9 +821,18 @@ Instalar.init();
       <h4>aplicativo no celular</h4>
       <p style="font-size:14px;line-height:1.5;color:var(--cinza)">Ícone próprio na tela, abre sem navegador e funciona sem internet.</p>
       <button class="cfg-btn" onclick="Config.instalar()">Adicionar à tela inicial</button>
-      <div id="cfgPassos"></div>
     </div>
     <button class="cfg-btn sec" onclick="Config.fechar()">Fechar</button>
+  </div>
+</div>
+
+
+<div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">
+  <div class="ps-box">
+    <h3>Colocar o app na tela inicial</h3>
+    <div class="ps-sub">São 3 toques. Depois disso o app abre pelo ícone, igual aos seus outros aplicativos, e funciona até sem internet.</div>
+    <ol id="psLista"></ol>
+    <button class="ps-btn" onclick="Instalar.fecharPassos()">Entendi</button>
   </div>
 </div>
 
