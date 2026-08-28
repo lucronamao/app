@@ -93,6 +93,13 @@ main{padding:16px;max-width:560px;margin:0 auto}
   stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:0 1px}
 .ps-box .ps-btn{background:var(--vinho);color:#fff;width:100%;padding:14px;font-weight:700;border:0;
   border-radius:12px;font-size:15.5px;cursor:pointer;font-family:inherit;margin-top:4px}
+.ps-box .ps-nota{display:block;font-size:12.5px;line-height:1.4;color:var(--ambar);
+  background:var(--ambar-bg);border-radius:9px;padding:7px 10px;margin-top:6px}
+.ps-aviso{display:flex;gap:9px;background:var(--rose);border-radius:11px;padding:11px 12px;
+  margin-bottom:14px;font-size:13px;line-height:1.45;color:var(--tinta)}
+.ps-aviso svg{width:17px;height:17px;flex-shrink:0;margin-top:1px;fill:none;stroke:var(--vinho);
+  stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ps-aviso b{font-weight:800}
 </style>
 </head>
 <body>
@@ -288,13 +295,23 @@ const Instalar = {
   abrirPassos(){
     const seta = '<svg viewBox="0 0 24 24" class="ps-ico"><path d="M12 16V3M12 3L8 7M12 3l4 4"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>';
     const pontos = '<svg viewBox="0 0 24 24" class="ps-ico"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
+    /* iPhone: caminho conferido no aparelho do Vini em 27/08/2026. No Safari novo o
+       Compartilhar NAO fica solto na barra de baixo, fica dentro do menu de tres
+       pontinhos, e o "Adicionar a Tela de Inicio" so aparece depois de tocar em
+       "Ver mais". Sao 5 passos, e e o passo do "Ver mais" que trava a compradora:
+       ela chega na folha de compartilhar, nao acha o item e desiste. */
     const passos = this.iOS()
-      ? [`Toque no botão ${seta} <b>Compartilhar</b>, na barra de baixo do navegador`,
-         'Role a lista para baixo e toque em <b>Adicionar à Tela de Início</b>',
+      ? ['Abra este link <b>no Safari</b>',
+         `Toque no botão ${pontos} <b>três pontinhos</b>, no canto do navegador`,
+         `Toque em ${seta} <b>Compartilhar</b>`,
+         'Toque em <b>Ver mais</b>',
+         'Toque em <b>Adicionar à Tela de Início</b>',
          'Toque em <b>Adicionar</b>, no canto de cima']
       : [`Toque no botão ${pontos} <b>menu</b>, no canto de cima do navegador`,
          'Toque em <b>Instalar aplicativo</b> (ou <b>Adicionar à tela inicial</b>)',
          'Confirme em <b>Instalar</b>'];
+    document.getElementById('psSub').innerHTML =
+      'Depois disso o app abre pelo ícone, igual aos seus outros aplicativos, e funciona até sem internet.';
     document.getElementById('psLista').innerHTML = passos.map(p=>`<li>${p}</li>`).join('');
     document.getElementById('psFundo').classList.add('aberto');
   },
@@ -323,7 +340,7 @@ Instalar.init();
 <div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">
   <div class="ps-box">
     <h3>Colocar o app na tela inicial</h3>
-    <div class="ps-sub">São 3 toques. Depois disso o app abre pelo ícone, igual aos seus outros aplicativos, e funciona até sem internet.</div>
+    <div class="ps-sub" id="psSub"></div>
     <ol id="psLista"></ol>
     <button class="ps-btn" onclick="Instalar.fecharPassos()">Entendi</button>
   </div>
