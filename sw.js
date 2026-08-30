@@ -4,7 +4,7 @@
    ESTRATÉGIA: rede primeiro, cache como reserva. Assim a compradora sempre
    recebe a versão nova quando tem internet, e continua funcionando sem ela.
    Não guarda dado da usuária: os dados vivem no localStorage do aparelho. */
-const CACHE = 'lucronamao-v11';
+const CACHE = 'lucronamao-v12';
 const ARQS = [
   'hub.html', 'index.html', 'precificacao.html', 'divulga.html',
   'manifest.webmanifest', 'icone-192.png', 'icone-512.png',
@@ -42,6 +42,13 @@ self.addEventListener('fetch', e => {
         return resp;
       })
       .catch(() => caches.match(req, {ignoreSearch: true})
-        .then(r => r || caches.match('hub.html')))
+        .then(r => {
+          if (r) return r;
+          /* offline e sem copia exata: cair no index da PROPRIA pasta de acesso
+             (/app/tudo/ etc), nunca no hub pelado, senao o app instalado abre
+             travado. Erro real de 30/08/2026. */
+          const m = url.pathname.match(/\/(c|d|p|cd|cp|u|tudo)\//);
+          return caches.match(m ? m[0] : 'hub.html') || caches.match('hub.html');
+        }))
   );
 });
