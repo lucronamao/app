@@ -14,50 +14,35 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
-/* ===== O ICONE PRECISA NASCER COM A CHAVE (30/08/2026) =====
-   Bug real, achado pelo Vini no iPhone dele: no navegador o link liberava certo,
-   mas ao "Adicionar a Tela de Inicio" o icone abria com TUDO travado.
+/* O icone da tela inicial abre a `start_url` do manifest, NAO a URL da aba. Com
+   `start_url: hub.html` pelado, o icone abria sem a chave e mostrava tudo travado
+   (achado no iPhone do Vini, 30/08/2026).
 
-   Causa: o icone NAO abre a URL que estava na aba. Ele abre a `start_url` do
-   manifest, que era `hub.html` pelado, sem `?libera=`. Eu tinha afirmado o
-   contrario ("navegador nenhum ignora a URL corrente"), e estava ERRADO: tanto
-   o Android quanto o Safari usam a start_url declarada.
-
-   Correcao: o manifest passa a ser gerado AQUI, em memoria, ja com a chave da
-   URL atual dentro da `start_url`. O icone instalado nasce apontando pra
-   `hub.html?libera=<a chave dela>` e abre liberado pra sempre, sem storage.
-
-   Roda no <head>, antes de o navegador buscar o manifest, senao ele pega o
-   arquivo estatico antes da troca. */
+   Aqui o manifest e remontado com a chave da URL atual dentro da start_url, entao
+   o icone nasce apontando pro link certo. URLs absolutas de proposito: o manifest
+   vira um blob:, e com caminho relativo o navegador descarta start_url, scope e
+   icones ("URL is invalid"). */
 (function(){
   try{
     var q = new URLSearchParams(location.search).get('libera');
-    if(!q) return;                       // sem chave: manifest estatico serve
-    /* URLs ABSOLUTAS, e isso NAO e preciosismo: o manifest vai virar um blob:,
-       e o navegador resolve caminho relativo contra a origem do blob, nao contra
-       a pagina. Com caminho relativo ele descarta start_url, scope e os icones
-       com "URL is invalid" (medido no console antes de publicar). */
-    var dir = location.href.replace(/[^/]*$/, '');   // .../app/
-    var base = {
-      name: 'Lucro na Mão',
-      short_name: 'Lucro na Mão',
-      description: 'Controle da Lojinha: vendas, estoque e lucro na palma da mão.',
+    if(!q) return;
+    var dir = location.href.replace(/[^/]*$/, '');
+    var m = {
+      name:'Lucro na Mão', short_name:'Lucro na Mão',
+      description:'Controle da Lojinha: vendas, estoque e lucro na palma da mão.',
       start_url: dir + 'hub.html?libera=' + encodeURIComponent(q),
-      scope: dir,
-      display: 'standalone',
-      orientation: 'portrait',
-      background_color: '#fdf4f8',
-      theme_color: '#8e2757',
-      icons: [
-        { src: dir+'favicon-96.png', sizes:'96x96', type:'image/png' },
-        { src: dir+'icone-192.png', sizes:'192x192', type:'image/png', purpose:'any' },
-        { src: dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'any' },
-        { src: dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'maskable' }
+      scope: dir, display:'standalone', orientation:'portrait',
+      background_color:'#fdf4f8', theme_color:'#8e2757',
+      icons:[
+        {src:dir+'favicon-96.png', sizes:'96x96', type:'image/png'},
+        {src:dir+'icone-192.png', sizes:'192x192', type:'image/png', purpose:'any'},
+        {src:dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'any'},
+        {src:dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'maskable'}
       ]
     };
-    var url = URL.createObjectURL(new Blob([JSON.stringify(base)], {type:'application/manifest+json'}));
     var l = document.getElementById('lnkManifest');
-    if(l) l.setAttribute('href', url);
+    if(l) l.setAttribute('href', URL.createObjectURL(
+      new Blob([JSON.stringify(m)], {type:'application/manifest+json'})));
   }catch(e){}
 })();
 </script>
@@ -311,9 +296,8 @@ aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
    com history.replaceState), o icone nasceria apontando pro hub pelado e abriria
    travado. Mantendo a query, o icone abre liberado pra sempre, sem storage nenhum.
 
-   O icone NAO herda a URL da aba: ele abre a `start_url` do manifest. Por isso o
-   manifest e gerado no <head> desta pagina ja com a chave dentro (ver o script la
-   em cima). Sem isso, o icone nasce pelado e abre travado. */
+   O manifest tem `start_url: hub.html`, mas navegador nenhum ignora a URL corrente
+   na hora de instalar: ele instala o que esta na tela, com query e tudo. */
 const MAPA = {
   c:      ['controle'],
   d:      ['divulga'],
@@ -324,31 +308,7 @@ const MAPA = {
   tudo:   ['controle','divulga','preco']
 };
 const LIBERADOS = (function(){
-  let q = (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
-
-  /* Rede de seguranca SO pro app instalado (30/08/2026, iPhone do Vini).
-     O manifest gerado acima ja poe a chave na start_url, e isso resolve o Android.
-     No iOS, porem, o "Adicionar a Tela de Inicio" as vezes guarda a URL sem query
-     (o Safari trata o atalho de forma propria, e o comportamento varia por versao).
-     Entao: quando estiver rodando COMO APP e sem chave na URL, recupera a ultima
-     chave que a propria compradora abriu, e reescreve a URL pra ficar coerente.
-
-     Isso NAO e validacao por storage: nao decide nada sozinho, nao soma acesso e
-     nao vale no navegador. E so lembrar qual LINK ela usou, no aparelho dela, pro
-     icone nao abrir pelado. Quem manda continua sendo o link. */
-  const comoApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  if(!q && comoApp){
-    try{
-      const ultima = localStorage.getItem('lucronamao_ultimo_link');
-      if(ultima && MAPA[ultima]){
-        q = ultima;
-        history.replaceState(null, '', location.pathname + '?libera=' + ultima);
-      }
-    }catch(e){}
-  }
-  /* guarda a chave do link aberto, pra rede de seguranca acima */
-  if(q && MAPA[q]){ try{ localStorage.setItem('lucronamao_ultimo_link', q); }catch(e){} }
-
+  const q = (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
   return MAPA[q] || [];                  // sem chave, ou chave desconhecida: nada liberado
 })();
 const tem = x => LIBERADOS.includes(x);
