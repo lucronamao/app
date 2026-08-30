@@ -10,39 +10,37 @@
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
 <link rel="manifest" id="lnkManifest" href="manifest.webmanifest">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes" id="mCap1">
+<meta name="apple-mobile-web-app-capable" content="yes" id="mCap2">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
-/* O icone da tela inicial abre a `start_url` do manifest, NAO a URL da aba. Com
-   `start_url: hub.html` pelado, o icone abria sem a chave e mostrava tudo travado
-   (achado no iPhone do Vini, 30/08/2026).
+/* ===== O ICONE PRECISA ABRIR O LINK DA COMPRADORA (30/08/2026) =====
+   Achado no iPhone do Vini, e custou tres tentativas: pelo navegador o link
+   liberava certo, e depois de "Adicionar a Tela de Inicio" o icone abria TUDO
+   travado.
 
-   Aqui o manifest e remontado com a chave da URL atual dentro da start_url, entao
-   o icone nasce apontando pro link certo. URLs absolutas de proposito: o manifest
-   vira um blob:, e com caminho relativo o navegador descarta start_url, scope e
-   icones ("URL is invalid"). */
+   Causa: com manifest presente, o icone abre a `start_url` declarada, nao a URL
+   que estava na aba. E `start_url` era `hub.html` pelado. Tentei remontar o
+   manifest com a chave dentro; funcionou no Chrome e **o Safari ignorou**.
+
+   A solucao que funciona nos dois: quando a URL TEM chave, o manifest e
+   REMOVIDO da pagina. Sem manifest, iOS e Android salvam exatamente a URL da
+   aba, com `?libera=` e tudo, e o icone abre liberado pra sempre.
+
+   Custo assumido: o atalho abre com a barra do navegador em vez de tela cheia.
+   Para um entregavel, um icone que ABRE vale mais que um icone bonito que trava.
+
+   Sem chave na URL (alguem visitando o hub direto), o manifest fica e o app
+   continua instalavel como PWA normal. */
 (function(){
   try{
-    var q = new URLSearchParams(location.search).get('libera');
-    if(!q) return;
-    var dir = location.href.replace(/[^/]*$/, '');
-    var m = {
-      name:'Lucro na Mão', short_name:'Lucro na Mão',
-      description:'Controle da Lojinha: vendas, estoque e lucro na palma da mão.',
-      start_url: dir + 'hub.html?libera=' + encodeURIComponent(q),
-      scope: dir, display:'standalone', orientation:'portrait',
-      background_color:'#fdf4f8', theme_color:'#8e2757',
-      icons:[
-        {src:dir+'favicon-96.png', sizes:'96x96', type:'image/png'},
-        {src:dir+'icone-192.png', sizes:'192x192', type:'image/png', purpose:'any'},
-        {src:dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'any'},
-        {src:dir+'icone-512.png', sizes:'512x512', type:'image/png', purpose:'maskable'}
-      ]
-    };
-    var l = document.getElementById('lnkManifest');
-    if(l) l.setAttribute('href', URL.createObjectURL(
-      new Blob([JSON.stringify(m)], {type:'application/manifest+json'})));
+    if(!new URLSearchParams(location.search).get('libera')) return;
+    /* o manifest E as metas de "app capable" saem juntos: qualquer um dos tres
+       faz o iOS montar o atalho como PWA e reabrir na start_url pelada */
+    ['lnkManifest','mCap1','mCap2'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.parentNode.removeChild(el);
+    });
   }catch(e){}
 })();
 </script>
