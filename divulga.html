@@ -338,39 +338,6 @@ canvas{width:100%;border-radius:14px;border:1px solid var(--linha);margin-top:12
 </main>
 
 <script>
-/* ============ LIBERACAO: gravar a chave do link TAMBEM aqui ============
-   Bug real, achado pelo Vini em 29/08/2026 no proprio celular: ele entrou pelo
-   link de entrega do upsell (que abre ESTA pagina direto), instalou na tela
-   inicial, e o icone abriu o hub com TUDO TRAVADO e a mensagem "Este e o espaco
-   da compradora".
-
-   Por que: quem grava `lucronamao_liberado` era so o hub.html, ao ler o
-   `?libera=`. Mas as tres paginas de app carregam o manifest, entao o navegador
-   oferece instalar a partir de qualquer uma delas, e o manifest manda
-   `start_url: hub.html`. Instalando daqui, a compradora nunca passou pelo hub:
-   o localStorage ficava vazio e o icone abria a vitrine travada.
-
-   Correcao: esta pagina passa a gravar a mesma chave, com o MESMO mapa e a mesma
-   regra do hub (a chave do link SUBSTITUI o que estava salvo; sem chave, nao
-   mexe em nada). Nao trava esta pagina: quem chegou aqui pelo link ja pagou, e
-   fechar o acesso e outra decisao (ver deploy-hospedagem.md). */
-(function(){
-  var LK = 'lucronamao_liberado';
-  var MAPA = {
-    c: ['controle'], d: ['divulga'], p: ['preco'],
-    cd: ['controle','divulga'], cp: ['controle','preco'],
-    u: ['preco'], tudo: ['controle','divulga','preco']
-  };
-  try{
-    var q = (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
-    if(!q) return;
-    if(q === 'zerar'){ localStorage.removeItem(LK); history.replaceState(null,'',location.pathname); return; }
-    var libs = MAPA[q];
-    if(!libs) return;
-    localStorage.setItem(LK, libs.join(','));
-    history.replaceState(null,'',location.pathname);
-  }catch(e){}
-})();
 const TEMAS={
   vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
   violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},

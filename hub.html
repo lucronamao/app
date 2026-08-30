@@ -250,11 +250,21 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
-const LK='lucronamao_liberado';
-/* ===== LIBERACAO: QUEM MANDA E O LINK =====
-   A chave do link SUBSTITUI o que estava salvo (nao soma).
-   O localStorage guarda so a ultima chave usada, pra ela poder abrir o app pelo icone
-   da tela inicial (que abre sem query string) e continuar com o mesmo acesso. */
+/* ===== LIBERACAO: SO O LINK LIBERA, E A CHAVE FICA NA URL =====
+   Decisao do Vini, 29/08/2026: *"ele nao tem que ver nada de liberacao pelo storage,
+   isso vai dar problema. Cada link tem a sua quantidade liberada e pronto."*
+
+   Como funciona: o `?libera=` da URL e a UNICA fonte. Nao ha estado salvo, entao nao
+   ha estado pra corromper, ficar velho ou divergir entre paginas. A mesma URL sempre
+   mostra a mesma coisa, em qualquer aparelho.
+
+   Por que a query NAO e mais apagada da barra de endereco: o icone da tela inicial
+   guarda a URL de onde foi instalado. Apagando a query (o que o codigo antigo fazia
+   com history.replaceState), o icone nasceria apontando pro hub pelado e abriria
+   travado. Mantendo a query, o icone abre liberado pra sempre, sem storage nenhum.
+
+   O manifest tem `start_url: hub.html`, mas navegador nenhum ignora a URL corrente
+   na hora de instalar: ele instala o que esta na tela, com query e tudo. */
 const MAPA = {
   c:      ['controle'],
   d:      ['divulga'],
@@ -264,16 +274,18 @@ const MAPA = {
   u:      ['preco'],                     // compatibilidade
   tudo:   ['controle','divulga','preco']
 };
-(function(){
+const LIBERADOS = (function(){
   const q = (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
-  if(!q) return;                                  // sem chave: usa a ultima salva
-  if(q === 'zerar'){ localStorage.removeItem(LK); history.replaceState(null,'',location.pathname); return; }
-  const libs = MAPA[q];
-  if(!libs) return;                               // chave desconhecida: nao mexe
-  localStorage.setItem(LK, libs.join(','));       // SUBSTITUI (o link e a verdade)
-  history.replaceState(null,'',location.pathname);
+  return MAPA[q] || [];                  // sem chave, ou chave desconhecida: nada liberado
 })();
-const tem = x => (localStorage.getItem(LK)||'').split(',').includes(x);
+const tem = x => LIBERADOS.includes(x);
+
+/* Os links do hub pros apps sao relativos, entao perderiam a query e a compradora
+   clicaria em "Abrir" pra cair numa pagina sem acesso. Leva a chave adiante. */
+const comChave = (url) => {
+  const q = new URLSearchParams(location.search).get('libera');
+  return q ? url + '?libera=' + encodeURIComponent(q) : url;
+};
 
 /* checkout dos degraus. Links lidos da API da Cakto em 19/08/2026 (a Cakto e a fonte da
    verdade, nao este arquivo). Conferidos no "Resumo do pedido" do checkout real: 27,00 e 97,00.
@@ -295,7 +307,7 @@ const ICO = {
 function card(app){
   if(app.liberado){
     const tags = app.tags ? `<div class="mini-tags">${app.tags.map(t=>`<span>${t}</span>`).join('')}</div>` : '';
-    return `<a class="app-card" href="${app.url}">
+    return `<a class="app-card" href="${comChave(app.url)}">
       <div class="topo"><div class="icone">${app.icone}</div>
         <div><h2>${app.nome}</h2><div class="desc">${app.desc}</div></div></div>
       ${tags}
