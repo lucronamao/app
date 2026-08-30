@@ -282,7 +282,7 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 
 <header>
   <div style="display:flex;align-items:center;gap:11px;min-width:0">
-    <a href="hub.html" aria-label="voltar ao menu" style="color:#fff;display:flex;flex-shrink:0">
+    <a href="hub.html" id="voltarMenu" aria-label="voltar ao menu" style="color:#fff;display:flex;flex-shrink:0">
       <svg style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </a>
     <div style="min-width:0"><h1>Controle da Lojinha</h1><div class="loja" id="hdrLoja" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
@@ -1104,5 +1104,22 @@ Instalar.init();
   </div>
 </div>
 
+<script>
+/* O botao de voltar tem que levar ao MENU DA COMPRADORA, nao ao hub pelado.
+   O hub manda `#de=<chave>` no link; aqui isso vira `../<chave>/`. Sem a marca
+   (alguem abriu o app direto), fica o hub.html de sempre.
+   Achado pelo Vini em 30/08/2026: voltar caia no menu travado. */
+(function(){
+  try{
+    /* chaves LONGAS primeiro: alternancia em JS casa da esquerda pra direita,
+       entao (c|cd) casaria "c" dentro de "cd" e a compradora do bump voltaria
+       pro menu do front, sem o Divulga. O $ ancora o fim, pra nao casar prefixo. */
+    var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
+    if(!m) return;
+    var a = document.getElementById('voltarMenu');
+    if(a) a.setAttribute('href', '../' + m[1] + '/');
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

@@ -240,7 +240,7 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
 <body>
 
 <header>
-  <a href="hub.html" aria-label="voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a href="hub.html" id="voltarMenu" aria-label="voltar"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
   <div><h1>Precificação na Mão</h1><div class="sub">o preço certo, sem chute</div></div>
   <div style="margin-left:auto"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
 </header>
@@ -941,5 +941,22 @@ Instalar.init();
   </div>
 </div>
 
+<script>
+/* O botao de voltar tem que levar ao MENU DA COMPRADORA, nao ao hub pelado.
+   O hub manda `#de=<chave>` no link; aqui isso vira `../<chave>/`. Sem a marca
+   (alguem abriu o app direto), fica o hub.html de sempre.
+   Achado pelo Vini em 30/08/2026: voltar caia no menu travado. */
+(function(){
+  try{
+    /* chaves LONGAS primeiro: alternancia em JS casa da esquerda pra direita,
+       entao (c|cd) casaria "c" dentro de "cd" e a compradora do bump voltaria
+       pro menu do front, sem o Divulga. O $ ancora o fim, pra nao casar prefixo. */
+    var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
+    if(!m) return;
+    var a = document.getElementById('voltarMenu');
+    if(a) a.setAttribute('href', '../' + m[1] + '/');
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
