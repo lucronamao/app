@@ -250,21 +250,32 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
-/* ===== LIBERACAO: SO O LINK LIBERA, E A CHAVE FICA NA URL =====
-   Decisao do Vini, 29/08/2026: *"ele nao tem que ver nada de liberacao pelo storage,
-   isso vai dar problema. Cada link tem a sua quantidade liberada e pronto."*
+/* ===== LIBERACAO: O LINK LIBERA, E O APARELHO LEMBRA O QUE JA FOI LIBERADO =====
 
-   Como funciona: o `?libera=` da URL e a UNICA fonte. Nao ha estado salvo, entao nao
-   ha estado pra corromper, ficar velho ou divergir entre paginas. A mesma URL sempre
-   mostra a mesma coisa, em qualquer aparelho.
+   A regra de 29/08/2026 era "so o link libera, nada de storage". Ela foi REVISTA em
+   31/08/2026 pelo Vini, depois de uma compradora ficar travada de verdade:
 
-   Por que a query NAO e mais apagada da barra de endereco: o icone da tela inicial
-   guarda a URL de onde foi instalado. Apagando a query (o que o codigo antigo fazia
-   com history.replaceState), o icone nasceria apontando pro hub pelado e abriria
-   travado. Mantendo a query, o icone abre liberado pra sempre, sem storage nenhum.
+     *"quando ela abre o link pelo navegador normal, os menus estao liberados
+     normalmente, quando ela salva o icone na tela de inicio do celular e abre,
+     eles aparecem travados."*
 
-   O manifest tem `start_url: hub.html`, mas navegador nenhum ignora a URL corrente
-   na hora de instalar: ele instala o que esta na tela, com query e tudo. */
+   POR QUE acontecia: a compradora instala de dentro do app que esta usando (o
+   caminho natural, ela ja esta la), e essa pagina mora em /app/index.html, que
+   vincula /app/manifest.webmanifest, cuja start_url e `hub.html`. O icone nasce
+   apontando pro HUB PELADO, que nao tem chave nenhuma no caminho. Sem chave e sem
+   estado salvo, `LIBERADOS` fica vazio e o menu trava tudo, inclusive pra quem pagou.
+
+   Nao havia como recuperar: a informacao de quanto ela comprou simplesmente nao
+   existia mais em lugar nenhum do aparelho.
+
+   COMO FUNCIONA AGORA, e por que isso nao reintroduz o risco que a regra evitava:
+   o link continua sendo a unica coisa que CONCEDE acesso. O storage e so memoria do
+   que um link ja concedeu, e ele apenas SOMA (uniao dos niveis, ver `lembrar`).
+   Ninguem perde acesso por dado velho, porque nada aqui remove: o pior caso do
+   storage e liberar o que ela ja tinha comprado, nunca travar.
+
+   Ordem de decisao: (1) chave no caminho, (2) `?libera=` de compatibilidade,
+   (3) memoria do aparelho. Os dois primeiros tambem GRAVAM, pra sobreviver ao icone. */
 const MAPA = {
   c:      ['controle'],
   d:      ['divulga'],
@@ -274,24 +285,44 @@ const MAPA = {
   u:      ['preco'],                     // compatibilidade
   tudo:   ['controle','divulga','preco']
 };
+const CHAVE_MEM = 'lucronamao_liberado';
+
+/* Grava a UNIAO do que ja foi liberado neste aparelho. Uniao, nao substituicao:
+   quem comprou /app/c/ e depois o bump por /app/d/ fica com os dois, e abrir um
+   link menor nunca tira o que ela ja tinha. */
+function lembrar(itens){
+  try{
+    var antes = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
+    if(!Array.isArray(antes)) antes = [];
+    var uniao = antes.slice();
+    itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
+    if(uniao.length !== antes.length) localStorage.setItem(CHAVE_MEM, JSON.stringify(uniao));
+    return uniao;
+  }catch(e){ return itens; }   /* Safari privado nega storage: segue pelo link */
+}
+
+function lembrado(){
+  try{
+    var v = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
+    if(!Array.isArray(v)) return [];
+    /* filtra contra o MAPA pra dado corrompido nao inventar produto */
+    var validos = ['controle','divulga','preco'];
+    return v.filter(function(x){ return validos.indexOf(x) >= 0; });
+  }catch(e){ return []; }
+}
+
 const LIBERADOS = (function(){
-  /* A chave vem do CAMINHO (/app/tudo/), e a query fica so como compatibilidade.
-
-     Por que (30/08/2026, tres tentativas e o iPhone do Vini): a query `?libera=`
-     se perdia em DOIS pontos ate chegar no icone. (1) O iOS salva o atalho pela
-     start_url do manifest, nao pela URL da aba. (2) O service worker servia
-     hub.html do cache com `ignoreSearch: true`, que descarta a query de proposito.
-     Resultado: o icone abria hub.html pelado e travava tudo.
-
-     Uma PASTA por nivel de acesso mata as duas causas: nao ha query pra perder,
-     cada pasta tem manifest proprio com start_url propria, e o cache casa por
-     caminho. Continua sendo "o link libera e pronto" — o link agora e
-     /app/tudo/ em vez de /app/hub.html?libera=tudo. */
-  /* (?:\/|$) em vez de \/[^\/]*$ : aceita /app/tudo e /app/tudo/index.html
-     igualmente. Sem isso, o link sem barra final nao liberava nada. */
+  /* (?:\/|$) aceita /app/tudo e /app/tudo/index.html igualmente. */
   var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
   var k = m ? m[1] : (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
-  return MAPA[k] || [];
+  var doLink = MAPA[k] || [];
+
+  /* Veio com chave: concede E grava, pra sobreviver ao icone da tela inicial. */
+  if(doLink.length) return lembrar(doLink);
+
+  /* Sem chave (o icone abriu no hub pelado): restaura o que este aparelho ja
+     comprou. E exatamente o caso da compradora de 31/08/2026. */
+  return lembrado();
 })();
 const tem = x => LIBERADOS.includes(x);
 

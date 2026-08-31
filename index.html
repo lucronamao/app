@@ -1116,6 +1116,26 @@ Instalar.init();
        pro menu do front, sem o Divulga. O $ ancora o fim, pra nao casar prefixo. */
     var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
     if(!m) return;
+
+    /* GRAVA o nivel tambem daqui (31/08/2026). A compradora instala de DENTRO do
+       app, e o icone nasce apontando pro hub pelado (start_url do manifest de
+       /app/). Sem esta gravacao, quem instalou pelo app e nunca voltou ao menu
+       nao teria nada lembrado, e o hub travaria tudo. Uniao, nunca substituicao. */
+    try{
+      var MAPA_MEM = {c:['controle'],d:['divulga'],p:['preco'],
+                      cd:['controle','divulga'],cp:['controle','preco'],
+                      u:['preco'],tudo:['controle','divulga','preco']};
+      var itens = MAPA_MEM[m[1]] || [];
+      if(itens.length){
+        var K = 'lucronamao_liberado';
+        var antes = JSON.parse(localStorage.getItem(K) || '[]');
+        if(!Array.isArray(antes)) antes = [];
+        var uniao = antes.slice();
+        itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
+        if(uniao.length !== antes.length) localStorage.setItem(K, JSON.stringify(uniao));
+      }
+    }catch(e){}
+
     var a = document.getElementById('voltarMenu');
     if(!a) return;
     /* O destino sai da PASTA DESTA PAGINA, nunca de '../'.
