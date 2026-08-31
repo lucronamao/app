@@ -4,7 +4,7 @@
    (3) carregar o NÍVEL DE ACESSO num lugar que atravessa o isolamento do iOS.
    ESTRATÉGIA: rede primeiro, cache como reserva. Assim a compradora sempre
    recebe a versão nova quando tem internet, e continua funcionando sem ela. */
-const CACHE = 'lucronamao-v23';
+const CACHE = 'lucronamao-v24';
 const ARQS = [
   'hub.html', 'index.html', 'precificacao.html', 'divulga.html', 'diagnostico.html',
   'manifest.webmanifest', 'icone-192.png', 'icone-512.png',
