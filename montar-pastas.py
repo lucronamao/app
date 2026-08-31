@@ -26,7 +26,8 @@ RAIZ = os.path.dirname(os.path.abspath(__file__))
 # Controle direto, sem a tela de acesso e sem cadeado no que ela nao comprou.
 APPS = {'index.html': 'controle.html',
         'divulga.html': 'divulga.html',
-        'precificacao.html': 'precificacao.html'}
+        'precificacao.html': 'precificacao.html',
+        'diagnostico.html': 'diagnostico.html'}
 MENU = 'hub.html'          # o menu, que vira o index.html de cada pasta
 BASE = 'https://lucronamao.github.io/app/'
 

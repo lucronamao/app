@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico · Lucro na Mão</title>
+<style>
+:root{--fundo:#0f1011;--painel:#151617;--tinta:#ecedee;--suave:#9aa0a6;--ok:#8fbf4a;--ruim:#e5534b;--aviso:#e3b341;--linha:#2a2c2e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--tinta);
+font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:18px}
+h1{font-size:19px;margin:0 0 4px}
+.sub{color:var(--suave);font-size:13px;margin-bottom:18px}
+.card{background:var(--painel);border:1px solid var(--linha);border-radius:12px;padding:14px;margin-bottom:12px}
+.rot{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--suave);margin-bottom:6px}
+.val{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;word-break:break-all}
+.ok{color:var(--ok)} .ruim{color:var(--ruim)} .aviso{color:var(--aviso)}
+.grande{font-size:17px;font-weight:700;margin-bottom:10px}
+button{width:100%;padding:15px;font-size:16px;font-weight:700;border:0;border-radius:11px;
+background:var(--ok);color:#0f1011;margin-top:6px}
+button.sec{background:transparent;color:var(--tinta);border:1px solid var(--linha)}
+#saida{white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+background:#0b0c0d;border:1px solid var(--linha);border-radius:10px;padding:12px;margin-top:10px}
+</style></head><body>
+
+<h1>Diagnóstico do app</h1>
+<div class="sub">Esta tela só mostra informação. Não muda nada no seu celular.</div>
+
+<div class="card"><div class="rot">o que está liberado agora</div><div class="val grande" id="lib">…</div></div>
+<div class="card"><div class="rot">endereço que abriu</div><div class="val" id="url">…</div></div>
+<div class="card"><div class="rot">está abrindo pelo ícone?</div><div class="val" id="modo">…</div></div>
+<div class="card"><div class="rot">versão do app instalada no aparelho</div><div class="val" id="ver">…</div></div>
+<div class="card"><div class="rot">endereço que o ícone vai guardar</div><div class="val" id="starturl">…</div></div>
+<div class="card"><div class="rot">aparelho</div><div class="val" id="ua">…</div></div>
+
+<button onclick="copiar()">Copiar tudo para enviar</button>
+<button class="sec" onclick="limpar()">Limpar e recomeçar (apaga o app antigo do aparelho)</button>
+<div id="saida"></div>
+
+<script>
+const $ = i => document.getElementById(i);
+const MAPA = {c:['controle'],d:['divulga'],p:['preco'],cd:['controle','divulga'],
+              cp:['controle','preco'],u:['preco'],tudo:['controle','divulga','preco']};
+let relatorio = {};
+
+async function rodar(){
+  const m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+  const chave = m ? m[1] : null;
+  const doLink = chave ? MAPA[chave] : [];
+  let mem = [];
+  try { const v = JSON.parse(localStorage.getItem('lucronamao_liberado')||'[]');
+        if(Array.isArray(v)) mem = v; } catch(e){ mem = ['(storage bloqueado)']; }
+
+  const lib = doLink.length ? doLink : mem;
+  $('lib').innerHTML = lib.length
+    ? '<span class="ok">' + lib.join(' + ') + '</span>'
+    : '<span class="ruim">NADA LIBERADO (é o problema)</span>';
+
+  $('url').textContent = location.pathname + (location.search||'') + (location.hash||'');
+
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  $('modo').innerHTML = standalone
+    ? '<span class="ok">sim, pelo ícone da tela de início</span>'
+    : '<span class="aviso">não, pelo navegador</span>';
+
+  // versao do app = cache do service worker
+  let ver = '(nenhuma)';
+  try {
+    const ks = await caches.keys();
+    ver = ks.length ? ks.join(', ') : '(nenhuma)';
+  } catch(e){ ver = '(não deu para ler)'; }
+  $('ver').innerHTML = /v19|v2[0-9]/.test(ver)
+    ? '<span class="ok">' + ver + ' (atual)</span>'
+    : '<span class="ruim">' + ver + ' (ANTIGA, é o problema)</span>';
+
+  // start_url que o icone guardaria
+  let su = '(sem manifest)';
+  try {
+    const el = document.querySelector('link[rel=manifest]');
+    if(el){ const mf = await (await fetch(el.href, {cache:'reload'})).json(); su = mf.start_url; }
+  } catch(e){ su = 'ERRO: ' + e.message; }
+  const suOk = /\/(c|d|p|cd|cp|u|tudo)\/$/.test(su);
+  $('starturl').innerHTML = (suOk ? '<span class="ok">' : '<span class="ruim">') + su + '</span>';
+
+  $('ua').textContent = navigator.userAgent;
+
+  relatorio = {liberado: lib, url: location.href, pelo_icone: standalone,
+               versao_no_aparelho: ver, start_url: su, ua: navigator.userAgent};
+}
+
+function copiar(){
+  const t = Object.entries(relatorio).map(([k,v]) => k + ': ' + JSON.stringify(v)).join('\n');
+  $('saida').textContent = t;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(
+    ()=>{ $('saida').textContent = '✓ Copiado! Agora cole na conversa.\n\n' + t; },
+    ()=>{});
+}
+
+async function limpar(){
+  $('saida').textContent = 'Limpando…';
+  try {
+    for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    for (const k of await caches.keys()) await caches.delete(k);
+    $('saida').textContent = '✓ Pronto. Agora APAGUE o ícone da tela de início e adicione de novo pelo link.';
+  } catch(e){ $('saida').textContent = 'Erro: ' + e.message; }
+}
+
+rodar();
+</script>
+</body></html>
