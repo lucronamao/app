@@ -1005,50 +1005,6 @@ Instalar.init();
 
 
 
-<script>
-/* ===== A URL DA ABA CARREGA A CHAVE (31/08/2026) =====
-
-   Esta e a copia da RAIZ (/app/index.html), que fica pra links antigos. A copia
-   canonica de cada nivel mora em /app/<chave>/.
-
-   Por que reescrever a URL: no fluxo Compartilhar > Adicionar a Tela de Inicio o
-   iOS decide a URL do icone a partir da pagina ABERTA. Se a aba estiver em /app/,
-   o manifest de /app/ manda start_url `hub.html`, sem chave, e o icone nasce
-   travado. Storage nao salva esse caso: no iPhone o app instalado tem storage
-   SEPARADO do Safari.
-
-   Levando a aba pra /app/<chave>/<arquivo>, a chave passa a estar no CAMINHO e o
-   manifest daquela pasta tem start_url da propria pasta. Dai o icone nasce
-   liberado, seja pelo botao de instalar ou pelo Compartilhar.
-
-   replaceState nao recarrega a pagina e nao suja o historico. A copia da pasta e
-   byte a byte a mesma pagina, entao nada visual muda. */
-(function(){
-  try{
-    var h = (location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)$/);
-    var chave = h ? h[1] : null;
-
-    /* sem #de=, tenta a memoria do aparelho (mesmo navegador, sem cruzar contexto) */
-    if(!chave){
-      try{
-        var v = JSON.parse(localStorage.getItem('lucronamao_liberado')||'[]');
-        if(Array.isArray(v) && v.length){
-          var c=v.indexOf('controle')>=0, d=v.indexOf('divulga')>=0, p=v.indexOf('preco')>=0;
-          chave = (c&&d&&p)?'tudo':(c&&d)?'cd':(c&&p)?'cp':c?'c':d?'d':p?'p':null;
-        }
-      }catch(e){}
-    }
-    if(!chave) return;
-
-    /* ja esta dentro de uma pasta com chave: nada a fazer */
-    if(/\/(c|d|p|cd|cp|u|tudo)\//.test(location.pathname)) return;
-
-    var arquivo = location.pathname.replace(/^.*\//, '') || 'index.html';
-    var base = location.pathname.replace(/[^\/]*$/, '');
-    history.replaceState(null, '', base + chave + '/' + arquivo + '#de=' + chave);
-  }catch(e){}
-})();
-</script>
 
 <script>
 /* ===== A PAGINA DA RAIZ APONTA PRO MANIFEST DA PASTA (31/08/2026) =====
