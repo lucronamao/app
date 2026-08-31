@@ -20,7 +20,13 @@ Depois: publicar a pasta inteira em lucronamao/app.
 import json, os, re, shutil
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
-APPS = ['index.html', 'divulga.html', 'precificacao.html']
+# nome na raiz -> nome dentro da pasta.
+# index.html NAO pode ser copiado como index.html: dentro da pasta esse nome e do
+# MENU. Bug real de 31/08/2026: o app sobrescrevia o menu e /app/cd/ abria o
+# Controle direto, sem a tela de acesso e sem cadeado no que ela nao comprou.
+APPS = {'index.html': 'controle.html',
+        'divulga.html': 'divulga.html',
+        'precificacao.html': 'precificacao.html'}
 MENU = 'hub.html'          # o menu, que vira o index.html de cada pasta
 BASE = 'https://lucronamao.github.io/app/'
 
@@ -80,16 +86,16 @@ def main():
             fh.write(html)
 
         # os 3 apps, pra a chave estar no caminho de QUALQUER pagina que ela abra
-        for app in APPS:
-            with open(os.path.join(RAIZ, app), encoding='utf-8') as fh:
+        for origem_app, destino_app in APPS.items():
+            with open(os.path.join(RAIZ, origem_app), encoding='utf-8') as fh:
                 html = ajustar(fh.read(), True)
-            with open(os.path.join(pasta, app), 'w', encoding='utf-8', newline='\n') as fh:
+            with open(os.path.join(pasta, destino_app), 'w', encoding='utf-8', newline='\n') as fh:
                 fh.write(html)
 
         with open(os.path.join(pasta, 'manifest.webmanifest'), 'w', encoding='utf-8', newline='\n') as fh:
             json.dump(manifest(chave), fh, ensure_ascii=False, indent=2)
 
-        print('  ' + chave + '/  ->  index.html + ' + ' + '.join(APPS) + ' + manifest')
+        print('  ' + chave + '/  ->  index.html (menu) + ' + ' + '.join(APPS.values()) + ' + manifest')
 
     print('\nPastas montadas a partir de UMA fonte. Nunca edite dentro da pasta:')
     print('edite ' + MENU + ' / ' + ' / '.join(APPS) + ' e rode este script de novo.')

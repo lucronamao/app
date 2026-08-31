@@ -13,95 +13,40 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Controle da Lojinha · Lucro na Mão</title>
+<title>Meus apps · Lucro na Mão</title>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
   --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
   --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
-  --verm:#b3261e; --verm-bg:#fbeae9; --radius:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--rose-2);color:var(--tinta);
-  font-size:16px;padding-bottom:76px;min-height:100vh}
-header{background:var(--vinho);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;
-  display:flex;justify-content:space-between;align-items:center;gap:10px}
-header h1{font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header .loja{font-size:12px;opacity:.85;font-weight:400}
-main{padding:14px;max-width:560px;margin:0 auto}
-.card{background:var(--branco);border:1px solid var(--linha);border-radius:var(--radius);
-  padding:14px;margin-bottom:12px}
-.card h2{font-size:14px;color:var(--cinza);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.kpi{background:var(--rose);border-radius:12px;padding:12px}
-.kpi .v{font-size:22px;font-weight:800;color:var(--vinho);white-space:nowrap;letter-spacing:-.3px}
-.kpi .v.grande{font-size:18px}
-.kpi .v.pos{color:var(--verde)} .kpi .v.neg{color:var(--verm)}
-.kpi .l{font-size:12px;color:var(--cinza);margin-top:2px}
-button{font-family:inherit;border:0;cursor:pointer;border-radius:12px;font-size:16px}
-.btn{background:var(--vinho);color:#fff;width:100%;padding:15px;font-weight:700;margin-top:8px}
-.btn:active{background:var(--vinho-escuro)}
-.btn.sec{background:var(--rose);color:var(--vinho)}
-.btn.mini{width:auto;padding:8px 14px;font-size:14px;margin:0}
-.btn.perigo{background:var(--verm-bg);color:var(--verm)}
-input,select{width:100%;padding:13px;border:1.5px solid var(--linha);border-radius:12px;
-  font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
-input:focus,select:focus{outline:none;border-color:var(--vinho)}
-label{font-size:13px;color:var(--cinza);font-weight:600;display:block;margin-top:12px}
-.linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);
-  display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;padding:9px 2px 7px;font-size:11px;color:var(--cinza);
-  display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:0}
-nav button.on{color:var(--vinho);font-weight:700}
-nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.lista-item{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;
-  border-bottom:1px solid var(--linha);gap:8px}
-.lista-item:last-child{border-bottom:0}
-.lista-item .info{flex:1;min-width:0}
-.lista-item .t{font-weight:600;font-size:15px}
-.lista-item .s{font-size:12.5px;color:var(--cinza);margin-top:1px}
-.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
-.badge.ok{background:var(--verde-bg);color:var(--verde)}
-.badge.baixo{background:var(--ambar-bg);color:var(--ambar)}
-.badge.zero{background:var(--verm-bg);color:var(--verm)}
-.badge.fiado{background:var(--ambar-bg);color:var(--ambar)}
-.modal-fundo{position:fixed;inset:0;background:rgba(43,34,48,.5);z-index:40;display:none;
-  align-items:flex-end;justify-content:center}
-.modal-fundo.aberto{display:flex}
-.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;
-  max-height:88vh;overflow-y:auto;padding:18px 16px 24px}
-.modal h3{font-size:17px;margin-bottom:4px}
-.modal .sub{font-size:13px;color:var(--cinza);margin-bottom:10px}
-.aviso{border-radius:12px;padding:11px 12px;font-size:13.5px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
-.aviso.backup{background:var(--ambar-bg);color:var(--ambar)}
-.aviso.verde{background:var(--verde-bg);color:var(--verde)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:88px;background:var(--tinta);
-  color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:60;opacity:0;
-  transition:opacity .25s;max-width:92vw;text-align:center;pointer-events:none}
-.toast.mostra{opacity:1}
-.toast.lucro{background:var(--verde);font-weight:700}
-.vazio{text-align:center;color:var(--cinza);font-size:14px;padding:26px 10px;line-height:1.5}
-.passo{font-size:12px;color:var(--cinza);text-align:center;margin-bottom:10px;font-weight:600}
-.escolha-prod{display:flex;justify-content:space-between;align-items:center;width:100%;
-  background:var(--rose);text-align:left;padding:13px;margin-bottom:8px;border-radius:12px}
-.escolha-prod .n{font-weight:700} .escolha-prod .p{color:var(--vinho);font-weight:700}
-.qtd-row{display:flex;align-items:center;gap:14px;justify-content:center;margin:10px 0}
-.qtd-row button{width:52px;height:52px;font-size:26px;background:var(--rose);color:var(--vinho);font-weight:800}
-.qtd-row .n{font-size:30px;font-weight:800;min-width:52px;text-align:center}
-.pgto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.pgto-grid button{padding:13px;background:var(--rose);color:var(--tinta);font-weight:600;font-size:15px}
-.pgto-grid button.on{background:var(--vinho);color:#fff}
-.mes-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.mes-nav .m{font-weight:800;font-size:16px;text-transform:capitalize}
-.mes-nav button{background:var(--rose);color:var(--vinho);width:38px;height:38px;font-size:18px;font-weight:800}
-.oculto{display:none!important}
-.filtros{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
-.filtros button{padding:7px 13px;background:#fff;border:1.5px solid var(--linha);color:var(--cinza);font-size:13.5px;font-weight:600;white-space:nowrap}
-.filtros button.on{background:var(--vinho);color:#fff;border-color:var(--vinho)}
-.wizard-logo{text-align:center;padding:26px 0 10px}
-.wizard-logo .m1{font-size:26px;font-weight:800;color:var(--vinho)}
-.wizard-logo .m2{font-size:14px;color:var(--cinza);margin-top:4px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--rose-2);color:var(--tinta);font-size:16px;min-height:100vh}
+header{background:var(--vinho);color:#fff;padding:26px 16px 20px;text-align:center}
+header h1{font-size:24px;font-weight:800}
+header p{font-size:13.5px;opacity:.85;margin-top:3px}
+main{padding:16px;max-width:560px;margin:0 auto}
+.app-card{background:var(--branco);border:1px solid var(--linha);border-radius:16px;padding:16px;margin-bottom:14px;display:block;text-decoration:none;color:inherit}
+.app-card .topo{display:flex;align-items:center;gap:12px}
+.app-card .icone{width:46px;height:46px;border-radius:13px;background:var(--rose);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.app-card .icone svg{width:24px;height:24px;fill:none;stroke:var(--vinho);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app-card h2{font-size:17px;font-weight:800}
+.app-card .desc{font-size:13.5px;color:var(--cinza);margin-top:2px;line-height:1.4}
+.app-card .abrir{margin-top:12px;background:var(--vinho);color:#fff;text-align:center;border-radius:12px;padding:13px;font-weight:700}
+.app-card.travado{border-style:dashed}
+.app-card.travado .icone{background:var(--ambar-bg)}
+.app-card.travado .icone svg{stroke:var(--ambar)}
+.pitch{background:var(--rose-2);border-radius:12px;padding:11px 12px;font-size:13.5px;color:var(--tinta);margin-top:10px;line-height:1.5}
+.preco-linha{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.preco-linha .p{font-size:20px;font-weight:800;color:var(--vinho)}
+.preco-linha .p small{font-size:12px;color:var(--cinza);font-weight:600;display:block}
+.preco-linha a{background:var(--ambar-bg);color:var(--ambar);padding:12px 18px;border-radius:12px;font-weight:800;text-decoration:none;font-size:14.5px}
+.mini-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.mini-tags span{font-size:12px;font-weight:600;color:var(--vinho);background:var(--rose);border-radius:99px;padding:4px 10px}
+.beneficios{margin-top:10px}
+.beneficios div{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:5px 0}
+.beneficios svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;fill:none;stroke:var(--verde);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.rodape{text-align:center;font-size:12.5px;color:var(--cinza);padding:10px 20px 30px;line-height:1.5}
 
 .cfg-fundo{position:fixed;inset:0;background:rgba(43,34,48,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
 .cfg-fundo.aberto{display:flex}
@@ -116,20 +61,6 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .cfg-btn.sec{background:var(--rose);color:var(--vinho)}
 .btn-cfg{background:none;border:0;color:#fff;display:flex;align-items:center;cursor:pointer;padding:4px}
 .btn-cfg svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-@media (max-width:360px){
-  header h1{font-size:15px}
-  header .loja{font-size:11px}
-  #btnBkpTopo{padding:7px 9px!important;font-size:12px!important}
-  .kpi .v{font-size:19px}
-  .kpi .v.grande{font-size:16px}
-  nav button{font-size:10px}
-}
-.pag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;flex-wrap:wrap}
-.pag button{min-width:38px;height:38px;padding:0 10px;background:#fff;border:1.5px solid var(--linha);
-  color:var(--tinta);font-size:14.5px;font-weight:700;border-radius:10px}
-.pag button.on{background:var(--vinho);color:#fff;border-color:var(--vinho)}
-.pag button:disabled{opacity:.35}
-.pag .info{width:100%;text-align:center;font-size:12.5px;color:var(--cinza);margin-top:2px}
 /* faixa de instalacao: o caminho VISIVEL pra virar app na tela inicial */
 .faixa-inst{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--linha);
   border-left:4px solid var(--vinho);border-radius:14px;padding:12px 12px 12px 13px;margin:0 auto 14px;max-width:560px}
@@ -280,17 +211,10 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 </head>
 <body>
 
-<header>
-  <div style="display:flex;align-items:center;gap:11px;min-width:0">
-    <a href="./" id="voltarMenu" aria-label="voltar ao menu" style="color:#fff;display:flex;flex-shrink:0">
-      <svg style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-    </a>
-    <div style="min-width:0"><h1>Controle da Lojinha</h1><div class="loja" id="hdrLoja" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-    <button class="btn mini sec" onclick="Tela.backupRapido()" id="btnBkpTopo" style="white-space:nowrap;padding:8px 11px;font-size:13px">backup</button>
-    <button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button>
-  </div>
+<header style="position:relative">
+  <div style="position:absolute;right:14px;top:16px"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
+  <img src="../logo-branca.png" alt="Lucro na Mão" style="height:64px;width:auto;max-width:78%;margin:0 auto 2px;display:block">
+  <p id="hdrSub">seus apps, pagos uma vez, seus pra sempre</p>
 </header>
 
 <div style="padding:14px 16px 0">
@@ -303,56 +227,16 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 </div>
 
 
-<main id="app"></main>
+<main id="lista"></main>
 
-<nav id="navBar">
-  <button data-tela="vender" class="on"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Vender</button>
-  <button data-tela="vendas"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Vendas</button>
-  <button data-tela="estoque"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 8.3L12 13l8.7-4.7M12 13v8"/></svg>Estoque</button>
-  <button data-tela="resumo"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resumo</button>
-  <button data-tela="mais"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6"/><circle cx="5" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mais</button>
-</nav>
-
-<div class="modal-fundo" id="modalFundo" onclick="if(event.target===this)Modal.fechar()">
-  <div class="modal" id="modalCorpo"></div>
-</div>
-<div class="toast" id="toast"></div>
+<div class="rodape">Seus apps ficam salvos neste celular.<br>Para abrir pelo ícone, sem navegador, use o botão <b>Instalar</b> ali em cima.</div>
 
 <script>
-/* ============ DADOS (localStorage, 1 chave, versao no schema) ============ */
-const CHAVE = 'lucronamao_v1';
-const D = {
-  dados: null,
-  novo(){ return {v:1, config:{loja:'', criadoEm:hoje(), ultimoBackup:null, vendasDesdeBackup:0, wizardOk:false},
-           produtos:[], vendas:[], despesas:[], seq:1}; },
-  carregar(){ try{ this.dados = JSON.parse(localStorage.getItem(CHAVE)) || this.novo(); }
-              catch(e){ this.dados = this.novo(); } },
-  salvar(){ localStorage.setItem(CHAVE, JSON.stringify(this.dados)); },
-  id(){ return this.dados.seq++; }
-};
-function hoje(){ return new Date().toISOString().slice(0,10); }
-function agora(){ return new Date().toISOString(); }
-function rs(n){ return 'R$ ' + Number(Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function num(v){ const s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isNaN(n)?0:n; }
-function fmtMoeda(n){ return n||n===0 ? 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
-document.addEventListener('input',function(e){
-  const el=e.target; if(!el.matches) return;
-  if(el.matches('[data-moeda]')){
-    const d=el.value.replace(/\D/g,'').replace(/^0+(?=\d{3})/,'').slice(0,10);
-    el.value=d?'R$ '+(parseInt(d)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-  }
-  if(el.matches('[data-pct]')){
-    let v=el.value.replace(/[^\d,]/g,''); const i=v.indexOf(',');
-    if(i>=0) v=v.slice(0,i+1)+v.slice(i+1).replace(/,/g,'').slice(0,1);
-    el.value=v.slice(0,6);
-  }
-  if(typeof POSMASK==='function') POSMASK(el);
-});
-function POSMASK(el){ if(el.id==='pCusto'||el.id==='pPreco'){ try{Produto.previa();}catch(e){} } }
-function mesDe(iso){ return iso.slice(0,7); }
-function nomeMes(ym){ const [a,m]=ym.split('-'); const n=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  return n[parseInt(m)-1]+' de '+a; }
-
+/* ===== desbloqueio por chave no link de entrega da Cakto =====
+   ?libera=c        -> Controle da Lojinha (front)
+   ?libera=cp       -> Controle + Precificação (front + bump)
+   ?libera=tudo     -> tudo (front + bump + upsell futuro)
+   A chave fica salva no aparelho: o link pode ser aberto uma vez só. */
 const TEMAS={
   vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
   violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
@@ -366,492 +250,196 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
+/* ===== LIBERACAO: SO O LINK LIBERA, E A CHAVE FICA NA URL =====
+   Decisao do Vini, 29/08/2026: *"ele nao tem que ver nada de liberacao pelo storage,
+   isso vai dar problema. Cada link tem a sua quantidade liberada e pronto."*
 
-/* ============ DEFESA 1: armazenamento persistente ============ */
-if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+   Como funciona: o `?libera=` da URL e a UNICA fonte. Nao ha estado salvo, entao nao
+   ha estado pra corromper, ficar velho ou divergir entre paginas. A mesma URL sempre
+   mostra a mesma coisa, em qualquer aparelho.
 
-/* ============ TOAST ============ */
-let toastTimer=null;
-function toast(msg, lucro){ const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast mostra'+(lucro?' lucro':'');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='toast',2600); }
+   Por que a query NAO e mais apagada da barra de endereco: o icone da tela inicial
+   guarda a URL de onde foi instalado. Apagando a query (o que o codigo antigo fazia
+   com history.replaceState), o icone nasceria apontando pro hub pelado e abriria
+   travado. Mantendo a query, o icone abre liberado pra sempre, sem storage nenhum.
 
-/* ============ MODAL ============ */
-const Modal = {
-  abrir(html){ document.getElementById('modalCorpo').innerHTML=html;
-    document.getElementById('modalFundo').classList.add('aberto'); },
-  fechar(){ document.getElementById('modalFundo').classList.remove('aberto'); }
+   O manifest tem `start_url: hub.html`, mas navegador nenhum ignora a URL corrente
+   na hora de instalar: ele instala o que esta na tela, com query e tudo. */
+const MAPA = {
+  c:      ['controle'],
+  d:      ['divulga'],
+  p:      ['preco'],
+  cd:     ['controle','divulga'],
+  cp:     ['controle','preco'],          // compatibilidade
+  u:      ['preco'],                     // compatibilidade
+  tudo:   ['controle','divulga','preco']
 };
+const CHAVE_MEM = 'lucronamao_liberado';
 
+/* ===== O APARELHO LEMBRA O QUE JA FOI LIBERADO =====
+   Revisao da regra de 29/08/2026 ("so o link libera, nada de storage"), feita em
+   31/08/2026 depois de uma compradora ficar travada de verdade:
 
-/* ============ PAGINACAO (20 por pagina) ============ */
-const POR_PAGINA = 20;
-function paginar(lista, pagina){
-  const total=lista.length, paginas=Math.max(1,Math.ceil(total/POR_PAGINA));
-  const p=Math.min(Math.max(1,pagina),paginas);
-  return {itens:lista.slice((p-1)*POR_PAGINA, p*POR_PAGINA), pagina:p, paginas, total,
-    de:total?((p-1)*POR_PAGINA+1):0, ate:Math.min(p*POR_PAGINA,total)};
+     *"quando ela abre o link pelo navegador normal, os menus estao liberados
+     normalmente, quando ela salva o icone na tela de inicio do celular e abre,
+     eles aparecem travados."*
+
+   ESTA pagina e o fundo do poco do problema. A compradora instala de dentro do app
+   que esta usando (/app/index.html), e essa pagina vincula /app/manifest.webmanifest,
+   cuja start_url e `hub.html`. O icone nasce apontando pra ca, SEM chave nenhuma no
+   caminho, e antes disso nao havia estado salvo: `LIBERADOS` ficava vazio e o menu
+   travava tudo, inclusive pra quem pagou.
+
+   O link continua sendo a unica coisa que CONCEDE acesso. O storage e so memoria do
+   que um link ja concedeu, e apenas SOMA. Nada aqui remove acesso, entao o pior caso
+   e liberar o que ela ja comprou, nunca travar. */
+function lembrar(itens){
+  try{
+    var antes = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
+    if(!Array.isArray(antes)) antes = [];
+    var uniao = antes.slice();
+    itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
+    if(uniao.length !== antes.length) localStorage.setItem(CHAVE_MEM, JSON.stringify(uniao));
+    return uniao;
+  }catch(e){ return itens; }   /* Safari privado nega storage: segue pelo link */
 }
-function barraPag(info, fnIr){
-  if(info.paginas<=1) return info.total>POR_PAGINA?'':'';
-  const b=(rot,pg,dis,on)=>`<button ${dis?'disabled':''} class="${on?'on':''}" onclick="${fnIr}(${pg})">${rot}</button>`;
-  let nums=[];
-  const p=info.pagina, t=info.paginas;
-  let ini=Math.max(1,p-1), fim=Math.min(t,p+1);
-  if(p===1) fim=Math.min(t,3);
-  if(p===t) ini=Math.max(1,t-2);
-  if(ini>1) nums.push(b('1',1,false,false));
-  if(ini>2) nums.push('<button disabled>...</button>');
-  for(let i=ini;i<=fim;i++) nums.push(b(String(i),i,false,i===p));
-  if(fim<t-1) nums.push('<button disabled>...</button>');
-  if(fim<t) nums.push(b(String(t),t,false,false));
-  return `<div class="pag">
-    ${b('&lsaquo;',p-1,p===1,false)}${nums.join('')}${b('&rsaquo;',p+1,p===t,false)}
-    <div class="info">mostrando ${info.de} a ${info.ate} de ${info.total}</div></div>`;
+
+function lembrado(){
+  try{
+    var v = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
+    if(!Array.isArray(v)) return [];
+    var validos = ['controle','divulga','preco'];
+    return v.filter(function(x){ return validos.indexOf(x) >= 0; });
+  }catch(e){ return []; }
 }
 
-/* ============ CALCULOS ============ */
-const Calc = {
-  vendasDoMes(ym){ return D.dados.vendas.filter(v=>mesDe(v.data)===ym); },
-  totais(ym){
-    const vs=this.vendasDoMes(ym);
-    let vendido=0, custo=0, fiadoPend=0;
-    vs.forEach(v=>{ vendido+=v.total; custo+=v.custo; if(v.pgto==='fiado'&&!v.pago) fiadoPend+=v.total; });
-    const despesas=D.dados.despesas.filter(d=>mesDe(d.data)===ym).reduce((s,d)=>s+d.valor,0);
-    const investido=D.dados.produtos.reduce((s,p)=>s+p.custo*p.qtd,0);
-    return {vendido, lucro:vendido-custo, despesas, liquido:vendido-custo-despesas, fiadoPend, investido, n:vs.length};
-  },
-  topProdutos(ym){
-    const cont={};
-    this.vendasDoMes(ym).forEach(v=>v.itens.forEach(i=>{
-      cont[i.nome]=cont[i.nome]||{nome:i.nome,qtd:0,lucro:0};
-      cont[i.nome].qtd+=i.qtd; cont[i.nome].lucro+=(i.preco-i.custo)*i.qtd; }));
-    return Object.values(cont).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
-  }
-};
+const LIBERADOS = (function(){
+  /* (?:\/|$) aceita /app/tudo e /app/tudo/index.html igualmente. */
+  var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+  var k = m ? m[1] : (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
+  var doLink = MAPA[k] || [];
+  if(doLink.length) return lembrar(doLink);
 
-/* ============ BACKUP (defesas 2, 3, 4, 5) ============ */
-const Backup = {
-  precisa(){ const c=D.dados.config;
-    if(!c.ultimoBackup) return D.dados.vendas.length>=3;
-    const dias=(Date.now()-new Date(c.ultimoBackup))/864e5;
-    return c.vendasDesdeBackup>=10 || dias>=7; },
-  nomeArquivo(){ return 'Backup Controle da Lojinha '+hoje().split('-').reverse().join('-')+'.csv'; },
-  gerarCSV(){
-    const L=[]; const s=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-    const n=v=>String(Math.round(v*100)/100).replace('.',',');
-    L.push('CONTROLE DA LOJINHA;BACKUP;v1');
-    L.push('loja;'+s(D.dados.config.loja));
-    L.push('gerado em;'+new Date().toLocaleString('pt-BR'));
-    L.push('');
-    L.push('#PRODUTOS');
-    L.push('id;nome;custo;preco;estoque');
-    D.dados.produtos.forEach(p=>L.push([p.id,s(p.nome),n(p.custo),n(p.preco),p.qtd].join(';')));
-    L.push('');
-    L.push('#VENDAS');
-    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago');
-    D.dados.vendas.forEach(v=>v.itens.forEach(i=>
-      L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao'].join(';'))));
-    L.push('');
-    L.push('#DESPESAS');
-    L.push('id;data;descricao;valor');
-    D.dados.despesas.forEach(d2=>L.push([d2.id,d2.data,s(d2.desc),n(d2.valor)].join(';')));
-    L.push('#FIM');
-    return '\ufeff'+L.join('\r\n');
-  },
-  arquivo(){ return new File([new Blob([this.gerarCSV()],{type:'text/csv;charset=utf-8'})],
-    this.nomeArquivo(), {type:'text/csv'}); },
-  async compartilhar(){
-    const f=this.arquivo();
-    if(navigator.canShare && navigator.canShare({files:[f]})){
-      try{ await navigator.share({files:[f], title:'Backup Controle da Lojinha'});
-        this.registrou(); return; }catch(e){ if(e.name==='AbortError') return; }
+  /* ===== REDE DE SEGURANCA FINAL (31/08/2026) =====
+     Chegar aqui significa: hub pelado, sem chave na URL. E o que o icone abre
+     quando a compradora instalou de dentro do app.
+
+     Se este aparelho lembra o nivel, MANDA pra pasta dela em vez de renderizar
+     travado. A pasta libera pelo CAMINHO, que e a unica coisa que sempre
+     funciona: nao depende de storage cruzar contexto (no iOS o app instalado tem
+     storage separado do Safari), nem de o iOS respeitar manifest via blob.
+
+     replace() em vez de href=: nao deixa o hub travado no historico, entao o
+     botao voltar do aparelho nao volta pra tela travada. */
+  var mem = lembrado();
+  if(mem.length){
+    var c = mem.indexOf('controle')>=0, d = mem.indexOf('divulga')>=0, p = mem.indexOf('preco')>=0;
+    var chave = (c&&d&&p) ? 'tudo' : (c&&d) ? 'cd' : (c&&p) ? 'cp' : c ? 'c' : d ? 'd' : p ? 'p' : null;
+    if(chave){
+      var base = location.pathname.replace(/[^\/]*$/, '');
+      try{ location.replace(base + chave + '/'); }catch(e){}
+      /* devolve o nivel pra pagina nao piscar travada antes de trocar de URL */
+      return mem;
     }
-    const url=URL.createObjectURL(f); const a=document.createElement('a');
-    a.href=url; a.download=f.name; a.click(); URL.revokeObjectURL(url); this.registrou();
-  },
-  registrou(){ D.dados.config.ultimoBackup=agora(); D.dados.config.vendasDesdeBackup=0;
-    D.salvar(); toast('Backup salvo! Guarda ele no seu WhatsApp'); Tela.render(); },
-  restaurar(arq){
-    const r=new FileReader();
-    r.onload=()=>{ let d=null;
-      try{
-        const txt=r.result;
-        if((arq.name||'').toLowerCase().endsWith('.json')||txt.trim().startsWith('{')) d=this.deJSON(txt);
-        else d=this.deCSV(txt);
-      }catch(e){ d=null; }
-      if(!d){ toast('Esse arquivo não é um backup válido'); return; }
-      Backup._pend=d;
-      Modal.abrir(`<h3>Restaurar backup?</h3>
-        <p class="sub">Esse arquivo tem <b>${d.produtos.length} produtos</b> e <b>${d.vendas.length} vendas</b>
-        (loja: ${d.config.loja||'sem nome'}). Isso vai <b>substituir</b> o que está no app agora.</p>
-        <button class="btn" onclick='Backup.confirmaRestaurar()'>Sim, restaurar esse backup</button>
-        <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`);
-    };
-    r.readAsText(arq);
-  },
-  deJSON(txt){ const d=JSON.parse(txt);
-    if(!d.v || !Array.isArray(d.produtos) || !Array.isArray(d.vendas)) throw 0; return d; },
-  deCSV(txt){
-    const linhas=txt.replace(/^\uFEFF/,'').split(/\r?\n/);
-    if(!linhas[0]||!linhas[0].startsWith('CONTROLE DA LOJINHA')) throw 0;
-    const num2=v=>{const x=parseFloat(String(v).replace(/"/g,'').replace(',','.'));return isNaN(x)?0:x;};
-    const uns=v=>{v=String(v||'');if(v.startsWith('"')&&v.endsWith('"'))v=v.slice(1,-1).replace(/""/g,'"');return v;};
-    const cols=l=>{const out=[];let cur='';let q=false;
-      for(const ch of l){ if(ch==='"'){q=!q;cur+=ch;} else if(ch===';'&&!q){out.push(cur);cur='';} else cur+=ch; }
-      out.push(cur); return out; };
-    const d=D.novo(); d.config.wizardOk=true;
-    let sec=''; const vendasMap={};
-    for(const l of linhas){
-      if(!l.trim()) continue;
-      if(l.startsWith('#')){ sec=l.trim(); continue; }
-      const c2=cols(l);
-      if(sec==='' && l.startsWith('loja;')) d.config.loja=uns(c2[1]);
-      if(sec==='#PRODUTOS' && c2[0]!=='id')
-        d.produtos.push({id:parseInt(c2[0])||0,nome:uns(c2[1]),custo:num2(c2[2]),preco:num2(c2[3]),qtd:parseInt(c2[4])||0});
-      if(sec==='#VENDAS' && c2[0]!=='venda'){
-        const id=parseInt(c2[0])||0;
-        if(!vendasMap[id]) vendasMap[id]={id,data:c2[1],criadaEm:c2[1],itens:[],pgto:c2[7],
-          cliente:uns(c2[8])||null,pago:c2[9]!=='nao',total:0,custo:0};
-        vendasMap[id].itens.push({produtoId:parseInt(c2[2])||0,nome:uns(c2[3]),
-          qtd:parseInt(c2[4])||1,preco:num2(c2[5]),custo:num2(c2[6])});
-      }
-      if(sec==='#DESPESAS' && c2[0]!=='id')
-        d.despesas.push({id:parseInt(c2[0])||0,data:c2[1],desc:uns(c2[2]),valor:num2(c2[3])});
-    }
-    d.vendas=Object.values(vendasMap).map(v=>{
-      v.total=v.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
-      v.custo=v.itens.reduce((s,i)=>s+i.custo*i.qtd,0); return v; })
-      .sort((a,b)=>String(b.data).localeCompare(String(a.data)));
-    const ids=[...d.produtos.map(p=>p.id),...d.vendas.map(v=>v.id),...d.despesas.map(x=>x.id),0];
-    d.seq=Math.max(...ids)+1;
-    if(!d.produtos.length && !d.vendas.length) throw 0;
-    return d;
-  },
-  confirmaRestaurar(){ D.dados=this._pend; D.salvar(); Modal.fechar(); Tela.render();
-    toast('Backup restaurado! Tudo de volta no lugar'); },
-  exportarCSV(ym){
-    const vs=Calc.vendasDoMes(ym);
-    let csv='data;produtos;quantidade;forma de pagamento;total;custo;lucro;status\n';
-    vs.forEach(v=>{ csv+=[v.data, v.itens.map(i=>i.nome+' x'+i.qtd).join(' + '),
-      v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto + (v.cliente?' ('+v.cliente+')':''),
-      String(v.total).replace('.',','), String(v.custo).replace('.',','),
-      String(v.total-v.custo).replace('.',','), v.pgto==='fiado'?(v.pago?'pago':'pendente'):'pago'
-      ].join(';')+'\n'; });
-    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-    a.download='vendas-'+ym+'.csv'; a.click(); toast('Planilha do mês exportada');
   }
+  return mem;
+})();
+const tem = x => LIBERADOS.includes(x);
+
+/* Dentro de /app/<chave>/, os apps moram um nivel acima. Fora dela (hub aberto
+   direto), o caminho e o mesmo de sempre.
+
+   O `#de=<chave>` diz ao app de qual menu ele veio, pro botao de voltar levar de
+   volta ao menu CERTO e nao ao hub pelado (que mostra tudo travado). Vai como
+   HASH, nao query: o hash nao vai pro servidor, nao entra no cache do service
+   worker e sobrevive a qualquer normalizacao de URL. */
+const comChave = (url) => {
+  /* Dentro de /app/<chave>/ os apps moram NA PROPRIA PASTA: e isso que mantem a
+     chave no CAMINHO de toda pagina, e por isso o icone nasce liberado tanto pela
+     rota do manifest (start_url da pasta) quanto pela rota legada do
+     apple-mobile-web-app-capable (que usa a URL da aba). Fonte: WebKit Safari 15.4
+     e web.dev/learn/pwa.
+
+     O app "Controle" se chama index.html na raiz, mas dentro da pasta esse nome e
+     do MENU, entao lá ele e controle.html. Bug real de 31/08/2026: sem esse
+     desvio, o app sobrescrevia o menu e /app/cd/ abria o Controle direto, sem
+     cadeado no que a compradora nao tinha comprado. */
+  const m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+  if(!m) return url;
+  const naPasta = (url === 'index.html') ? 'controle.html' : url;
+  return naPasta + '#de=' + m[1];
 };
 
-/* ============ VENDA ============ */
-const Venda = {
-  carrinho:null,
-  iniciar(){ if(!D.dados.produtos.length){ Tela.ir('estoque'); toast('Cadastra um produto primeiro'); return; }
-    this.carrinho={itens:[],pgto:null,cliente:''}; this.busca=''; this.pag=1; this.telaProduto(); },
-  busca:'', pag:1,
-  telaProduto(){
-    let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
-    const total=ps.length;
-    if(this.busca) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.busca.toLowerCase()));
-    const pg=paginar(ps, this.pag);
-    const busca = total>8
-      ? `<input id="buscaProd" placeholder="buscar produto..." value="${this.busca}" autocomplete="off"
-          oninput="Venda.busca=this.value;Venda.pag=1;Venda.telaProduto();setTimeout(()=>{const b=document.getElementById('buscaProd');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)">`
-      : '';
-    const lista = pg.itens.map(p=>
-      `<button class="escolha-prod" onclick="Venda.escolheu(${p.id})" ${p.qtd<=0?'style="opacity:.5"':''}>
-        <span class="n">${p.nome}${p.qtd<=0?' <span style="font-weight:600;font-size:12.5px">(sem estoque)</span>':''}</span>
-        <span class="p">${rs(p.preco)}</span></button>`).join('');
-    Modal.abrir(`<div class="passo">passo 1 de 3 · toque no produto</div>${busca}
-      <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
-      ${barraPag(pg,'Venda.irPag')}`);
-  },
-  irPag(p){ this.pag=p; this.telaProduto();
-    document.querySelector('.modal')?.scrollTo({top:0,behavior:'smooth'}); },
-  escolheu(id){ this._prod=D.dados.produtos.find(p=>p.id===id); this._qtd=1; this.telaQtd(); },
-  telaQtd(){ const p=this._prod;
-    Modal.abrir(`<div class="passo">passo 2 de 3 · quantidade</div>
-      <h3>${p.nome}</h3><p class="sub">${rs(p.preco)} cada · ${p.qtd} em estoque</p>
-      <div class="qtd-row">
-        <button onclick="Venda.mudaQtd(-1)">−</button>
-        <span class="n" id="qtdN">1</span>
-        <button onclick="Venda.mudaQtd(1)">+</button>
-      </div>
-      <div class="aviso backup oculto" id="avisoEstoque"></div>
-      <button class="btn" onclick="Venda.telaPgto()">Continuar</button>`);
-    if(p.qtd<=0){ const av=document.getElementById('avisoEstoque'); av.classList.remove('oculto');
-      av.innerHTML='Esse produto está com estoque <b>zerado</b>. Você pode registrar a venda, mas confira o estoque depois.'; } },
-  mudaQtd(d){ this._qtd=Math.max(1,this._qtd+d);
-    document.getElementById('qtdN').textContent=this._qtd;
-    const av=document.getElementById('avisoEstoque');
-    if(av){ const falta=this._qtd-this._prod.qtd;
-      if(falta>0){ av.classList.remove('oculto');
-        av.innerHTML='Atenção: você tem só <b>'+this._prod.qtd+'</b> em estoque. Vendendo '+this._qtd+', o estoque fica zerado (ajuste depois no Estoque).'; }
-      else av.classList.add('oculto'); } },
-  telaPgto(){
-    this.carrinho.itens=[{produtoId:this._prod.id,nome:this._prod.nome,qtd:this._qtd,preco:this._prod.preco,custo:this._prod.custo}];
-    const total=this._prod.preco*this._qtd;
-    Modal.abrir(`<div class="passo">passo 3 de 3 · como ela pagou?</div>
-      <h3>${rs(total)}</h3><p class="sub">${this._prod.nome} x${this._qtd}</p>
-      <div class="pgto-grid">
-        ${['pix','dinheiro','cartão','fiado'].map(f=>`<button id="pg-${f}" onclick="Venda.pgto('${f}')">${f==='fiado'?'fiado (anotar)':f}</button>`).join('')}
-      </div>
-      <div id="fiadoCampo" class="oculto"><label>nome da cliente (pra cobrar depois)</label>
-        <input id="fiadoNome" placeholder="ex: Ana do 302"></div>
-      <button class="btn" onclick="Venda.confirmar()">Registrar venda ✓</button>`); },
-  pgto(f){ this.carrinho.pgto=f;
-    ['pix','dinheiro','cartão','fiado'].forEach(x=>document.getElementById('pg-'+x).classList.toggle('on',x===f));
-    document.getElementById('fiadoCampo').classList.toggle('oculto', f!=='fiado'); },
-  confirmar(){
-    const c=this.carrinho;
-    if(!c.pgto){ toast('Escolhe como ela pagou'); return; }
-    if(c.pgto==='fiado'){ c.cliente=(document.getElementById('fiadoNome').value||'').trim();
-      if(!c.cliente){ toast('Anota o nome de quem levou fiado'); return; } }
-    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
-    const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
-    const v={id:D.id(),data:hoje(),criadaEm:agora(),itens:c.itens,pgto:c.pgto,
-      cliente:c.cliente||null,pago:c.pgto!=='fiado',total,custo};
-    D.dados.vendas.unshift(v);
-    c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
-    D.dados.config.vendasDesdeBackup++;
-    D.salvar(); Modal.fechar(); Tela.render();
-    toast('Venda registrada! Você lucrou '+rs(total-custo), true);
-  },
-  marcarPago(id){ const v=D.dados.vendas.find(x=>x.id===id); if(v){v.pago=true;D.salvar();Tela.render();toast('Fiado recebido ✓');} },
-  excluir(id){ const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
-    Modal.abrir(`<h3>Excluir esta venda?</h3><p class="sub">${v.itens.map(i=>i.nome+' x'+i.qtd).join(', ')} · ${rs(v.total)}.
-      O estoque volta pros produtos.</p>
-      <button class="btn perigo" onclick="Venda.confirmaExcluir(${id})">Sim, excluir</button>
-      <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`); },
-  confirmaExcluir(id){ const v=D.dados.vendas.find(x=>x.id===id);
-    v.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd+=i.qtd; });
-    D.dados.vendas=D.dados.vendas.filter(x=>x.id!==id); D.salvar(); Modal.fechar(); Tela.render(); toast('Venda excluída'); },
-  recibo(id){ const v=D.dados.vendas.find(x=>x.id===id); const loja=D.dados.config.loja||'Minha lojinha';
-    // DEFESA VoC: recibo NUNCA mostra custo nem lucro
-    const linhas=v.itens.map(i=>`${i.qtd}x ${i.nome} — ${rs(i.preco*i.qtd)}`).join('%0A');
-    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}%0A%0AObrigada pela preferência!`;
-    window.open('https://wa.me/?text='+txt,'_blank'); }
+/* checkout dos degraus. Links lidos da API da Cakto em 19/08/2026 (a Cakto e a fonte da
+   verdade, nao este arquivo). Conferidos no "Resumo do pedido" do checkout real: 27,00 e 97,00.
+   Se mudar produto ou oferta na Cakto, reconfira com GET /public_api/offers/ (o campo `id` da
+   oferta E o short_id do link). */
+const CHECKOUT = {
+  controle:'https://pay.cakto.com.br/3ko7pit',   /* Controle da Lojinha, R$ 47 */
+  divulga: 'https://pay.cakto.com.br/47dvagf',   /* Divulga na Mao,      R$ 27 */
+  preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Precificacao na Mao, R$ 97 */
 };
 
-/* ============ PRODUTO ============ */
-const Produto = {
-  form(id){ const p=id?D.dados.produtos.find(x=>x.id===id):null;
-    Modal.abrir(`<h3>${p?'Editar':'Novo'} produto</h3>
-      <label>nome do produto</label><input id="pNome" value="${p?p.nome:''}" placeholder="ex: Blusa canelada P">
-      <div class="linha2">
-        <div><label>quanto VOCÊ pagou (custo)</label><input id="pCusto" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.custo):''}" placeholder="R$ 0,00"></div>
-        <div><label>preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.preco):''}" placeholder="R$ 0,00"></div>
-      </div>
-      <label>quantidade em estoque</label><input id="pQtd" inputmode="numeric" value="${p?p.qtd:''}" placeholder="0">
-      <div id="pLucroPrev" class="aviso verde oculto" style="margin-top:12px"></div>
-      <button class="btn" onclick="Produto.salvar(${p?p.id:0})">Salvar produto</button>
-      ${p?`<button class="btn perigo" onclick="Produto.excluir(${p.id})">Excluir produto</button>`:''}`);
-    ['pCusto','pPreco'].forEach(i=>document.getElementById(i).addEventListener('input',this.previa));
-    this.previa(); },
-  previa(){ const c=num(document.getElementById('pCusto').value), v=num(document.getElementById('pPreco').value);
-    const el=document.getElementById('pLucroPrev');
-    if(v>0&&c>=0){ el.classList.remove('oculto');
-      el.textContent = v>c ? `Você lucra ${rs(v-c)} por peça (margem de ${Math.round((v-c)/v*100)}%)`
-        : 'Atenção: esse preço não cobre o custo!'; } else el.classList.add('oculto'); },
-  salvar(id){ const nome=document.getElementById('pNome').value.trim();
-    const custo=num(document.getElementById('pCusto').value), preco=num(document.getElementById('pPreco').value);
-    const qtd=Math.max(0,Math.round(num(document.getElementById('pQtd').value)));
-    if(!nome){ toast('Dá um nome pro produto'); return; }
-    if(preco<=0){ toast('Coloca o preço de venda'); return; }
-    if(id){ const p=D.dados.produtos.find(x=>x.id===id); Object.assign(p,{nome,custo,preco,qtd}); }
-    else D.dados.produtos.push({id:D.id(),nome,custo,preco,qtd});
-    D.salvar(); Modal.fechar(); Tela.render(); toast(id?'Produto atualizado ✓':'Produto cadastrado ✓'); },
-  excluir(id){ D.dados.produtos=D.dados.produtos.filter(p=>p.id!==id);
-    D.salvar(); Modal.fechar(); Tela.render(); toast('Produto excluído'); }
+const ICO = {
+  controle:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  preco:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7c0 2.6-5 1.6-5 4.4 0 1 1.1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg>',
+  divulga:'<svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9.3 8.4 8.6 8.6 0 01-3.9-1L3 20l1.2-4.6a8.4 8.4 0 1116.8-3.9z"/></svg>',
+  cadeado:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>'
 };
 
-/* ============ DESPESA ============ */
-const Despesa = {
-  form(){ Modal.abrir(`<h3>Nova despesa</h3><p class="sub">embalagem, frete, sacola, motoboy...</p>
-    <label>o que foi</label><input id="dDesc" placeholder="ex: embalagens">
-    <label>valor</label><input id="dValor" data-moeda inputmode="numeric" placeholder="R$ 0,00">
-    <button class="btn" onclick="Despesa.salvar()">Lançar despesa</button>`); },
-  salvar(){ const desc=document.getElementById('dDesc').value.trim(), valor=num(document.getElementById('dValor').value);
-    if(!desc||valor<=0){ toast('Preenche o que foi e o valor'); return; }
-    D.dados.despesas.unshift({id:D.id(),data:hoje(),desc,valor});
-    D.salvar(); Modal.fechar(); Tela.render(); toast('Despesa lançada'); },
-  excluir(id){ D.dados.despesas=D.dados.despesas.filter(d=>d.id!==id); D.salvar(); Tela.render(); }
-};
-
-/* ============ WIZARD (quick win < 10 min) ============ */
-const Wizard = {
-  passo1(){ Modal.abrir(`<div class="wizard-logo"><div class="m1">Lucro na Mão</div>
-      <div class="m2">Controle da Lojinha · seu app, pra sempre</div></div>
-    <p class="sub" style="text-align:center">Em 3 passinhos você registra sua primeira venda<br>e vê seu lucro na tela. Bora?</p>
-    <label>como chama a sua lojinha?</label><input id="wLoja" placeholder="ex: Closet da Ju">
-    <button class="btn" onclick="Wizard.passo2()">Começar</button>`); },
-  passo2(){ const loja=document.getElementById('wLoja').value.trim();
-    D.dados.config.loja=loja||'Minha lojinha'; D.salvar();
-    document.getElementById('hdrLoja').textContent=D.dados.config.loja;
-    Modal.abrir(`<div class="passo">quase lá · cadastre seu 1º produto</div>
-      <h3>Cadastra um produto que você vende</h3>
-      <p class="sub">Pode ser qualquer um. Depois você cadastra o resto com calma.</p>
-      <label>nome do produto</label><input id="pNome" placeholder="ex: Blusa canelada P">
-      <div class="linha2">
-        <div><label>quanto você pagou</label><input id="pCusto" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
-        <div><label>preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
-      </div>
-      <label>quantas você tem</label><input id="pQtd" inputmode="numeric" placeholder="0">
-      <button class="btn" onclick="Wizard.fim()">Cadastrar e concluir</button>`); },
-  fim(){ const nome=document.getElementById('pNome').value.trim();
-    const custo=num(document.getElementById('pCusto').value), preco=num(document.getElementById('pPreco').value);
-    const qtd=Math.max(0,Math.round(num(document.getElementById('pQtd').value)))||1;
-    if(!nome||preco<=0){ toast('Preenche o nome e o preço 😉'); return; }
-    D.dados.produtos.push({id:D.id(),nome,custo,preco,qtd});
-    D.dados.config.wizardOk=true; D.salvar(); Modal.fechar(); Tela.render();
-    toast('Prontinho! Agora toca em Vender quando sair a primeira venda'); }
-};
-
-/* ============ TELAS ============ */
-const Tela = {
-  atual:'vender', mesResumo:mesDe(hoje()), filtroVendas:'todas',
-  buscaEstoque:'', filtroEstoque:'', pagEstoque:1, pagVendas:1,
-  ir(t){ this.atual=t; this.pagVendas=1; this.pagEstoque=1; document.querySelectorAll('#navBar button').forEach(b=>b.classList.toggle('on',b.dataset.tela===t)); this.render(); },
-  backupRapido(){ Backup.compartilhar(); },
-  irPagVendas(p){ this.pagVendas=p; this.render(); window.scrollTo({top:0,behavior:'smooth'}); },
-  irPagEstoque(p){ this.pagEstoque=p; this.render(); window.scrollTo({top:0,behavior:'smooth'}); },
-  avisoBackup(){ return Backup.precisa()
-    ? `<div class="aviso backup"><svg style="width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 8.3L12 13l8.7-4.7M12 13v8"/></svg> <span><b>${D.dados.config.vendasDesdeBackup||D.dados.vendas.length} vendas sem backup.</b>
-       Toca em "salvar backup" lá em cima e manda o arquivo pro seu WhatsApp. Leva 5 segundos.</span></div>` : ''; },
-  render(){
-    document.getElementById('hdrLoja').textContent=D.dados.config.loja;
-    const app=document.getElementById('app');
-    const t=this.atual;
-    if(t==='vender') app.innerHTML=this.telaVender();
-    if(t==='vendas') app.innerHTML=this.telaVendas();
-    if(t==='estoque') app.innerHTML=this.telaEstoque();
-    if(t==='resumo') app.innerHTML=this.telaResumo();
-    if(t==='mais') app.innerHTML=this.telaMais();
-  },
-  telaVender(){
-    const ym=mesDe(hoje()), tt=Calc.totais(ym);
-    const hj=D.dados.vendas.filter(v=>v.data===hoje());
-    const lucroHoje=hj.reduce((s,v)=>s+v.total-v.custo,0);
-    return `${this.avisoBackup()}
-      <div class="card"><div class="kpis">
-        <div class="kpi"><div class="v pos">${rs(lucroHoje)}</div><div class="l">lucro de HOJE (${hj.length} venda${hj.length===1?'':'s'})</div></div>
-        <div class="kpi"><div class="v">${rs(tt.lucro)}</div><div class="l">lucro do mês</div></div>
-      </div></div>
-      <button class="btn" style="padding:22px;font-size:19px" onclick="Venda.iniciar()">+ Registrar venda</button>
-      <div class="card" style="margin-top:12px"><h2>últimas vendas</h2>
-        ${hj.length?hj.slice(0,5).map(v=>this.itemVenda(v)).join(''):'<div class="vazio">Nenhuma venda hoje ainda.<br>Quando sair, registra em 3 toques.</div>'}
-      </div>`;
-  },
-  itemVenda(v){
-    const badge = v.pgto==='fiado' ? (v.pago?'<span class="badge ok">fiado pago</span>':'<span class="badge fiado">fiado</span>') : `<span class="badge ok">${v.pgto}</span>`;
-    return `<div class="lista-item"><div class="info">
-        <div class="t">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</div>
-        <div class="s">${v.data.split('-').reverse().join('/')}${v.cliente?' · '+v.cliente:''} · lucro ${rs(v.total-v.custo)}</div></div>
-      <div style="text-align:right">
-        <div style="font-weight:800">${rs(v.total)}</div>${badge}<br>
-        <button class="btn mini sec" style="margin-top:6px;font-size:12px" onclick="Venda.recibo(${v.id})">recibo</button>
-        ${v.pgto==='fiado'&&!v.pago?`<button class="btn mini" style="margin-top:6px;font-size:12px" onclick="Venda.marcarPago(${v.id})">recebi ✓</button>`:''}
-        <button class="btn mini perigo" style="margin-top:6px;font-size:12px" onclick="Venda.excluir(${v.id})">excluir</button>
-      </div></div>`;
-  },
-  telaVendas(){
-    let vs=[...D.dados.vendas];
-    if(this.filtroVendas==='fiado') vs=vs.filter(v=>v.pgto==='fiado'&&!v.pago);
-    const f=(x,l)=>`<button class="${this.filtroVendas===x?'on':''}" onclick="Tela.filtroVendas='${x}';Tela.render()">${l}</button>`;
-    const fiadoTotal=D.dados.vendas.filter(v=>v.pgto==='fiado'&&!v.pago).reduce((s,v)=>s+v.total,0);
-    const pg=paginar(vs, this.pagVendas);
-    return `<div class="filtros">${f('todas','todas ('+D.dados.vendas.length+')')}${f('fiado','fiado pendente'+(fiadoTotal?' ('+rs(fiadoTotal)+')':''))}</div>
-      <div class="card">${pg.itens.length?pg.itens.map(v=>this.itemVenda(v)).join(''):'<div class="vazio">Nada por aqui ainda.</div>'}</div>
-      ${barraPag(pg,'Tela.irPagVendas')}`;
-  },
-  telaEstoque(){
-    let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
-    const investido=ps.reduce((s,p)=>s+p.custo*p.qtd,0);
-    const total=ps.length;
-    if(this.buscaEstoque) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.buscaEstoque.toLowerCase()));
-    if(this.filtroEstoque==='acabando') ps=ps.filter(p=>p.qtd>0&&p.qtd<=2);
-    if(this.filtroEstoque==='acabou') ps=ps.filter(p=>p.qtd<=0);
-    const pg=paginar(ps, this.pagEstoque);
-    return `<div class="card"><div class="kpis">
-        <div class="kpi"><div class="v">${ps.reduce((s,p)=>s+p.qtd,0)}</div><div class="l">peças em estoque</div></div>
-        <div class="kpi"><div class="v ${investido>=10000?'grande':''}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
-      </div></div>
-      <button class="btn" onclick="Produto.form()">+ Cadastrar produto</button>
-      ${total>8?`<input placeholder="buscar produto..." value="${this.buscaEstoque||''}"
-        oninput="Tela.buscaEstoque=this.value;Tela.pagEstoque=1;Tela.render();setTimeout(()=>{const b=document.querySelector('#app input');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)"
-        style="margin-top:12px">
-      <div class="filtros" style="margin-top:10px">
-        <button class="${!this.filtroEstoque?'on':''}" onclick="Tela.filtroEstoque='';Tela.pagEstoque=1;Tela.render()">todos (${total})</button>
-        <button class="${this.filtroEstoque==='acabando'?'on':''}" onclick="Tela.filtroEstoque='acabando';Tela.pagEstoque=1;Tela.render()">acabando</button>
-        <button class="${this.filtroEstoque==='acabou'?'on':''}" onclick="Tela.filtroEstoque='acabou';Tela.pagEstoque=1;Tela.render()">acabou</button>
-      </div>`:''}
-      <div class="card" style="margin-top:12px">
-        ${pg.itens.length?pg.itens.map(p=>{
-          const b = p.qtd<=0?'<span class="badge zero">acabou</span>':p.qtd<=2?'<span class="badge baixo">acabando</span>':'<span class="badge ok">'+p.qtd+' un</span>';
-          return `<div class="lista-item" onclick="Produto.form(${p.id})" style="cursor:pointer">
-            <div class="info"><div class="t">${p.nome}</div>
-            <div class="s">custo ${rs(p.custo)} · venda ${rs(p.preco)} · lucro ${rs(p.preco-p.custo)}/un</div></div>${b}</div>`;
-        }).join(''):`<div class="vazio">${total?'Nenhum produto encontrado.':'Cadastra seus produtos pra vender em 3 toques.'}</div>`}
-      </div>
-      ${barraPag(pg,'Tela.irPagEstoque')}`;
-  },
-  telaResumo(){
-    const ym=this.mesResumo, tt=Calc.totais(ym), top=Calc.topProdutos(ym);
-    const desp=D.dados.despesas.filter(d=>mesDe(d.data)===ym);
-    return `<div class="mes-nav">
-        <button onclick="Tela.mudaMes(-1)">‹</button><span class="m">${nomeMes(ym)}</span><button onclick="Tela.mudaMes(1)">›</button></div>
-      <div class="card"><div class="kpis">
-        <div class="kpi"><div class="v">${rs(tt.vendido)}</div><div class="l">vendido (${tt.n} vendas)</div></div>
-        <div class="kpi"><div class="v pos">${rs(tt.lucro)}</div><div class="l">lucro das vendas</div></div>
-        <div class="kpi"><div class="v neg">${rs(tt.despesas)}</div><div class="l">despesas</div></div>
-        <div class="kpi"><div class="v ${tt.liquido>=0?'pos':'neg'}">${rs(tt.liquido)}</div><div class="l">sobrou de verdade</div></div>
-      </div>
-      ${tt.fiadoPend>0?`<div class="aviso backup" style="margin-top:10px"><svg style="width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7c0 2.6-5 1.6-5 4.4 0 1 1.1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg> <span><b>${rs(tt.fiadoPend)} em fiado pra receber.</b> A lista tá na aba Vendas.</span></div>`:''}
-      </div>
-      <div class="card"><h2>campeões de lucro do mês</h2>
-        ${top.length?top.map((p,i)=>`<div class="lista-item"><div class="info"><div class="t">${i+1}º ${p.nome}</div>
-          <div class="s">${p.qtd} vendida${p.qtd===1?'':'s'}</div></div><b style="color:var(--verde)">${rs(p.lucro)}</b></div>`).join('')
-        :'<div class="vazio">Sem vendas neste mês.</div>'}
-      </div>
-      <div class="card"><h2>despesas do mês</h2>
-        <button class="btn sec" onclick="Despesa.form()">+ lançar despesa</button>
-        ${desp.map(d=>`<div class="lista-item"><div class="info"><div class="t">${d.desc}</div>
-          <div class="s">${d.data.split('-').reverse().join('/')}</div></div>
-          <div><b>${rs(d.valor)}</b> <button class="btn mini perigo" style="font-size:12px" onclick="Despesa.excluir(${d.id})">x</button></div></div>`).join('')}
-      </div>
-      <button class="btn sec" onclick="Backup.exportarCSV('${ym}')">Exportar vendas do mês (Excel/CSV)</button>`;
-  },
-  mudaMes(d){ const [a,m]=this.mesResumo.split('-').map(Number);
-    const dt=new Date(a,m-1+d,1); this.mesResumo=dt.toISOString().slice(0,7); this.render(); },
-  telaMais(){
-    const c=D.dados.config;
-    const ub=c.ultimoBackup?new Date(c.ultimoBackup).toLocaleDateString('pt-BR'):'nunca';
-    return `<div class="card"><h2>backup</h2>
-        <p style="font-size:14px;line-height:1.55;color:var(--cinza)">O app guarda tudo <b>neste celular</b>.
-        De vez em quando, salve o backup (uma planilha) e envie pro seu WhatsApp ou Drive.
-        Trocou de celular? Toque em Restaurar e escolha o arquivo. Pronto.</p>
-        <p style="font-size:13px;margin-top:8px;color:var(--cinza)">último backup: <b>${ub}</b> · vendas desde então: <b>${c.vendasDesdeBackup}</b></p>
-        <button class="btn" onclick="Backup.compartilhar()">Salvar backup agora</button>
-        <button class="btn sec" onclick="document.getElementById('arqRestaura').click()">Restaurar um backup</button>
-        <input type="file" id="arqRestaura" accept=".csv,.json" class="oculto" onchange="if(this.files[0])Backup.restaurar(this.files[0]);this.value=''">
-      </div>
-      <div class="card"><h2>sua lojinha</h2>
-        <label>nome da lojinha (sai no recibo)</label>
-        <input id="cfgLoja" value="${c.loja}" onchange="D.dados.config.loja=this.value.trim();D.salvar();Tela.render()">
-      </div>
-      `;
+function card(app){
+  if(app.liberado){
+    const tags = app.tags ? `<div class="mini-tags">${app.tags.map(t=>`<span>${t}</span>`).join('')}</div>` : '';
+    return `<a class="app-card" href="${comChave(app.url)}">
+      <div class="topo"><div class="icone">${app.icone}</div>
+        <div><h2>${app.nome}</h2><div class="desc">${app.desc}</div></div></div>
+      ${tags}
+      <div class="abrir">Abrir</div></a>`;
   }
-};
+  const bens = app.beneficios ? `<div class="beneficios">${app.beneficios.map(b=>
+    `<div><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span>${b}</span></div>`).join('')}</div>` : '';
+  return `<div class="app-card travado">
+    <div class="topo"><div class="icone">${ICO.cadeado}</div>
+      <div><h2>${app.nome}</h2><div class="desc">${app.desc}</div></div></div>
+    <div class="pitch">${app.pitch}</div>
+    ${bens}
+    <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
+      <a href="${app.checkout}" target="_blank" rel="noopener">Liberar agora</a></div></div>`;
+}
+
+const APPS=[
+  { id:'controle', nome:'Controle da Lojinha', icone:ICO.controle, url:'index.html',
+    desc:'sua lojinha inteira organizada, direto do celular',
+    tags:['registrar venda em 3 toques','lista de vendas','estoque automático','fiado anotado','resumo do mês com lucro'],
+    liberado:tem('controle'), preco:'R$ 47', checkout:CHECKOUT.controle,
+    pitch:'Vendas, estoque com baixa automática, fiado, despesas e o resumo do mês. Sem planilha, sem mensalidade.' },
+  { id:'divulga', nome:'Divulga na Mão', icone:ICO.divulga, url:'divulga.html',
+    desc:'mensagens e artes prontas pra vender mais',
+    tags:['12 mensagens prontas','arte pro status com sua logo','cobrar com jeitinho','enviar direto no WhatsApp'],
+    liberado:tem('divulga'), preco:'R$ 27', checkout:CHECKOUT.divulga,
+    pitch:'Vender mais não é mandar qualquer mensagem. É mandar a mensagem certa, na hora certa:',
+    beneficios:['12 situações prontas: chegou novidade, oferta do dia, cliente sumida, cobrar fiado com jeitinho e mais',
+      'gera a ARTE pro status com a sua logo, seu @ e a cor do seu tema, em 10 segundos',
+      'preenche 2 campos e envia direto no WhatsApp ou cola no status'] },
+  { id:'preco', nome:'Precificação na Mão', icone:ICO.preco, url:'precificacao.html',
+    desc:'pra nunca mais vender no prejuízo sem perceber',
+    tags:['custo + frete + taxa','margem que você quer','testar qualquer preço'],
+    liberado:tem('preco'), preco:'R$ 97', checkout:CHECKOUT.preco,
+    pitch:'Tem peça que você vende e, no fim, não sobra quase nada. Esse app faz a conta que evita isso:',
+    beneficios:['você digita o que pagou na peça e ele te diz o preço certo de venda, com frete e taxa da maquininha já dentro',
+      'escolhe quanto quer ganhar e vê na hora quanto sobra por peça',
+      'testa qualquer preço antes de anunciar e descobre se vale a pena'] }
+];
+
+document.getElementById('lista').innerHTML = APPS.map(card).join('');
+if(!tem('controle') && !tem('preco') && !tem('divulga'))
+  document.getElementById('lista').innerHTML =
+    `<div class="app-card"><div class="pitch">Este é o espaço da compradora do Lucro na Mão.
+     Se você comprou, use o link de acesso que chegou no seu e-mail. Qualquer coisa, fala com a gente no suporte.</div></div>`
+    + document.getElementById('lista').innerHTML;
 
 
 
-
-/* ============ INICIALIZAÇÃO ============ */
-D.carregar();
-document.querySelectorAll('#navBar button').forEach(b=>b.addEventListener('click',()=>Tela.ir(b.dataset.tela)));
-Tela.render();
-if(!D.dados.config.wizardOk) Wizard.passo1();
 
 /* ============ AJUSTES (engrenagem): cor + instalar ============ */
 const Config = {
@@ -1110,103 +698,6 @@ Instalar.init();
   </div>
 </div>
 
-<script>
-/* O botao de voltar tem que levar ao MENU DA COMPRADORA, nao ao hub pelado.
-   O hub manda `#de=<chave>` no link; aqui isso vira a pasta <chave>/ IRMA desta
-   pagina. Sem a marca (alguem abriu o app direto), fica o hub.html de sempre.
-   Achado pelo Vini em 30/08/2026: voltar caia no menu travado. */
-(function(){
-  try{
-    /* chaves LONGAS primeiro: alternancia em JS casa da esquerda pra direita,
-       entao (c|cd) casaria "c" dentro de "cd" e a compradora do bump voltaria
-       pro menu do front, sem o Divulga. O $ ancora o fim, pra nao casar prefixo. */
-    var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
-    if(!m) return;
 
-    /* GRAVA o nivel tambem daqui (31/08/2026). A compradora instala de DENTRO do
-       app, e o icone nasce apontando pro hub pelado (start_url do manifest de
-       /app/). Sem esta gravacao, quem instalou pelo app e nunca voltou ao menu
-       nao teria nada lembrado, e o hub travaria tudo. Uniao, nunca substituicao. */
-    try{
-      var MAPA_MEM = {c:['controle'],d:['divulga'],p:['preco'],
-                      cd:['controle','divulga'],cp:['controle','preco'],
-                      u:['preco'],tudo:['controle','divulga','preco']};
-      var itens = MAPA_MEM[m[1]] || [];
-      if(itens.length){
-        var K = 'lucronamao_liberado';
-        var antes = JSON.parse(localStorage.getItem(K) || '[]');
-        if(!Array.isArray(antes)) antes = [];
-        var uniao = antes.slice();
-        itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
-        if(uniao.length !== antes.length) localStorage.setItem(K, JSON.stringify(uniao));
-      }
-    }catch(e){}
-
-    var a = document.getElementById('voltarMenu');
-    if(!a) return;
-    /* O destino sai da PASTA DESTA PAGINA, nunca de '../'.
-       BUG REAL, 31/08/2026 (Vini, no app instalado): os apps moram em
-       /app/index.html, entao '../tudo/' subia um nivel A MAIS e caia em
-       lucronamao.github.io/tudo/, fora de /app/. Da 404 no Pages e 401 quando
-       o SW nao consegue servir, e a compradora era obrigada a fechar e reabrir
-       o app. Mesma classe de erro do fallback do service worker: caminho
-       relativo montado sem o prefixo da aplicacao. */
-    /* O menu da compradora e o index.html DA PASTA da chave.
-       Se esta pagina JA esta dentro da pasta certa (/app/tudo/index.html), o menu
-       e o proprio './' — nao montar /app/tudo/tudo/, que nao existe.
-       Se esta na copia da raiz (/app/index.html, link antigo), sobe pra pasta. */
-    var aqui = location.pathname.replace(/[^\/]*$/, '');
-    var jaNaPasta = new RegExp('/' + m[1] + '/$').test(aqui);
-    a.setAttribute('href', jaNaPasta ? aqui : aqui + m[1] + '/');
-  }catch(e){}
-})();
-</script>
-
-
-
-<script>
-/* ===== A URL DA ABA CARREGA A CHAVE (31/08/2026) =====
-
-   Esta e a copia da RAIZ (/app/index.html), que fica pra links antigos. A copia
-   canonica de cada nivel mora em /app/<chave>/.
-
-   Por que reescrever a URL: no fluxo Compartilhar > Adicionar a Tela de Inicio o
-   iOS decide a URL do icone a partir da pagina ABERTA. Se a aba estiver em /app/,
-   o manifest de /app/ manda start_url `hub.html`, sem chave, e o icone nasce
-   travado. Storage nao salva esse caso: no iPhone o app instalado tem storage
-   SEPARADO do Safari.
-
-   Levando a aba pra /app/<chave>/<arquivo>, a chave passa a estar no CAMINHO e o
-   manifest daquela pasta tem start_url da propria pasta. Dai o icone nasce
-   liberado, seja pelo botao de instalar ou pelo Compartilhar.
-
-   replaceState nao recarrega a pagina e nao suja o historico. A copia da pasta e
-   byte a byte a mesma pagina, entao nada visual muda. */
-(function(){
-  try{
-    var h = (location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)$/);
-    var chave = h ? h[1] : null;
-
-    /* sem #de=, tenta a memoria do aparelho (mesmo navegador, sem cruzar contexto) */
-    if(!chave){
-      try{
-        var v = JSON.parse(localStorage.getItem('lucronamao_liberado')||'[]');
-        if(Array.isArray(v) && v.length){
-          var c=v.indexOf('controle')>=0, d=v.indexOf('divulga')>=0, p=v.indexOf('preco')>=0;
-          chave = (c&&d&&p)?'tudo':(c&&d)?'cd':(c&&p)?'cp':c?'c':d?'d':p?'p':null;
-        }
-      }catch(e){}
-    }
-    if(!chave) return;
-
-    /* ja esta dentro de uma pasta com chave: nada a fazer */
-    if(/\/(c|d|p|cd|cp|u|tudo)\//.test(location.pathname)) return;
-
-    var arquivo = location.pathname.replace(/^.*\//, '') || 'index.html';
-    var base = location.pathname.replace(/[^\/]*$/, '');
-    history.replaceState(null, '', base + chave + '/' + arquivo + '#de=' + chave);
-  }catch(e){}
-})();
-</script>
 </body>
 </html>

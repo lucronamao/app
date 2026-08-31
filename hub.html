@@ -354,15 +354,20 @@ const tem = x => LIBERADOS.includes(x);
    HASH, nao query: o hash nao vai pro servidor, nao entra no cache do service
    worker e sobrevive a qualquer normalizacao de URL. */
 const comChave = (url) => {
-  /* Dentro de /app/<chave>/ os apps agora moram NA PROPRIA PASTA (31/08/2026),
-     nao um nivel acima. Isso e o que mantem a chave no CAMINHO de toda pagina que
-     a compradora abre, e por isso o icone nasce liberado no fluxo Compartilhar do
-     Safari, que usa a pagina aberta pra decidir a URL do atalho.
+  /* Dentro de /app/<chave>/ os apps moram NA PROPRIA PASTA: e isso que mantem a
+     chave no CAMINHO de toda pagina, e por isso o icone nasce liberado tanto pela
+     rota do manifest (start_url da pasta) quanto pela rota legada do
+     apple-mobile-web-app-capable (que usa a URL da aba). Fonte: WebKit Safari 15.4
+     e web.dev/learn/pwa.
 
-     O `#de=` continua indo, pra o botao de voltar saber o menu de origem quando a
-     pagina for aberta pela copia da raiz (link antigo). */
+     O app "Controle" se chama index.html na raiz, mas dentro da pasta esse nome e
+     do MENU, entao lá ele e controle.html. Bug real de 31/08/2026: sem esse
+     desvio, o app sobrescrevia o menu e /app/cd/ abria o Controle direto, sem
+     cadeado no que a compradora nao tinha comprado. */
   const m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
-  return m ? url + '#de=' + m[1] : url;
+  if(!m) return url;
+  const naPasta = (url === 'index.html') ? 'controle.html' : url;
+  return naPasta + '#de=' + m[1];
 };
 
 /* checkout dos degraus. Links lidos da API da Cakto em 19/08/2026 (a Cakto e a fonte da
