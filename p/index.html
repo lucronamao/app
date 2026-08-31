@@ -699,5 +699,56 @@ Instalar.init();
 </div>
 
 
+
+<script>
+/* ===== O NIVEL TAMBEM VEM DO SERVICE WORKER (31/08/2026) =====
+
+   O diagnostico do aparelho da compradora voltou com TUDO certo e ela ainda
+   travava. O que sobrava: o atalho dela abrir /app/hub.html, onde nao ha chave no
+   caminho, e o localStorage estar VAZIO nesse contexto — porque no iOS o app
+   instalado tem storage separado do Safari, e cada instalacao tem o seu.
+
+   O Cache Storage do service worker, ao contrario, e por ORIGEM: atravessa. Este
+   bloco pergunta o nivel ao SW e, se ele souber, libera a tela (ou manda pra pasta
+   certa). E o que grava tambem, sempre que a pagina souber o nivel pelo caminho.
+
+   Roda DEPOIS da renderizacao: se o caminho ja tinha a chave, nada disso e
+   necessario e a tela nem pisca. */
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  var MAPA_CH = {c:['controle'],d:['divulga'],p:['preco'],cd:['controle','divulga'],
+                 cp:['controle','preco'],u:['preco'],tudo:['controle','divulga','preco']};
+
+  function chaveDe(itens){
+    var c = itens.indexOf('controle')>=0, d = itens.indexOf('divulga')>=0, p = itens.indexOf('preco')>=0;
+    return (c&&d&&p) ? 'tudo' : (c&&d) ? 'cd' : (c&&p) ? 'cp' : c ? 'c' : d ? 'd' : p ? 'p' : null;
+  }
+
+  var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+  var doCaminho = m ? (MAPA_CH[m[1]] || []) : [];
+
+  navigator.serviceWorker.ready.then(function(reg){
+    var sw = reg.active;
+    if(!sw) return;
+
+    /* a pagina sabe o nivel: grava no SW, pra atravessar pro app instalado */
+    if(doCaminho.length){ sw.postMessage({tipo:'gravar-nivel', itens:doCaminho}); return; }
+
+    /* a pagina NAO sabe: pergunta ao SW */
+    navigator.serviceWorker.addEventListener('message', function(ev){
+      var d = ev.data || {};
+      if(d.tipo !== 'nivel' || !Array.isArray(d.itens) || !d.itens.length) return;
+      var ch = chaveDe(d.itens);
+      if(!ch) return;
+      /* leva pra pasta dela, que libera pelo CAMINHO: nao depende de mais nada */
+      var base = location.pathname.replace(/[^\/]*$/, '');
+      if(base.indexOf('/' + ch + '/') < 0){
+        try{ location.replace(base + ch + '/'); }catch(e){}
+      }
+    });
+    sw.postMessage({tipo:'ler-nivel'});
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>
