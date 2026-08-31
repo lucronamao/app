@@ -1045,5 +1045,68 @@ Instalar.init();
   }catch(e){}
 })();
 </script>
+
+<script>
+/* ===== A PAGINA DA RAIZ APONTA PRO MANIFEST DA PASTA (31/08/2026) =====
+
+   PROVADO NO APARELHO, nao suposto. O Vini abriu /app/tudo/diagnostico.html,
+   adicionou a tela de inicio, e o icone salvou **/app/tudo/** — ou seja o iOS
+   ignorou a URL da aba e usou a `start_url` do manifest. A start_url VENCE.
+
+   Consequencia pro caso da compradora: as paginas da RAIZ linkam
+   /app/manifest.webmanifest, cuja start_url e `/app/hub.html`, SEM chave. Salvando
+   de qualquer pagina da raiz (link antigo, historico do Safari, ou o icone velho
+   que ela reabriu), o icone nasce travado. Reescrever a URL da aba NAO resolve,
+   porque o iOS nao olha a URL: olha o manifest.
+
+   Conserto: se esta pagina sabe a chave, ela troca o <link rel=manifest> pelo
+   manifest DA PASTA — que e um arquivo http(s) real, nao blob (blob nao e
+   confiavel no iOS, e o manifest precisa ser same-origin da start_url).
+
+   A chave vem, em ordem: do caminho, do #de= que o menu manda, do ?libera=
+   antigo, e por fim do nivel que o service worker guarda (Cache Storage, que
+   atravessa o isolamento entre Safari e app instalado). */
+(function(){
+  var MAPA_K = {c:1,d:1,p:1,cd:1,cp:1,u:1,tudo:1};
+
+  function aplicar(chave){
+    if(!chave || !MAPA_K[chave]) return;
+    var base = location.pathname.replace(/\/app\/.*$/, '/app/');
+    if(base.indexOf('/app/') < 0) base = '/app/';
+    var href = base + chave + '/manifest.webmanifest';
+    var el = document.querySelector('link[rel="manifest"]');
+    if(!el){ el = document.createElement('link'); el.rel = 'manifest'; document.head.appendChild(el); }
+    if(el.getAttribute('href') !== href) el.setAttribute('href', href);
+  }
+
+  try{
+    /* 1. caminho */
+    var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+    if(m){ aplicar(m[1]); return; }   /* ja esta na pasta: o manifest local ja serve */
+
+    /* 2. #de= que o menu manda ao abrir o app */
+    var h = (location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)$/);
+    if(h){ aplicar(h[1]); return; }
+
+    /* 3. ?libera= dos links antigos */
+    var q = (new URLSearchParams(location.search).get('libera')||'').replace(/^so-/,'');
+    if(MAPA_K[q]){ aplicar(q); return; }
+
+    /* 4. o nivel que o service worker guarda: atravessa Safari -> app instalado */
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.ready.then(function(reg){
+        if(!reg.active) return;
+        navigator.serviceWorker.addEventListener('message', function(ev){
+          var d = ev.data || {};
+          if(d.tipo !== 'nivel' || !Array.isArray(d.itens) || !d.itens.length) return;
+          var i = d.itens, c = i.indexOf('controle')>=0, dv = i.indexOf('divulga')>=0, p = i.indexOf('preco')>=0;
+          aplicar((c&&dv&&p) ? 'tudo' : (c&&dv) ? 'cd' : (c&&p) ? 'cp' : c ? 'c' : dv ? 'd' : p ? 'p' : null);
+        });
+        reg.active.postMessage({tipo:'ler-nivel'});
+      }).catch(function(){});
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
