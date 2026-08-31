@@ -303,7 +303,11 @@ const tem = x => LIBERADOS.includes(x);
    HASH, nao query: o hash nao vai pro servidor, nao entra no cache do service
    worker e sobrevive a qualquer normalizacao de URL. */
 const comChave = (url) => {
-  const m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)\/[^\/]*$/);
+  /* Mesma regex da liberacao (aceita /app/tudo e /app/tudo/index.html).
+     O '../' aqui esta CERTO: este menu mora em /app/<chave>/index.html, entao
+     subir um nivel chega em /app/. Nao confundir com o botao de voltar DENTRO
+     do app, que mora em /app/index.html e por isso nao pode usar '../'. */
+  const m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
   return m ? '../' + url + '#de=' + m[1] : url;
 };
 
