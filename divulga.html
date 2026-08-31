@@ -947,8 +947,8 @@ Instalar.init();
 
 <script>
 /* O botao de voltar tem que levar ao MENU DA COMPRADORA, nao ao hub pelado.
-   O hub manda `#de=<chave>` no link; aqui isso vira `../<chave>/`. Sem a marca
-   (alguem abriu o app direto), fica o hub.html de sempre.
+   O hub manda `#de=<chave>` no link; aqui isso vira a pasta <chave>/ IRMA desta
+   pagina. Sem a marca (alguem abriu o app direto), fica o hub.html de sempre.
    Achado pelo Vini em 30/08/2026: voltar caia no menu travado. */
 (function(){
   try{
@@ -958,7 +958,15 @@ Instalar.init();
     var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
     if(!m) return;
     var a = document.getElementById('voltarMenu');
-    if(a) a.setAttribute('href', '../' + m[1] + '/');
+    if(!a) return;
+    /* O destino sai da PASTA DESTA PAGINA, nunca de '../'.
+       BUG REAL, 31/08/2026 (Vini, no app instalado): os apps moram em
+       /app/index.html, entao '../tudo/' subia um nivel A MAIS e caia em
+       lucronamao.github.io/tudo/, fora de /app/. Da 404 no Pages e 401 quando
+       o SW nao consegue servir, e a compradora era obrigada a fechar e reabrir
+       o app. Mesma classe de erro do fallback do service worker: caminho
+       relativo montado sem o prefixo da aplicacao. */
+    a.setAttribute('href', location.pathname.replace(/[^\/]*$/, '') + m[1] + '/');
   }catch(e){}
 })();
 </script>
