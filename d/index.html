@@ -287,7 +287,9 @@ const LIBERADOS = (function(){
      cada pasta tem manifest proprio com start_url propria, e o cache casa por
      caminho. Continua sendo "o link libera e pronto" — o link agora e
      /app/tudo/ em vez de /app/hub.html?libera=tudo. */
-  var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)\/[^\/]*$/);
+  /* (?:\/|$) em vez de \/[^\/]*$ : aceita /app/tudo e /app/tudo/index.html
+     igualmente. Sem isso, o link sem barra final nao liberava nada. */
+  var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
   var k = m ? m[1] : (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
   return MAPA[k] || [];
 })();
