@@ -230,7 +230,7 @@ canvas{width:100%;border-radius:14px;border:1px solid var(--linha);margin-top:12
 <body>
 
 <header>
-  <a href="hub.html" id="voltarMenu" aria-label="voltar ao menu"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a href="./" id="voltarMenu" aria-label="voltar ao menu"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
   <div><h1>Divulga na Mão</h1><div class="sub">mensagem e arte prontas pra vender</div></div>
   <div style="margin-left:auto"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
 </header>
@@ -791,7 +791,13 @@ const Anim = {
 const Instalar = {
   prompt:null,
   init(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register(
+      /* O sw.js mora SEMPRE em /app/, nunca dentro da pasta de acesso. Com
+         'sw.js' relativo, uma pagina em /app/tudo/ buscava /app/tudo/sw.js e
+         tomava 503: o service worker nao ativava e o app nao abria offline.
+         Achado no console em 31/08/2026, ja com a estrutura de pastas no ar. */
+      location.pathname.replace(/\/app\/.*$/, '/app/') + 'sw.js',
+      {scope: location.pathname.replace(/\/app\/.*$/, '/app/')}).catch(()=>{});
     window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; this.pintarFaixa(); });
     window.addEventListener('appinstalled', ()=>{ this.prompt=null; this.pintarFaixa();
       if(typeof Config!=='undefined') Config.pintar(); });

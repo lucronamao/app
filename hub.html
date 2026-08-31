@@ -533,7 +533,13 @@ const Anim = {
 const Instalar = {
   prompt:null,
   init(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register(
+      /* O sw.js mora SEMPRE em /app/, nunca dentro da pasta de acesso. Com
+         'sw.js' relativo, uma pagina em /app/tudo/ buscava /app/tudo/sw.js e
+         tomava 503: o service worker nao ativava e o app nao abria offline.
+         Achado no console em 31/08/2026, ja com a estrutura de pastas no ar. */
+      location.pathname.replace(/\/app\/.*$/, '/app/') + 'sw.js',
+      {scope: location.pathname.replace(/\/app\/.*$/, '/app/')}).catch(()=>{});
     window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); this.prompt=e; this.pintarFaixa(); });
     window.addEventListener('appinstalled', ()=>{ this.prompt=null; this.pintarFaixa();
       if(typeof Config!=='undefined') Config.pintar(); });
