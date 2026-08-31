@@ -4,7 +4,7 @@
    ESTRATÉGIA: rede primeiro, cache como reserva. Assim a compradora sempre
    recebe a versão nova quando tem internet, e continua funcionando sem ela.
    Não guarda dado da usuária: os dados vivem no localStorage do aparelho. */
-const CACHE = 'lucronamao-v16';
+const CACHE = 'lucronamao-v17';
 const ARQS = [
   'hub.html', 'index.html', 'precificacao.html', 'divulga.html',
   'manifest.webmanifest', 'icone-192.png', 'icone-512.png',
@@ -13,6 +13,9 @@ const ARQS = [
      a navegacao passasse por elas, e o ramo offline nao tinha o que servir na
      primeira abertura do icone: caia no hub pelado, tudo travado. Cada pasta e
      leve (o mesmo menu) e e ela que carrega o nivel de acesso. */
+  /* Cada pasta serve o menu E os 3 apps (31/08/2026): e isso que mantem a chave
+     no caminho de toda pagina, pro icone nascer liberado no Compartilhar do
+     Safari. Pre-cachear o index de cada uma cobre a abertura offline. */
   'c/', 'd/', 'p/', 'cd/', 'cp/', 'u/', 'tudo/'
 ];
 
