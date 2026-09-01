@@ -371,13 +371,14 @@ const comChave = (url) => {
 };
 
 /* checkout dos degraus. Links lidos da API da Cakto em 19/08/2026 (a Cakto e a fonte da
-   verdade, nao este arquivo). Conferidos no "Resumo do pedido" do checkout real: 27,00 e 97,00.
+   verdade, nao este arquivo). Conferidos no "Resumo do pedido" do checkout real: 27,00 e 67,00
+   (o upsell passou de 97 para 67 em 01/09/2026, teste de preco).
    Se mudar produto ou oferta na Cakto, reconfira com GET /public_api/offers/ (o campo `id` da
    oferta E o short_id do link). */
 const CHECKOUT = {
   controle:'https://pay.cakto.com.br/3ko7pit',   /* Controle da Lojinha, R$ 47 */
   divulga: 'https://pay.cakto.com.br/47dvagf',   /* Divulga na Mao,      R$ 27 */
-  preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Precificacao na Mao, R$ 97 */
+  preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Precificacao na Mao, R$ 67 */
 };
 
 const ICO = {
@@ -424,7 +425,7 @@ const APPS=[
   { id:'preco', nome:'Precificação na Mão', icone:ICO.preco, url:'precificacao.html',
     desc:'pra nunca mais vender no prejuízo sem perceber',
     tags:['custo + frete + taxa','margem que você quer','testar qualquer preço'],
-    liberado:tem('preco'), preco:'R$ 97', checkout:CHECKOUT.preco,
+    liberado:tem('preco'), preco:'R$ 67', checkout:CHECKOUT.preco,
     pitch:'Tem peça que você vende e, no fim, não sobra quase nada. Esse app faz a conta que evita isso:',
     beneficios:['você digita o que pagou na peça e ele te diz o preço certo de venda, com frete e taxa da maquininha já dentro',
       'escolhe quanto quer ganhar e vê na hora quanto sobra por peça',
