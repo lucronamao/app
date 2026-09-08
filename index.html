@@ -89,6 +89,24 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .qtd-row{display:flex;align-items:center;gap:14px;justify-content:center;margin:10px 0}
 .qtd-row button{width:52px;height:52px;font-size:26px;background:var(--rose);color:var(--vinho);font-weight:800}
 .qtd-row .n{font-size:30px;font-weight:800;min-width:52px;text-align:center}
+/* carrinho de venda (varios produtos numa venda) */
+.cart-item{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:var(--rose-2);border:1px solid var(--rose);padding:11px 12px;margin-bottom:8px;border-radius:12px}
+.cart-item .n{font-weight:700;font-size:15px;line-height:1.3}
+.cart-item .s{font-size:12.5px;color:var(--cinza);margin-top:2px}
+.cart-item .v{font-weight:800;white-space:nowrap}
+.cart-item .x{width:34px;height:34px;flex-shrink:0;padding:0;font-size:19px;font-weight:800;
+  background:#fff;color:var(--cinza);border:1px solid var(--linha)}
+.cart-tot{display:flex;justify-content:space-between;align-items:baseline;
+  border-top:2px solid var(--vinho);margin-top:4px;padding-top:10px}
+.cart-tot .l{font-weight:700;font-size:15px} .cart-tot .v{font-weight:800;font-size:22px;color:var(--vinho)}
+.cart-lucro{text-align:right;font-size:13px;color:var(--verde);font-weight:700;margin-top:2px}
+/* recebimento de fiado (total ou parcial) */
+.fi-linhas{background:var(--rose-2);border-radius:12px;padding:12px;margin:4px 0 14px}
+.fi-linha{display:flex;justify-content:space-between;font-size:14.5px;padding:3px 0}
+.fi-linha.falta{border-top:1px solid var(--rose);margin-top:5px;padding-top:7px;font-weight:800;font-size:16px}
+.fi-linha.falta .v{color:var(--vinho)}
+.fi-hist{font-size:12.5px;color:var(--cinza);margin-top:8px;line-height:1.6}
 .pgto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .pgto-grid button{padding:13px;background:var(--rose);color:var(--tinta);font-weight:600;font-size:15px}
 .pgto-grid button.on{background:var(--vinho);color:#fff}
@@ -416,7 +434,9 @@ const Calc = {
   totais(ym){
     const vs=this.vendasDoMes(ym);
     let vendido=0, custo=0, fiadoPend=0;
-    vs.forEach(v=>{ vendido+=v.total; custo+=v.custo; if(v.pgto==='fiado'&&!v.pago) fiadoPend+=v.total; });
+    vs.forEach(v=>{ vendido+=v.total; custo+=v.custo;
+      /* fiado pendente e o SALDO, nao o total: parcial recebido ja nao esta pendente */
+      if(v.pgto==='fiado') fiadoPend+=Venda.saldo(v); });
     const despesas=D.dados.despesas.filter(d=>mesDe(d.data)===ym).reduce((s,d)=>s+d.valor,0);
     const investido=D.dados.produtos.reduce((s,p)=>s+p.custo*p.qtd,0);
     return {vendido, lucro:vendido-custo, despesas, liquido:vendido-custo-despesas, fiadoPend, investido, n:vs.length};
@@ -449,9 +469,16 @@ const Backup = {
     D.dados.produtos.forEach(p=>L.push([p.id,s(p.nome),n(p.custo),n(p.preco),p.qtd].join(';')));
     L.push('');
     L.push('#VENDAS');
-    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago');
+    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido');
     D.dados.vendas.forEach(v=>v.itens.forEach(i=>
-      L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao'].join(';'))));
+      L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao',n(Venda.jaPago(v))].join(';'))));
+    L.push('');
+    /* Historico de recebimento do fiado: uma linha por pagamento parcial.
+       Sem esta secao, restaurar um backup perderia as datas dos parciais. */
+    L.push('#RECEBIMENTOS');
+    L.push('venda;data;valor');
+    D.dados.vendas.forEach(v=>{ if(Array.isArray(v.pagamentos))
+      v.pagamentos.forEach(x=>L.push([v.id,x.data,n(x.valor)].join(';'))); });
     L.push('');
     L.push('#DESPESAS');
     L.push('id;data;descricao;valor');
@@ -512,16 +539,38 @@ const Backup = {
       if(sec==='#VENDAS' && c2[0]!=='venda'){
         const id=parseInt(c2[0])||0;
         if(!vendasMap[id]) vendasMap[id]={id,data:c2[1],criadaEm:c2[1],itens:[],pgto:c2[7],
-          cliente:uns(c2[8])||null,pago:c2[9]!=='nao',total:0,custo:0};
+          cliente:uns(c2[8])||null,pago:c2[9]!=='nao',total:0,custo:0,
+          /* coluna 10 e do backup novo; backup antigo nao tem e fica undefined */
+          _recebido:(c2.length>10&&String(c2[10]).trim()!=='')?num2(c2[10]):null,pagamentos:null};
         vendasMap[id].itens.push({produtoId:parseInt(c2[2])||0,nome:uns(c2[3]),
           qtd:parseInt(c2[4])||1,preco:num2(c2[5]),custo:num2(c2[6])});
+      }
+      if(sec==='#RECEBIMENTOS' && c2[0]!=='venda'){
+        const id=parseInt(c2[0])||0;
+        if(vendasMap[id]){ if(!Array.isArray(vendasMap[id].pagamentos)) vendasMap[id].pagamentos=[];
+          vendasMap[id].pagamentos.push({data:c2[1],valor:num2(c2[2])}); }
       }
       if(sec==='#DESPESAS' && c2[0]!=='id')
         d.despesas.push({id:parseInt(c2[0])||0,data:c2[1],desc:uns(c2[2]),valor:num2(c2[3])});
     }
     d.vendas=Object.values(vendasMap).map(v=>{
       v.total=v.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
-      v.custo=v.itens.reduce((s,i)=>s+i.custo*i.qtd,0); return v; })
+      v.custo=v.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+      /* Reconstruir o fiado, na ordem de confianca:
+         (1) historico #RECEBIMENTOS, (2) coluna 'recebido' do backup novo,
+         (3) backup antigo, que so tem o binario 'pago'. */
+      if(v.pgto==='fiado'){
+        if(!Array.isArray(v.pagamentos)){
+          const r=v._recebido;
+          if(r!==null && r>0) v.pagamentos=[{data:v.data,valor:Math.min(r,v.total)}];
+          else if(r!==null) v.pagamentos=[];
+          else v.pagamentos = v.pago ? [{data:v.data,valor:v.total}] : [];
+        }
+        const rec=v.pagamentos.reduce((s,x)=>s+(Number(x.valor)||0),0);
+        v.pago = rec >= Math.round(v.total*100)/100;
+      } else { v.pagamentos=null; v.pago=true; }
+      delete v._recebido;
+      return v; })
       .sort((a,b)=>String(b.data).localeCompare(String(a.data)));
     const ids=[...d.produtos.map(p=>p.id),...d.vendas.map(v=>v.id),...d.despesas.map(x=>x.id),0];
     d.seq=Math.max(...ids)+1;
@@ -536,7 +585,11 @@ const Backup = {
     vs.forEach(v=>{ csv+=[v.data, v.itens.map(i=>i.nome+' x'+i.qtd).join(' + '),
       v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto + (v.cliente?' ('+v.cliente+')':''),
       String(v.total).replace('.',','), String(v.custo).replace('.',','),
-      String(v.total-v.custo).replace('.',','), v.pgto==='fiado'?(v.pago?'pago':'pendente'):'pago'
+      String(v.total-v.custo).replace('.',','),
+      v.pgto==='fiado'
+        ? (Venda.saldo(v)<=0 ? 'pago'
+           : (Venda.jaPago(v)>0 ? 'parcial (falta '+String(Venda.saldo(v)).replace('.',',')+')' : 'pendente'))
+        : 'pago'
       ].join(';')+'\n'; });
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -548,8 +601,18 @@ const Backup = {
 const Venda = {
   carrinho:null,
   iniciar(){ if(!D.dados.produtos.length){ Tela.ir('estoque'); toast('Cadastra um produto primeiro'); return; }
-    this.carrinho={itens:[],pgto:null,cliente:''}; this.busca=''; this.pag=1; this.telaProduto(); },
-  busca:'', pag:1,
+    this.carrinho={itens:[],pgto:null,cliente:''}; this.busca=''; this.pag=1; this._editIdx=null; this.telaProduto(); },
+  busca:'', pag:1, _editIdx:null,
+  /* quantas pecas ja entraram no carrinho */
+  nItens(){ return this.carrinho ? this.carrinho.itens.reduce((s,i)=>s+i.qtd,0) : 0; },
+  /* Estoque disponivel DESCONTANDO o que ja esta no carrinho. Sem isso, colocar 2 e
+     depois +3 do mesmo produto nao avisaria que passou do estoque. */
+  dispon(prodId, ignorarIdx){
+    const p=D.dados.produtos.find(x=>x.id===prodId); if(!p) return 0;
+    const noCarrinho=this.carrinho ? this.carrinho.itens.reduce((s,i,idx)=>
+      (i.produtoId===prodId && idx!==ignorarIdx) ? s+i.qtd : s, 0) : 0;
+    return p.qtd - noCarrinho;
+  },
   telaProduto(){
     let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
     const total=ps.length;
@@ -559,81 +622,213 @@ const Venda = {
       ? `<input id="buscaProd" placeholder="buscar produto..." value="${this.busca}" autocomplete="off"
           oninput="Venda.busca=this.value;Venda.pag=1;Venda.telaProduto();setTimeout(()=>{const b=document.getElementById('buscaProd');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)">`
       : '';
-    const lista = pg.itens.map(p=>
-      `<button class="escolha-prod" onclick="Venda.escolheu(${p.id})" ${p.qtd<=0?'style="opacity:.5"':''}>
-        <span class="n">${p.nome}${p.qtd<=0?' <span style="font-weight:600;font-size:12.5px">(sem estoque)</span>':''}</span>
-        <span class="p">${rs(p.preco)}</span></button>`).join('');
-    Modal.abrir(`<div class="passo">passo 1 de 3 · toque no produto</div>${busca}
+    const lista = pg.itens.map(p=>{
+      const d=this.dispon(p.id);
+      const noCar=p.qtd-d;
+      let obs='';
+      if(d<=0) obs=` <span style="font-weight:600;font-size:12.5px">(${noCar>0?'tudo no carrinho':'sem estoque'})</span>`;
+      else if(noCar>0) obs=` <span style="font-weight:600;font-size:12.5px;color:var(--vinho)">(${noCar} no carrinho)</span>`;
+      return `<button class="escolha-prod" onclick="Venda.escolheu(${p.id})" ${d<=0?'style="opacity:.5"':''}>
+        <span class="n">${p.nome}${obs}</span>
+        <span class="p">${rs(p.preco)}</span></button>`;
+    }).join('');
+    const n=this.nItens();
+    const voltar = n>0
+      ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">voltar pro carrinho (${n} ${n===1?'item':'itens'})</button>`
+      : '';
+    Modal.abrir(`<div class="passo">${n>0?'adicionar outro produto · toque nele':'passo 1 de 4 · toque no produto'}</div>${busca}
       <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
-      ${barraPag(pg,'Venda.irPag')}`);
+      ${barraPag(pg,'Venda.irPag')}${voltar}`);
   },
   irPag(p){ this.pag=p; this.telaProduto();
     document.querySelector('.modal')?.scrollTo({top:0,behavior:'smooth'}); },
-  escolheu(id){ this._prod=D.dados.produtos.find(p=>p.id===id); this._qtd=1; this.telaQtd(); },
-  telaQtd(){ const p=this._prod;
-    Modal.abrir(`<div class="passo">passo 2 de 3 · quantidade</div>
+  escolheu(id){ this._prod=D.dados.produtos.find(p=>p.id===id); this._qtd=1; this._editIdx=null; this.telaQtd(); },
+  /* mudar a quantidade de um item que JA esta no carrinho */
+  editarItem(idx){ const it=this.carrinho.itens[idx]; if(!it) return;
+    this._prod=D.dados.produtos.find(p=>p.id===it.produtoId)
+      || {id:it.produtoId,nome:it.nome,preco:it.preco,custo:it.custo,qtd:0};
+    this._qtd=it.qtd; this._editIdx=idx; this.telaQtd(); },
+  telaQtd(){ const p=this._prod; const ed=this._editIdx!==null;
+    Modal.abrir(`<div class="passo">${ed?'mudar a quantidade':'passo 2 de 4 · quantidade'}</div>
       <h3>${p.nome}</h3><p class="sub">${rs(p.preco)} cada · ${p.qtd} em estoque</p>
       <div class="qtd-row">
-        <button onclick="Venda.mudaQtd(-1)">−</button>
-        <span class="n" id="qtdN">1</span>
+        <button onclick="Venda.mudaQtd(-1)">&minus;</button>
+        <span class="n" id="qtdN">${this._qtd}</span>
         <button onclick="Venda.mudaQtd(1)">+</button>
       </div>
       <div class="aviso backup oculto" id="avisoEstoque"></div>
-      <button class="btn" onclick="Venda.telaPgto()">Continuar</button>`);
-    if(p.qtd<=0){ const av=document.getElementById('avisoEstoque'); av.classList.remove('oculto');
-      av.innerHTML='Esse produto está com estoque <b>zerado</b>. Você pode registrar a venda, mas confira o estoque depois.'; } },
+      <button class="btn" onclick="Venda.addAoCarrinho()">${ed?'Salvar':'Adicionar ao carrinho'}</button>
+      ${(ed||this.nItens()>0)?`<button class="btn sec" onclick="Venda.telaCarrinho()">Cancelar</button>`:''}`);
+    this.avisoQtd(); },
   mudaQtd(d){ this._qtd=Math.max(1,this._qtd+d);
-    document.getElementById('qtdN').textContent=this._qtd;
-    const av=document.getElementById('avisoEstoque');
-    if(av){ const falta=this._qtd-this._prod.qtd;
-      if(falta>0){ av.classList.remove('oculto');
-        av.innerHTML='Atenção: você tem só <b>'+this._prod.qtd+'</b> em estoque. Vendendo '+this._qtd+', o estoque fica zerado (ajuste depois no Estoque).'; }
-      else av.classList.add('oculto'); } },
+    document.getElementById('qtdN').textContent=this._qtd; this.avisoQtd(); },
+  avisoQtd(){
+    const av=document.getElementById('avisoEstoque'); if(!av) return;
+    const d=this.dispon(this._prod.id, this._editIdx);
+    if(d<=0){ av.classList.remove('oculto');
+      av.innerHTML='Esse produto está com estoque <b>zerado</b>. Você pode registrar a venda, mas confira o estoque depois.'; return; }
+    if(this._qtd>d){ av.classList.remove('oculto');
+      av.innerHTML='Atenção: você tem só <b>'+d+'</b> em estoque'
+        +(d!==this._prod.qtd?' (contando o que já está no carrinho)':'')
+        +'. Vendendo '+this._qtd+', o estoque fica zerado (ajuste depois no Estoque).'; return; }
+    av.classList.add('oculto');
+  },
+  addAoCarrinho(){
+    const p=this._prod, q=this._qtd;
+    if(this._editIdx!==null){ this.carrinho.itens[this._editIdx].qtd=q; }
+    else {
+      /* o mesmo produto escolhido duas vezes SOMA numa linha, nao duplica */
+      const ex=this.carrinho.itens.find(i=>i.produtoId===p.id);
+      if(ex) ex.qtd+=q;
+      else this.carrinho.itens.push({produtoId:p.id,nome:p.nome,qtd:q,preco:p.preco,custo:p.custo});
+    }
+    this._editIdx=null; this.telaCarrinho();
+  },
+  removerItem(idx){ this.carrinho.itens.splice(idx,1);
+    if(!this.carrinho.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); toast('Carrinho vazio'); return; }
+    this.telaCarrinho(); },
+  telaCarrinho(){
+    const c=this.carrinho;
+    if(!c || !c.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); return; }
+    this._editIdx=null;
+    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+    const linhas=c.itens.map((i,idx)=>
+      `<div class="cart-item">
+        <div style="min-width:0;flex:1;cursor:pointer" onclick="Venda.editarItem(${idx})">
+          <div class="n">${i.nome}</div>
+          <div class="s">${i.qtd} x ${rs(i.preco)} · toque pra mudar</div>
+        </div>
+        <span class="v">${rs(i.preco*i.qtd)}</span>
+        <button class="x" onclick="Venda.removerItem(${idx})" aria-label="tirar do carrinho">&times;</button>
+      </div>`).join('');
+    Modal.abrir(`<div class="passo">passo 3 de 4 · o que ela levou</div>
+      ${linhas}
+      <div class="cart-tot"><span class="l">Total</span><span class="v">${rs(total)}</span></div>
+      <div class="cart-lucro">seu lucro: ${rs(total-custo)}</div>
+      <button class="btn sec" style="margin-top:14px" onclick="Venda.busca='';Venda.pag=1;Venda.telaProduto()">+ adicionar outro produto</button>
+      <button class="btn" onclick="Venda.telaPgto()">Continuar pro pagamento</button>`);
+  },
   telaPgto(){
-    this.carrinho.itens=[{produtoId:this._prod.id,nome:this._prod.nome,qtd:this._qtd,preco:this._prod.preco,custo:this._prod.custo}];
-    const total=this._prod.preco*this._qtd;
-    Modal.abrir(`<div class="passo">passo 3 de 3 · como ela pagou?</div>
-      <h3>${rs(total)}</h3><p class="sub">${this._prod.nome} x${this._qtd}</p>
+    const c=this.carrinho;
+    if(!c || !c.itens.length){ this.telaProduto(); return; }
+    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    const resumo=c.itens.length===1
+      ? c.itens[0].nome+' x'+c.itens[0].qtd
+      : c.itens.length+' produtos · '+this.nItens()+' peças';
+    Modal.abrir(`<div class="passo">passo 4 de 4 · como ela pagou?</div>
+      <h3>${rs(total)}</h3><p class="sub">${resumo}</p>
       <div class="pgto-grid">
-        ${['pix','dinheiro','cartão','fiado'].map(f=>`<button id="pg-${f}" onclick="Venda.pgto('${f}')">${f==='fiado'?'fiado (anotar)':f}</button>`).join('')}
+        ${['pix','dinheiro','cartão','fiado'].map(f=>`<button id="pg-${f}" class="${c.pgto===f?'on':''}" onclick="Venda.pgto('${f}')">${f==='fiado'?'fiado (anotar)':f}</button>`).join('')}
       </div>
-      <div id="fiadoCampo" class="oculto"><label>nome da cliente (pra cobrar depois)</label>
-        <input id="fiadoNome" placeholder="ex: Ana do 302"></div>
-      <button class="btn" onclick="Venda.confirmar()">Registrar venda ✓</button>`); },
+      <div id="fiadoCampo" class="${c.pgto==='fiado'?'':'oculto'}"><label>nome da cliente (pra cobrar depois)</label>
+        <input id="fiadoNome" placeholder="ex: Ana do 302" value="${c.cliente||''}"></div>
+      <button class="btn" onclick="Venda.confirmar()">Registrar venda &#10003;</button>
+      <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`); },
   pgto(f){ this.carrinho.pgto=f;
     ['pix','dinheiro','cartão','fiado'].forEach(x=>document.getElementById('pg-'+x).classList.toggle('on',x===f));
     document.getElementById('fiadoCampo').classList.toggle('oculto', f!=='fiado'); },
   confirmar(){
     const c=this.carrinho;
+    if(!c || !c.itens.length){ toast('O carrinho está vazio'); this.telaProduto(); return; }
     if(!c.pgto){ toast('Escolhe como ela pagou'); return; }
     if(c.pgto==='fiado'){ c.cliente=(document.getElementById('fiadoNome').value||'').trim();
       if(!c.cliente){ toast('Anota o nome de quem levou fiado'); return; } }
     const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
     const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
     const v={id:D.id(),data:hoje(),criadaEm:agora(),itens:c.itens,pgto:c.pgto,
-      cliente:c.cliente||null,pago:c.pgto!=='fiado',total,custo};
+      cliente:c.cliente||null,pago:c.pgto!=='fiado',total,custo,
+      /* fiado nasce com historico de recebimento vazio; o parcial vira linha aqui */
+      pagamentos:c.pgto==='fiado'?[]:null};
     D.dados.vendas.unshift(v);
     c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
     D.dados.config.vendasDesdeBackup++;
-    D.salvar(); Modal.fechar(); Tela.render();
+    D.salvar(); this.carrinho=null; Modal.fechar(); Tela.render();
     toast('Venda registrada! Você lucrou '+rs(total-custo), true);
   },
-  marcarPago(id){ const v=D.dados.vendas.find(x=>x.id===id); if(v){v.pago=true;D.salvar();Tela.render();toast('Fiado recebido ✓');} },
+
+  /* ============ FIADO: recebimento total ou PARCIAL ============
+     O modelo antigo era binario (v.pago true/false). Agora a venda fiada pode
+     carregar v.pagamentos=[{data,valor}]. Venda ANTIGA nao tem esse campo, e as
+     funcoes abaixo tratam a ausencia: pago:true vale como quitada, pago:false como
+     nada recebido. Nada e reescrito na carga, entao backup velho continua valido. */
+  jaPago(v){
+    if(Array.isArray(v.pagamentos)) return v.pagamentos.reduce((s,x)=>s+(Number(x.valor)||0),0);
+    return v.pago ? v.total : 0;   /* venda anterior ao campo */
+  },
+  saldo(v){ return Math.max(0, Math.round((v.total - this.jaPago(v))*100)/100); },
+  telaReceber(id){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    const pg=this.jaPago(v), falta=this.saldo(v);
+    if(falta<=0){ toast('Esse fiado já está quitado'); return; }
+    const hist=Array.isArray(v.pagamentos)&&v.pagamentos.length
+      ? `<div class="fi-hist">já recebido:<br>${v.pagamentos.map((x,i)=>
+          `${x.data.split('-').reverse().join('/')} &mdash; ${rs(x.valor)} <button class="btn mini sec" style="font-size:11px;padding:3px 7px" onclick="Venda.desfazerPgto(${id},${i})">desfazer</button>`
+          ).join('<br>')}</div>`
+      : '';
+    Modal.abrir(`<h3>Recebeu quanto${v.cliente?' da '+v.cliente:''}?</h3>
+      <p class="sub">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</p>
+      <div class="fi-linhas">
+        <div class="fi-linha"><span>total da venda</span><span class="v">${rs(v.total)}</span></div>
+        <div class="fi-linha"><span>já pagou</span><span class="v">${rs(pg)}</span></div>
+        <div class="fi-linha falta"><span>FALTA</span><span class="v">${rs(falta)}</span></div>
+        ${hist}
+      </div>
+      <label>valor recebido agora</label>
+      <input id="fiValor" data-moeda inputmode="numeric" value="${fmtMoeda(falta)}">
+      <button class="btn" onclick="Venda.receber(${id},true)">Recebi tudo (${rs(falta)})</button>
+      <button class="btn sec" onclick="Venda.receber(${id},false)">Recebi só esse valor</button>`);
+    setTimeout(()=>{ const i=document.getElementById('fiValor'); if(i){ i.focus(); i.select(); } },60);
+  },
+  receber(id, tudo){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    const falta=this.saldo(v);
+    if(falta<=0){ toast('Esse fiado já está quitado'); Modal.fechar(); Tela.render(); return; }
+    let val = tudo ? falta : num(document.getElementById('fiValor').value);
+    val = Math.round(val*100)/100;
+    if(val<=0){ toast('Digita quanto ela pagou'); return; }
+    if(val>falta){ toast('Ela está devendo só '+rs(falta)); return; }
+    if(!Array.isArray(v.pagamentos)){
+      /* venda antiga: converte o binario em historico sem perder o que ja constava */
+      v.pagamentos = (v.pago && v.total>0) ? [{data:v.data,valor:v.total}] : [];
+    }
+    v.pagamentos.push({data:hoje(),valor:val});
+    v.pago = this.saldo(v)<=0;
+    D.salvar(); Modal.fechar(); Tela.render();
+    toast(v.pago ? 'Fiado quitado ✓' : 'Recebido '+rs(val)+' · faltam '+rs(this.saldo(v)));
+  },
+  desfazerPgto(id, idx){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v||!Array.isArray(v.pagamentos)) return;
+    const x=v.pagamentos[idx]; if(!x) return;
+    v.pagamentos.splice(idx,1);
+    v.pago = this.saldo(v)<=0;
+    D.salvar(); Tela.render();
+    toast('Desfeito: '+rs(x.valor));
+    if(this.saldo(v)>0) this.telaReceber(id); else Modal.fechar();
+  },
+  /* o botao antigo "recebi" agora abre a tela de valor */
+  marcarPago(id){ this.telaReceber(id); },
+
   excluir(id){ const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    const pg=this.jaPago(v);
     Modal.abrir(`<h3>Excluir esta venda?</h3><p class="sub">${v.itens.map(i=>i.nome+' x'+i.qtd).join(', ')} · ${rs(v.total)}.
-      O estoque volta pros produtos.</p>
+      O estoque volta pros produtos.${(pg>0&&v.pgto==='fiado')?` <b>Atenção: essa venda já tem ${rs(pg)} recebido.</b>`:''}</p>
       <button class="btn perigo" onclick="Venda.confirmaExcluir(${id})">Sim, excluir</button>
       <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`); },
-  confirmaExcluir(id){ const v=D.dados.vendas.find(x=>x.id===id);
+  confirmaExcluir(id){ const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     v.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd+=i.qtd; });
     D.dados.vendas=D.dados.vendas.filter(x=>x.id!==id); D.salvar(); Modal.fechar(); Tela.render(); toast('Venda excluída'); },
   recibo(id){ const v=D.dados.vendas.find(x=>x.id===id); const loja=D.dados.config.loja||'Minha lojinha';
     // DEFESA VoC: recibo NUNCA mostra custo nem lucro
     const linhas=v.itens.map(i=>`${i.qtd}x ${i.nome} — ${rs(i.preco*i.qtd)}`).join('%0A');
-    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}%0A%0AObrigada pela preferência!`;
+    let extra='';
+    if(v.pgto==='fiado'){ const pg=Venda.jaPago(v), falta=Venda.saldo(v);
+      extra = falta>0
+        ? `%0AJá pago: ${encodeURIComponent(rs(pg))}%0A*Falta: ${encodeURIComponent(rs(falta))}*`
+        : `%0A*Pago por completo*`; }
+    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${extra}%0A%0AObrigada pela preferência!`;
     window.open('https://wa.me/?text='+txt,'_blank'); }
 };
-
 /* ============ PRODUTO ============ */
 const Produto = {
   form(id){ const p=id?D.dados.produtos.find(x=>x.id===id):null;
@@ -744,22 +939,33 @@ const Tela = {
       </div>`;
   },
   itemVenda(v){
-    const badge = v.pgto==='fiado' ? (v.pago?'<span class="badge ok">fiado pago</span>':'<span class="badge fiado">fiado</span>') : `<span class="badge ok">${v.pgto}</span>`;
+    /* fiado agora tem 3 estados: nada recebido, PARCIAL, e quitado */
+    const ehFiado = v.pgto==='fiado';
+    const falta = ehFiado ? Venda.saldo(v) : 0;
+    const pago = ehFiado ? Venda.jaPago(v) : 0;
+    const parcial = ehFiado && falta>0 && pago>0;
+    const badge = ehFiado
+      ? (falta<=0 ? '<span class="badge ok">fiado pago</span>'
+         : `<span class="badge fiado">${parcial?'faltam '+rs(falta):'fiado'}</span>`)
+      : `<span class="badge ok">${v.pgto}</span>`;
+    const linhaFiado = parcial
+      ? ` · <b>pagou ${rs(pago)} de ${rs(v.total)}</b>`
+      : '';
     return `<div class="lista-item"><div class="info">
         <div class="t">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</div>
-        <div class="s">${v.data.split('-').reverse().join('/')}${v.cliente?' · '+v.cliente:''} · lucro ${rs(v.total-v.custo)}</div></div>
+        <div class="s">${v.data.split('-').reverse().join('/')}${v.cliente?' · '+v.cliente:''} · lucro ${rs(v.total-v.custo)}${linhaFiado}</div></div>
       <div style="text-align:right">
         <div style="font-weight:800">${rs(v.total)}</div>${badge}<br>
         <button class="btn mini sec" style="margin-top:6px;font-size:12px" onclick="Venda.recibo(${v.id})">recibo</button>
-        ${v.pgto==='fiado'&&!v.pago?`<button class="btn mini" style="margin-top:6px;font-size:12px" onclick="Venda.marcarPago(${v.id})">recebi ✓</button>`:''}
+        ${falta>0?`<button class="btn mini" style="margin-top:6px;font-size:12px" onclick="Venda.telaReceber(${v.id})">${parcial?'recebi mais':'recebi ✓'}</button>`:''}
         <button class="btn mini perigo" style="margin-top:6px;font-size:12px" onclick="Venda.excluir(${v.id})">excluir</button>
       </div></div>`;
   },
   telaVendas(){
     let vs=[...D.dados.vendas];
-    if(this.filtroVendas==='fiado') vs=vs.filter(v=>v.pgto==='fiado'&&!v.pago);
+    if(this.filtroVendas==='fiado') vs=vs.filter(v=>v.pgto==='fiado'&&Venda.saldo(v)>0);
     const f=(x,l)=>`<button class="${this.filtroVendas===x?'on':''}" onclick="Tela.filtroVendas='${x}';Tela.render()">${l}</button>`;
-    const fiadoTotal=D.dados.vendas.filter(v=>v.pgto==='fiado'&&!v.pago).reduce((s,v)=>s+v.total,0);
+    const fiadoTotal=D.dados.vendas.filter(v=>v.pgto==='fiado').reduce((s,v)=>s+Venda.saldo(v),0);
     const pg=paginar(vs, this.pagVendas);
     return `<div class="filtros">${f('todas','todas ('+D.dados.vendas.length+')')}${f('fiado','fiado pendente'+(fiadoTotal?' ('+rs(fiadoTotal)+')':''))}</div>
       <div class="card">${pg.itens.length?pg.itens.map(v=>this.itemVenda(v)).join(''):'<div class="vazio">Nada por aqui ainda.</div>'}</div>
