@@ -50,6 +50,7 @@ input:focus{outline:none;border-color:var(--vinho)}
 .aviso{border-radius:12px;padding:11px 12px;font-size:13.5px;margin-top:10px;display:none}
 .aviso.mostra{display:flex;gap:8px;align-items:flex-start}
 .aviso.ruim{background:var(--verm-bg);color:var(--verm)}
+.aviso.bom{background:var(--verde-bg);color:var(--verde)}
 .btn{background:var(--vinho);color:#fff;width:100%;padding:15px;font-weight:700;border:0;border-radius:12px;font-size:16px;cursor:pointer;margin-top:8px;font-family:inherit}
 .btn.sec{background:var(--rose);color:var(--vinho)}
 .dica{font-size:12.5px;color:var(--cinza);margin-top:6px;line-height:1.45}
@@ -440,7 +441,7 @@ function calc(){
     av.classList.add('mostra');
     if(lt<=0){ av.className='aviso ruim mostra';
       av.textContent='Vendendo a '+rs(tp)+' você PERDE '+rs(Math.abs(lt))+' por peça. Não vale.'; }
-    else { av.className='aviso mostra'; av.style.background='var(--verde-bg)'; av.style.color='var(--verde)';
+    else { av.className='aviso bom mostra';
       av.textContent='Vendendo a '+rs(tp)+' sobra '+rs(lt)+' por peça (margem de '+Math.round(lt/custoTotal()*100)+'% sobre o custo).'; }
   } else av.classList.remove('mostra');
 }
