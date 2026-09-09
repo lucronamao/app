@@ -415,21 +415,21 @@ const APPS=[
     liberado:tem('controle'), preco:'R$ 47', checkout:CHECKOUT.controle,
     pitch:'Vendas, estoque com baixa automática, fiado, despesas e o resumo do mês. Sem planilha, sem mensalidade.' },
   { id:'divulga', nome:'Divulga na Mão', icone:ICO.divulga, url:'divulga.html',
-    desc:'crie em minutos as artes da sua lojinha',
-    tags:['sua logo e seu @ na arte','divulgar novidade e promoção','pronta pro status e pro feed','legenda pronta pra postar'],
+    desc:'cobrar quem te deve e vender pro resto',
+    tags:['cobrar sem ficar chato','trazer de volta quem sumiu','arte com a sua logo','legenda pronta pra postar'],
     liberado:tem('divulga'), preco:'R$ 27', checkout:CHECKOUT.divulga,
-    pitch:'Foto de peça em cima da cama não para o dedo de ninguém. Sua lojinha merece post de loja:',
-    beneficios:['escolhe a foto da peça e a arte sai pronta em minutos, com a SUA logo, o seu @ e a cor do seu tema, em 3 estilos',
-      'pra anunciar a novidade que chegou, a promoção do dia e as últimas peças, sem abrir Canva e sem pagar designer',
-      'no tamanho certo do status e do feed, e a legenda vem escrita junto: você só posta'] },
+    pitch:'O Controle mostra quem ficou de pagar. A parte difícil é mandar a mensagem:',
+    beneficios:['a cobrança já vem escrita, do jeito que não fica chato: lembrar, confirmar o pagamento e cobrar de novo sem climão',
+      'pra chamar de volta a cliente que sumiu, e avisar a novidade e a promoção pra quem já comprou',
+      'e a arte sai pronta com a sua logo e o seu @, no tamanho do status e do feed, com a legenda junto'] },
   { id:'preco', nome:'Precificação na Mão', icone:ICO.preco, url:'precificacao.html',
     desc:'pra nunca mais vender no prejuízo sem perceber',
-    tags:['custo + frete + taxa','margem que você quer','testar qualquer preço'],
+    tags:['custo + frete + taxa','quanto você quer ganhar','testar qualquer preço'],
     liberado:tem('preco'), preco:'R$ 67', checkout:CHECKOUT.preco,
-    pitch:'Tem peça que você vende e, no fim, não sobra quase nada. Esse app faz a conta que evita isso:',
-    beneficios:['você digita o que pagou na peça e ele te diz o preço certo de venda, com frete e taxa da maquininha já dentro',
-      'escolhe quanto quer ganhar e vê na hora quanto sobra por peça',
-      'testa qualquer preço antes de anunciar e descobre se vale a pena'] }
+    pitch:'Quando o Controle mostrar um produto que deixou quase nada, o problema não é a venda: é o preço.',
+    beneficios:['você digita o que pagou e ele te diz por quanto vender, com frete, embalagem e taxa da maquininha já dentro',
+      'testa qualquer preço antes de anunciar e vê na hora quanto sobra, ou se dá prejuízo',
+      'faz o lote inteiro de uma vez, e já sai etiquetado com o nome da sua lojinha'] }
 ];
 
 document.getElementById('lista').innerHTML = APPS.map(card).join('');
