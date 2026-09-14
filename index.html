@@ -107,9 +107,78 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .fi-linha.falta{border-top:1px solid var(--rose);margin-top:5px;padding-top:7px;font-weight:800;font-size:16px}
 .fi-linha.falta .v{color:var(--vinho)}
 .fi-hist{font-size:12.5px;color:var(--cinza);margin-top:8px;line-height:1.6}
+/* parcelas combinadas, dentro do quadro de valores do fiado */
+.fi-parc{border-top:1px solid var(--rose);margin-top:8px;padding-top:8px;
+  font-size:13.5px;color:var(--cinza);text-align:center}
+.fi-parc b{color:var(--vinho)}
+/* atalhos que SO preenchem o campo: visual de link, nunca de botao de acao */
+.fi-atalhos{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.fi-atalhos button{flex:1;min-width:120px;padding:10px 8px;background:#fff;
+  border:1.5px solid var(--linha);color:var(--vinho);font-size:13.5px;font-weight:700}
+.fi-atalhos button:active{background:var(--rose)}
+/* a previa: diz o que o botao vai fazer, antes de ela tocar */
+.fi-previa{margin-top:12px;background:var(--rose-2);border-radius:11px;padding:11px 12px;
+  font-size:14px;text-align:center;color:var(--tinta);line-height:1.45}
+.fi-previa b{color:var(--vinho)}
+.fi-previa.quita{background:var(--verde-bg);color:var(--verde)}
+.fi-previa.quita b{color:var(--verde)}
+.fi-previa.aviso-erro{background:var(--verm-bg);color:var(--verm)}
+.fi-previa.aviso-erro b{color:var(--verm)}
+.fi-previa.aviso-vazio{background:var(--rose-2);color:var(--cinza)}
+.btn:disabled{opacity:.45}
+/* cancelar embaixo de um botao de acao nao pode ter o mesmo peso dele */
+.btn.discreto{background:none;color:var(--cinza);font-weight:600;padding:12px;font-size:14.5px}
+.btn.discreto:active{background:var(--rose-2)}
+/* historico recolhido: ocupa uma linha ate ela querer ver */
+.fi-det{margin-top:14px;border-top:1px solid var(--linha);padding-top:10px}
+.fi-det summary{font-size:13.5px;color:var(--cinza);font-weight:600;cursor:pointer;
+  list-style:none;padding:8px 2px;display:flex;align-items:center;gap:7px}
+.fi-det summary::-webkit-details-marker{display:none}
+.fi-det summary::before{content:'\203a';font-weight:800;color:var(--vinho);font-size:17px;
+  line-height:1;display:inline-block;width:10px;text-align:center}
+.fi-det[open] summary::before{content:'\2039'}
+.fi-hl{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:7px 0;font-size:13.5px;border-bottom:1px solid var(--linha)}
+.fi-hl:last-child{border-bottom:0}
+.fi-hl button{font-size:11.5px;padding:4px 9px}
 .pgto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .pgto-grid button{padding:13px;background:var(--rose);color:var(--tinta);font-weight:600;font-size:15px}
 .pgto-grid button.on{background:var(--vinho);color:#fff}
+/* parcelas: grade de botoes grandes, do mesmo tamanho, faceis de acertar com o dedo */
+/* ===== A VENDA E UM BLOCO DE DUAS FAIXAS (14/09/2026) =====
+   Informacao em cima, botoes embaixo na largura inteira. Antes disso os botoes
+   moravam numa coluna estreita a direita e espremiam o texto ate quebrar letra a
+   letra no celular. */
+.venda-bloco{border-bottom:1px solid var(--linha);padding:13px 2px 12px}
+.venda-bloco:last-child{border-bottom:0}
+.venda-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.venda-topo .info{flex:1;min-width:0}
+.venda-topo .t{font-weight:600;font-size:15px;line-height:1.3}
+.venda-topo .s{font-size:12.5px;color:var(--cinza);margin-top:3px;line-height:1.45}
+.venda-valor{text-align:right;flex-shrink:0}
+.venda-valor .vv{font-weight:800;font-size:16px;white-space:nowrap}
+.venda-valor .badge{display:inline-block;margin-top:4px}
+.venda-acoes{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.venda-acoes .va{flex:1;min-width:72px;padding:9px 6px;font-size:12.5px;font-weight:700;
+  background:var(--rose);color:var(--vinho);border-radius:10px}
+.venda-acoes .va.principal{background:var(--vinho);color:#fff}
+.venda-acoes .va.perigo{background:var(--verm-bg);color:var(--verm)}
+.venda-acoes .va:active{opacity:.75}
+/* atalho pro fiado: linha clicavel, nao mais um aviso morto */
+.kpi-link{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  margin-top:10px;background:var(--ambar-bg);color:var(--ambar);border:0;border-radius:12px;
+  padding:12px 14px;font-size:14px;font-family:inherit;text-align:left;font-weight:600}
+.kpi-link b{font-size:16px;font-weight:800}
+.kpi-link .seta{font-size:22px;font-weight:800;line-height:1;opacity:.7}
+.nota-caixa{font-size:12.5px;color:var(--cinza);line-height:1.45;margin-top:10px;text-align:center}
+.parc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6px}
+.parc-grid button{padding:12px 4px;background:var(--rose);color:var(--tinta);font-weight:700;font-size:14.5px}
+.parc-grid button.on{background:var(--vinho);color:#fff}
+.parc-info{margin-top:9px;background:var(--rose-2);border:1px solid var(--rose);border-radius:11px;
+  padding:10px 12px;font-size:14.5px;color:var(--tinta);text-align:center}
+.parc-info b{color:var(--vinho);font-size:16px}
+.opcional{font-weight:600;color:var(--cinza);text-transform:none;letter-spacing:0}
+.opcional.obrig{color:var(--vinho)}
 .mes-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .mes-nav .m{font-weight:800;font-size:16px;text-transform:capitalize}
 .mes-nav button{background:var(--rose);color:var(--vinho);width:38px;height:38px;font-size:18px;font-weight:800}
@@ -350,9 +419,26 @@ const D = {
 };
 function hoje(){ return new Date().toISOString().slice(0,10); }
 function agora(){ return new Date().toISOString(); }
-function rs(n){ return 'R$ ' + Number(Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+/* o espaco aqui e NAO-SEPARAVEL (\u00a0): sem ele "4x de R$ 35,00" quebrava entre
+   o "R$" e o numero no fim da linha, e a lojista tinha que remontar o valor */
+function rs(n){ return 'R$\u00a0' + Number(Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function num(v){ const s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isNaN(n)?0:n; }
 function fmtMoeda(n){ return n||n===0 ? 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
+/* ===== PARCELAS (14/09/2026) =====
+   Opcoes que a lojista de fato usa. A parcela e arredondada pra CIMA no centavo,
+   pra n parcelas nunca somarem menos que o total. */
+const PARCELAS_OPC = [1,2,3,4,5,6,10,12];
+function valorParcela(total,n){ return n>1 ? Math.ceil(total/n*100)/100 : total; }
+/* como a venda parcelada se le numa linha: "3x de R$ 40,00".
+   A base e `parcelasBase` quando ela existe (fiado em que a lojista parcelou o
+   saldo devedor, nao o total), e o total nos demais casos. */
+function baseParcela(v){
+  return (v && typeof v.parcelasBase === 'number' && v.parcelasBase > 0) ? v.parcelasBase : (v ? v.total : 0);
+}
+function textoParcelas(v){
+  const n = v && v.parcelas ? v.parcelas : 1;
+  return n>1 ? n+'x de '+rs(valorParcela(baseParcela(v),n)) : '';
+}
 document.addEventListener('input',function(e){
   const el=e.target; if(!el.matches) return;
   if(el.matches('[data-moeda]')){
@@ -429,17 +515,62 @@ function barraPag(info, fnIr){
 }
 
 /* ============ CALCULOS ============ */
+/* ===== O FIADO ENTRA NO LUCRO QUANDO O DINHEIRO ENTRA (14/09/2026) =====
+
+   Regra do Vini: "no fiado, deve somar no lucro/faturamento somente quando o valor
+   for baixado do fiado. Somar antes de receber nao faz sentido."
+
+   O que muda: a venda fiada NAO conta mais integral no mes em que foi feita. Cada
+   recebimento (v.pagamentos=[{data,valor}]) entra no faturamento do mes DAQUELA data,
+   e o custo entra na mesma proporcao do que foi recebido. Venda de agosto paga em
+   setembro aparece em setembro: e o regime de caixa, que e o que a lojista ve no
+   bolso.
+
+   A proporcao do custo importa: sem ela, um fiado com 50% recebido mostraria lucro
+   inflado (receita pela metade, custo zero) ou negativo (receita pela metade, custo
+   inteiro). Com ela, receber metade da venda rende exatamente metade do lucro.
+
+   Pix, dinheiro e cartao seguem como sempre: entram inteiros no mes da venda. */
 const Calc = {
   vendasDoMes(ym){ return D.dados.vendas.filter(v=>mesDe(v.data)===ym); },
+  /* Quanto de uma venda entrou no caixa dentro do mes ym.
+     Nao-fiado: o total, no mes da venda. Fiado: a soma dos recebimentos do mes. */
+  recebidoNoMes(v, ym){
+    if(v.pgto!=='fiado') return mesDe(v.data)===ym ? v.total : 0;
+    if(Array.isArray(v.pagamentos))
+      return v.pagamentos.reduce((s,x)=>s+(mesDe(String(x.data||''))===ym?(Number(x.valor)||0):0),0);
+    /* venda antiga, anterior ao historico: cai no mes da venda se estava quitada */
+    return (v.pago && mesDe(v.data)===ym) ? v.total : 0;
+  },
   totais(ym){
     const vs=this.vendasDoMes(ym);
-    let vendido=0, custo=0, fiadoPend=0;
-    vs.forEach(v=>{ vendido+=v.total; custo+=v.custo;
-      /* fiado pendente e o SALDO, nao o total: parcial recebido ja nao esta pendente */
-      if(v.pgto==='fiado') fiadoPend+=Venda.saldo(v); });
+    let vendido=0, custo=0, fiadoPend=0, nCaixa=0;
+    /* faturamento e custo varrem TODAS as vendas, nao so as do mes: um fiado de
+       agosto recebido em setembro precisa aparecer em setembro */
+    D.dados.vendas.forEach(v=>{
+      const rec=this.recebidoNoMes(v,ym);
+      if(rec>0){
+        vendido+=rec;
+        /* custo na mesma proporcao do que entrou */
+        custo += v.total>0 ? v.custo*(rec/v.total) : 0;
+        nCaixa++;
+      }
+    });
+    /* o fiado a receber e o saldo de TODA venda fiada aberta, independente do mes:
+       divida velha continua sendo dinheiro na rua */
+    D.dados.vendas.forEach(v=>{ if(v.pgto==='fiado') fiadoPend+=Venda.saldo(v); });
     const despesas=D.dados.despesas.filter(d=>mesDe(d.data)===ym).reduce((s,d)=>s+d.valor,0);
     const investido=D.dados.produtos.reduce((s,p)=>s+p.custo*p.qtd,0);
-    return {vendido, lucro:vendido-custo, despesas, liquido:vendido-custo-despesas, fiadoPend, investido, n:vs.length};
+    /* fiado ainda aberto que foi VENDIDO neste mes: o que a tela precisa explicar */
+    const fiadoDoMes=vs.filter(v=>v.pgto==='fiado').reduce((s,v)=>s+Venda.saldo(v),0);
+    return {vendido, lucro:vendido-custo, despesas, liquido:vendido-custo-despesas,
+            fiadoPend, fiadoDoMes, investido, n:nCaixa, nVendas:vs.length};
+  },
+  /* lucro ja REALIZADO de uma venda: proporcional ao que entrou no caixa */
+  lucroRealizado(v){
+    if(v.pgto!=='fiado') return v.total-v.custo;
+    const pg=Venda.jaPago(v);
+    return v.total>0 ? (v.total-v.custo)*(pg/v.total) : 0;
   },
   topProdutos(ym){
     const cont={};
@@ -469,9 +600,12 @@ const Backup = {
     D.dados.produtos.forEach(p=>L.push([p.id,s(p.nome),n(p.custo),n(p.preco),p.qtd].join(';')));
     L.push('');
     L.push('#VENDAS');
-    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido');
+    /* coluna 'parcelas' entrou em 14/09/2026, no fim da linha: backup gerado antes
+       disso simplesmente nao tem a coluna, e a leitura assume 1 */
+    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido;parcelas;base_parcela');
     D.dados.vendas.forEach(v=>v.itens.forEach(i=>
-      L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao',n(Venda.jaPago(v))].join(';'))));
+      L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao',n(Venda.jaPago(v)),v.parcelas||1,
+        (typeof v.parcelasBase==='number'?n(v.parcelasBase):'')].join(';'))));
     L.push('');
     /* Historico de recebimento do fiado: uma linha por pagamento parcial.
        Sem esta secao, restaurar um backup perderia as datas dos parciais. */
@@ -541,7 +675,13 @@ const Backup = {
         if(!vendasMap[id]) vendasMap[id]={id,data:c2[1],criadaEm:c2[1],itens:[],pgto:c2[7],
           cliente:uns(c2[8])||null,pago:c2[9]!=='nao',total:0,custo:0,
           /* coluna 10 e do backup novo; backup antigo nao tem e fica undefined */
-          _recebido:(c2.length>10&&String(c2[10]).trim()!=='')?num2(c2[10]):null,pagamentos:null};
+          _recebido:(c2.length>10&&String(c2[10]).trim()!=='')?num2(c2[10]):null,
+          /* coluna 11 (parcelas) so existe do backup de 14/09/2026 em diante */
+          parcelas:(c2.length>11&&String(c2[11]).trim()!=='')?(parseInt(c2[11])||1):1,
+          /* coluna 12: sobre quanto a parcela foi combinada (fiado em que a lojista
+             parcelou o saldo devedor). Vazio = a parcela e sobre o total. */
+          parcelasBase:(c2.length>12&&String(c2[12]).trim()!=='')?num2(c2[12]):null,
+          pagamentos:null};
         vendasMap[id].itens.push({produtoId:parseInt(c2[2])||0,nome:uns(c2[3]),
           qtd:parseInt(c2[4])||1,preco:num2(c2[5]),custo:num2(c2[6])});
       }
@@ -570,6 +710,7 @@ const Backup = {
         v.pago = rec >= Math.round(v.total*100)/100;
       } else { v.pagamentos=null; v.pago=true; }
       delete v._recebido;
+      if(v.parcelasBase===null) delete v.parcelasBase;
       return v; })
       .sort((a,b)=>String(b.data).localeCompare(String(a.data)));
     const ids=[...d.produtos.map(p=>p.id),...d.vendas.map(v=>v.id),...d.despesas.map(x=>x.id),0];
@@ -581,9 +722,10 @@ const Backup = {
     toast('Backup restaurado! Tudo de volta no lugar'); },
   exportarCSV(ym){
     const vs=Calc.vendasDoMes(ym);
-    let csv='data;produtos;quantidade;forma de pagamento;total;custo;lucro;status\n';
+    let csv='data;produtos;quantidade;forma de pagamento;parcelas;cliente;total;custo;lucro;status\n';
     vs.forEach(v=>{ csv+=[v.data, v.itens.map(i=>i.nome+' x'+i.qtd).join(' + '),
-      v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto + (v.cliente?' ('+v.cliente+')':''),
+      v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto,
+      (v.parcelas&&v.parcelas>1)?v.parcelas+'x':'a vista', v.cliente||'',
       String(v.total).replace('.',','), String(v.custo).replace('.',','),
       String(v.total-v.custo).replace('.',','),
       v.pgto==='fiado'
@@ -633,10 +775,14 @@ const Venda = {
         <span class="p">${rs(p.preco)}</span></button>`;
     }).join('');
     const n=this.nItens();
+    const naConta=!!this._addVenda;
     const voltar = n>0
-      ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">voltar pro carrinho (${n} ${n===1?'item':'itens'})</button>`
-      : '';
-    Modal.abrir(`<div class="passo">${n>0?'adicionar outro produto · toque nele':'passo 1 de 4 · toque no produto'}</div>${busca}
+      ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">${naConta?`ver a conta (${n} ${n===1?'item':'itens'})`:`voltar pro carrinho (${n} ${n===1?'item':'itens'})`}</button>`
+      : (naConta?`<button class="btn sec" style="margin-top:10px" onclick="Venda.cancelarAddConta()">Cancelar</button>`:'');
+    const passo = naConta
+      ? (n>0?'toque em outro produto que ela levou':'o que mais ela está levando?')
+      : (n>0?'adicionar outro produto · toque nele':'passo 1 de 4 · toque no produto');
+    Modal.abrir(`<div class="passo">${passo}</div>${busca}
       <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
       ${barraPag(pg,'Venda.irPag')}${voltar}`);
   },
@@ -685,10 +831,17 @@ const Venda = {
     this._editIdx=null; this.telaCarrinho();
   },
   removerItem(idx){ this.carrinho.itens.splice(idx,1);
-    if(!this.carrinho.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); toast('Carrinho vazio'); return; }
+    if(!this.carrinho.itens.length){ this.busca=''; this.pag=1; this.telaProduto();
+      toast(this._addVenda?'Escolhe o que ela está levando':'Carrinho vazio'); return; }
     this.telaCarrinho(); },
   telaCarrinho(){
     const c=this.carrinho;
+    /* somando numa conta de fiado ja aberta: o "carrinho" e o resumo daquela conta,
+       nunca a tela que leva a criar uma venda nova */
+    if(this._addVenda){
+      if(!c || !c.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); return; }
+      this._editIdx=null; this.telaAddResumo(); return;
+    }
     if(!c || !c.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); return; }
     this._editIdx=null;
     const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
@@ -709,6 +862,13 @@ const Venda = {
       <button class="btn sec" style="margin-top:14px" onclick="Venda.busca='';Venda.pag=1;Venda.telaProduto()">+ adicionar outro produto</button>
       <button class="btn" onclick="Venda.telaPgto()">Continuar pro pagamento</button>`);
   },
+  /* ===== NOME E PARCELAS (14/09/2026) =====
+     Nome: pedido em TODA venda, porque a lojista quer saber pra quem vendeu, mas
+     obrigatorio so no fiado (sem nome nao ha como cobrar depois).
+     Parcelas: cartao e fiado. E informativo, e existe porque a freguesa pensa em
+     "3x de 40", nao em "120 em aberto". No fiado a lojista continua podendo baixar
+     qualquer valor: a parcela e a conta que ela combina e mostra. */
+  ehParcelavel(f){ return f==='cartão' || f==='fiado'; },
   telaPgto(){
     const c=this.carrinho;
     if(!c || !c.itens.length){ this.telaProduto(); return; }
@@ -716,35 +876,77 @@ const Venda = {
     const resumo=c.itens.length===1
       ? c.itens[0].nome+' x'+c.itens[0].qtd
       : c.itens.length+' produtos · '+this.nItens()+' peças';
+    if(!c.parcelas) c.parcelas=1;
+    const par=this.ehParcelavel(c.pgto);
     Modal.abrir(`<div class="passo">passo 4 de 4 · como ela pagou?</div>
       <h3>${rs(total)}</h3><p class="sub">${resumo}</p>
       <div class="pgto-grid">
         ${['pix','dinheiro','cartão','fiado'].map(f=>`<button id="pg-${f}" class="${c.pgto===f?'on':''}" onclick="Venda.pgto('${f}')">${f==='fiado'?'fiado (anotar)':f}</button>`).join('')}
       </div>
-      <div id="fiadoCampo" class="${c.pgto==='fiado'?'':'oculto'}"><label>nome da cliente (pra cobrar depois)</label>
-        <input id="fiadoNome" placeholder="ex: Ana do 302" value="${c.cliente||''}"></div>
+
+      <div id="parcCampo" class="${par?'':'oculto'}">
+        <label>em quantas vezes?</label>
+        <div class="parc-grid" id="parcGrid">
+          ${PARCELAS_OPC.map(n=>`<button type="button" class="${c.parcelas===n?'on':''}"
+            onclick="Venda.setParcelas(${n})">${n===1?'à vista':n+'x'}</button>`).join('')}
+        </div>
+        <div class="parc-info" id="parcInfo"></div>
+      </div>
+
+      <label>nome da cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
+      <input id="fiadoNome" placeholder="ex: Ana do 302" value="${c.cliente||''}" autocomplete="off">
+
       <button class="btn" onclick="Venda.confirmar()">Registrar venda &#10003;</button>
-      <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`); },
-  pgto(f){ this.carrinho.pgto=f;
+      <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`);
+    this.pgtoPintar(); },
+  pgto(f){ const c=this.carrinho; c.pgto=f;
     ['pix','dinheiro','cartão','fiado'].forEach(x=>document.getElementById('pg-'+x).classList.toggle('on',x===f));
-    document.getElementById('fiadoCampo').classList.toggle('oculto', f!=='fiado'); },
+    if(!this.ehParcelavel(f)) c.parcelas=1;
+    this.pgtoPintar(); },
+  /* mostra/esconde as parcelas e troca o rotulo do nome conforme a forma escolhida */
+  pgtoPintar(){
+    const c=this.carrinho, f=c.pgto;
+    const cp=document.getElementById('parcCampo');
+    if(cp) cp.classList.toggle('oculto', !this.ehParcelavel(f));
+    const opc=document.getElementById('nomeOpc');
+    if(opc){ opc.textContent = f==='fiado' ? '(pra você cobrar depois)' : '(opcional)';
+             opc.classList.toggle('obrig', f==='fiado'); }
+    this.pintarParcela(); },
+  setParcelas(n){ this.carrinho.parcelas=n;
+    document.querySelectorAll('#parcGrid button').forEach((b,i)=>
+      b.classList.toggle('on', PARCELAS_OPC[i]===n));
+    this.pintarParcela(); },
+  pintarParcela(){
+    const el=document.getElementById('parcInfo'); if(!el) return;
+    const c=this.carrinho, n=c.parcelas||1;
+    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    el.innerHTML = n>1
+      ? `<b>${n}x de ${rs(valorParcela(total,n))}</b> · total ${rs(total)}`
+      : 'pagamento em uma vez só';
+  },
   confirmar(){
     const c=this.carrinho;
     if(!c || !c.itens.length){ toast('O carrinho está vazio'); this.telaProduto(); return; }
     if(!c.pgto){ toast('Escolhe como ela pagou'); return; }
-    if(c.pgto==='fiado'){ c.cliente=(document.getElementById('fiadoNome').value||'').trim();
-      if(!c.cliente){ toast('Anota o nome de quem levou fiado'); return; } }
+    c.cliente=(document.getElementById('fiadoNome').value||'').trim();
+    if(c.pgto==='fiado' && !c.cliente){ toast('Anota o nome de quem levou fiado'); return; }
     const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
     const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+    const parcelas=this.ehParcelavel(c.pgto)?(c.parcelas||1):1;
     const v={id:D.id(),data:hoje(),criadaEm:agora(),itens:c.itens,pgto:c.pgto,
       cliente:c.cliente||null,pago:c.pgto!=='fiado',total,custo,
+      /* parcelas e informativo: o numero de vezes combinado com a freguesa */
+      parcelas,
       /* fiado nasce com historico de recebimento vazio; o parcial vira linha aqui */
       pagamentos:c.pgto==='fiado'?[]:null};
     D.dados.vendas.unshift(v);
     c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
     D.dados.config.vendasDesdeBackup++;
     D.salvar(); this.carrinho=null; Modal.fechar(); Tela.render();
-    toast('Venda registrada! Você lucrou '+rs(total-custo), true);
+    /* no fiado o dinheiro ainda nao entrou: nao anunciar lucro que ela nao recebeu */
+    toast(v.pgto==='fiado'
+      ? 'Fiado anotado' + (v.cliente?' · '+v.cliente:'') + ' · '+rs(total)+' a receber'
+      : 'Venda registrada! Você lucrou '+rs(total-custo), v.pgto!=='fiado');
   },
 
   /* ============ FIADO: recebimento total ou PARCIAL ============
@@ -757,36 +959,111 @@ const Venda = {
     return v.pago ? v.total : 0;   /* venda anterior ao campo */
   },
   saldo(v){ return Math.max(0, Math.round((v.total - this.jaPago(v))*100)/100); },
+  /* quantas parcelas o que ja foi pago cobre, e quanto vale uma parcela */
+  parcelasDe(v){ return v && v.parcelas ? v.parcelas : 1; },
+  valorDaParcela(v){ return valorParcela(baseParcela(v), this.parcelasDe(v)); },
+  parcelasPagas(v){
+    const n=this.parcelasDe(v); if(n<=1) return null;
+    const vp=this.valorDaParcela(v);
+    if(vp<=0) return null;
+    /* quanto do ACORDO ja entrou. Se o acordo foi feito sobre o saldo (parcelasBase),
+       o que ela tinha pago antes dele nao conta como parcela deste acordo. */
+    const antes = (typeof v.parcelasBase==='number' && v.parcelasBase>0)
+      ? Math.max(0, v.total - v.parcelasBase) : 0;
+    const noAcordo = Math.max(0, this.jaPago(v) - antes);
+    const pagas=Math.min(n, Math.floor((noAcordo+0.004)/vp));
+    return {n, vp, pagas};
+  },
+
+  /* ===== UM BOTAO SO PRA RECEBER (14/09/2026) =====
+     Regra do Vini: "ele exibe 2 botoes de pagar, mesmo colocando o valor parcial
+     ele exibe pagar total e pagar isso, nao ta amigavel, deve ter 1 botao so ali
+     quando for pagar, e ele desconta o valor que ta digitado".
+
+     Como ficou: o campo de valor manda, e sempre. Os atalhos de cima (tudo, uma
+     parcela, metade) NAO dao baixa: eles so PREENCHEM o campo. Quem confirma e um
+     unico botao, e o texto dele diz exatamente quanto vai ser descontado e quanto
+     sobra depois. Assim nao existe mais escolher entre dois botoes que fazem
+     coisas diferentes com o mesmo numero na tela. */
   telaReceber(id){
     const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     const pg=this.jaPago(v), falta=this.saldo(v);
     if(falta<=0){ toast('Esse fiado já está quitado'); return; }
     const hist=Array.isArray(v.pagamentos)&&v.pagamentos.length
-      ? `<div class="fi-hist">já recebido:<br>${v.pagamentos.map((x,i)=>
-          `${x.data.split('-').reverse().join('/')} &mdash; ${rs(x.valor)} <button class="btn mini sec" style="font-size:11px;padding:3px 7px" onclick="Venda.desfazerPgto(${id},${i})">desfazer</button>`
-          ).join('<br>')}</div>`
+      ? `<details class="fi-det"><summary>ver o que ela já pagou (${v.pagamentos.length})</summary>
+          ${v.pagamentos.map((x,i)=>
+          `<div class="fi-hl"><span>${String(x.data).split('-').reverse().join('/')} &mdash; <b>${rs(x.valor)}</b></span>
+            <button class="btn mini sec" onclick="Venda.desfazerPgto(${id},${i})">desfazer</button></div>`
+          ).join('')}</details>`
       : '';
-    Modal.abrir(`<h3>Recebeu quanto${v.cliente?' da '+v.cliente:''}?</h3>
+    const pp=this.parcelasPagas(v);
+    /* linha das parcelas: so aparece quando a venda foi combinada parcelada */
+    const linhaParc = pp
+      ? `<div class="fi-parc">combinado em <b>${pp.n}x de ${rs(pp.vp)}</b> · ${pp.pagas} de ${pp.n} ${pp.n===1?'parcela paga':'parcelas pagas'}</div>`
+      : '';
+    /* atalhos: so preenchem o campo, nunca dao baixa sozinhos */
+    const meia=Math.round(falta/2*100)/100;
+    const atalhos=[['tudo que falta', falta]];
+    if(pp && pp.vp < falta) atalhos.push(['uma parcela · '+rs(pp.vp), pp.vp]);
+    if(!pp && meia>0 && meia<falta) atalhos.push(['metade · '+rs(meia), meia]);
+    Modal.abrir(`<h3>Receber${v.cliente?' de '+v.cliente:''}</h3>
       <p class="sub">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</p>
       <div class="fi-linhas">
         <div class="fi-linha"><span>total da venda</span><span class="v">${rs(v.total)}</span></div>
-        <div class="fi-linha"><span>já pagou</span><span class="v">${rs(pg)}</span></div>
-        <div class="fi-linha falta"><span>FALTA</span><span class="v">${rs(falta)}</span></div>
-        ${hist}
+        <div class="fi-linha"><span>já recebido</span><span class="v">${rs(pg)}</span></div>
+        <div class="fi-linha falta"><span>ainda falta</span><span class="v">${rs(falta)}</span></div>
+        ${linhaParc}
       </div>
-      <label>valor recebido agora</label>
-      <input id="fiValor" data-moeda inputmode="numeric" value="${fmtMoeda(falta)}">
-      <button class="btn" onclick="Venda.receber(${id},true)">Recebi tudo (${rs(falta)})</button>
-      <button class="btn sec" onclick="Venda.receber(${id},false)">Recebi só esse valor</button>`);
+      <label>quanto ela está pagando agora?</label>
+      <input id="fiValor" data-moeda inputmode="numeric" value="${fmtMoeda(falta)}"
+        oninput="Venda.previaReceber(${id})">
+      <div class="fi-atalhos">
+        ${atalhos.map(a=>`<button type="button" onclick="Venda.preencher(${id},${a[1]})">${a[0]}</button>`).join('')}
+      </div>
+      <div class="fi-previa" id="fiPrevia"></div>
+      <button class="btn" id="fiBtn" onclick="Venda.receber(${id})">Confirmar recebimento</button>
+      <button class="btn discreto" onclick="Modal.fechar()">Cancelar</button>
+      ${hist}`);
+    this.previaReceber(id);
     setTimeout(()=>{ const i=document.getElementById('fiValor'); if(i){ i.focus(); i.select(); } },60);
   },
-  receber(id, tudo){
+  /* o atalho so escreve no campo; quem decide continua sendo o botao unico */
+  preencher(id, valor){
+    const i=document.getElementById('fiValor'); if(!i) return;
+    i.value=fmtMoeda(Math.round(valor*100)/100);
+    this.previaReceber(id);
+  },
+  /* o botao diz o que vai acontecer ANTES de ela tocar: quanto desconta e quanto sobra */
+  previaReceber(id){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    const el=document.getElementById('fiPrevia'), bt=document.getElementById('fiBtn');
+    if(!el||!bt) return;
+    const falta=this.saldo(v);
+    let val=Math.round(num(document.getElementById('fiValor').value)*100)/100;
+    if(val<=0){
+      el.className='fi-previa aviso-vazio'; el.textContent='Digite quanto ela pagou agora.';
+      bt.disabled=true; bt.textContent='Confirmar recebimento'; return;
+    }
+    if(val>falta){
+      el.className='fi-previa aviso-erro';
+      el.innerHTML=`Ela deve só <b>${rs(falta)}</b>. Diminua o valor.`;
+      bt.disabled=true; bt.textContent='Confirmar recebimento'; return;
+    }
+    bt.disabled=false;
+    const resta=Math.round((falta-val)*100)/100;
+    el.className='fi-previa'+(resta<=0?' quita':'');
+    el.innerHTML = resta<=0
+      ? `Com esse valor o fiado fica <b>quitado</b>.`
+      : `Depois desse pagamento ainda faltam <b>${rs(resta)}</b>.`;
+    bt.textContent = resta<=0 ? 'Receber '+rs(val)+' e quitar' : 'Receber '+rs(val);
+  },
+  receber(id){
     const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     const falta=this.saldo(v);
     if(falta<=0){ toast('Esse fiado já está quitado'); Modal.fechar(); Tela.render(); return; }
-    let val = tudo ? falta : num(document.getElementById('fiValor').value);
+    let val = num(document.getElementById('fiValor').value);
     val = Math.round(val*100)/100;
-    if(val<=0){ toast('Digita quanto ela pagou'); return; }
+    if(val<=0){ toast('Digite quanto ela pagou'); return; }
     if(val>falta){ toast('Ela está devendo só '+rs(falta)); return; }
     if(!Array.isArray(v.pagamentos)){
       /* venda antiga: converte o binario em historico sem perder o que ja constava */
@@ -795,8 +1072,116 @@ const Venda = {
     v.pagamentos.push({data:hoje(),valor:val});
     v.pago = this.saldo(v)<=0;
     D.salvar(); Modal.fechar(); Tela.render();
-    toast(v.pago ? 'Fiado quitado ✓' : 'Recebido '+rs(val)+' · faltam '+rs(this.saldo(v)));
+    /* o dinheiro entrou agora: e agora que o lucro dessa venda conta */
+    toast(v.pago
+      ? 'Fiado quitado ✓ · entrou '+rs(val)+' no seu caixa'
+      : 'Recebido '+rs(val)+' · ainda faltam '+rs(this.saldo(v)), true);
   },
+  /* ===== ADICIONAR PRODUTO NUMA CONTA DE FIADO JA ABERTA (14/09/2026) =====
+
+     Regra do Vini: "no fiado, adicionar uma opcao para a cliente conseguir
+     adicionar mais produtos, mesmo depois de vendido, pois hoje ela tem que fazer
+     uma nova venda. O ideal e ela conseguir adicionar mais produtos e ajustar as
+     parcelas/valor."
+
+     E o caso real da lojista de bairro: a freguesa leva uma blusa fiado hoje, volta
+     quinta e leva um brinco, e as duas coisas sao UMA conta. Antes disso, o app
+     obrigava a abrir outra venda, e a conta da mesma pessoa aparecia partida em
+     duas linhas.
+
+     O que a rotina faz: reaproveita o mesmo carrinho da venda normal (nada de tela
+     nova pra manter), da baixa no estoque dos produtos novos, soma total e custo na
+     venda que ja existe, e reabre a escolha de parcelas com o valor ja atualizado.
+     O que ela NAO mexe: os pagamentos ja recebidos ficam como estao. A conta cresce,
+     o que ja foi pago continua pago, e o que falta sobe na mesma medida. */
+  addNaConta(id){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    if(v.pgto!=='fiado'){ toast('Só dá pra somar em conta de fiado'); return; }
+    if(!D.dados.produtos.length){ Modal.fechar(); Tela.ir('estoque'); toast('Cadastra um produto primeiro'); return; }
+    this._addVenda=id;
+    this.carrinho={itens:[],pgto:'fiado',cliente:v.cliente||'',parcelas:v.parcelas||1};
+    this.busca=''; this.pag=1; this._editIdx=null;
+    this.telaProduto();
+  },
+  /* fim do fluxo de somar na conta: mostra o antes e o depois, e deixa mexer nas parcelas */
+  telaAddResumo(){
+    const v=D.dados.vendas.find(x=>x.id===this._addVenda);
+    if(!v){ this._addVenda=null; this.carrinho=null; Modal.fechar(); return; }
+    const c=this.carrinho;
+    const novoTotal=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    const totalFinal=Math.round((v.total+novoTotal)*100)/100;
+    const jaPg=this.jaPago(v);
+    const faltaFinal=Math.round((totalFinal-jaPg)*100)/100;
+    if(!c.parcelas) c.parcelas=v.parcelas||1;
+    Modal.abrir(`<h3>Somar na conta${v.cliente?' de '+v.cliente:''}</h3>
+      <p class="sub">Vai tudo numa conta só, e ela paga junto.</p>
+      ${c.itens.map((i,idx)=>`<div class="cart-item">
+          <div style="min-width:0;flex:1;cursor:pointer" onclick="Venda.editarItem(${idx})">
+            <div class="n">${i.nome}</div>
+            <div class="s">${i.qtd} x ${rs(i.preco)} · toque pra mudar</div>
+          </div>
+          <span class="v">${rs(i.preco*i.qtd)}</span>
+          <button class="x" onclick="Venda.removerItem(${idx})" aria-label="tirar">&times;</button>
+        </div>`).join('')}
+      <button class="btn sec" onclick="Venda.busca='';Venda.pag=1;Venda.telaProduto()">+ adicionar outro produto</button>
+      <div class="fi-linhas" style="margin-top:14px">
+        <div class="fi-linha"><span>conta de antes</span><span class="v">${rs(v.total)}</span></div>
+        <div class="fi-linha"><span>levando agora</span><span class="v">+ ${rs(novoTotal)}</span></div>
+        <div class="fi-linha"><span>já recebido</span><span class="v">${rs(jaPg)}</span></div>
+        <div class="fi-linha falta"><span>conta nova, a receber</span><span class="v">${rs(faltaFinal)}</span></div>
+      </div>
+      <label>em quantas vezes ela vai pagar o que falta?</label>
+      <div class="parc-grid" id="parcGrid">
+        ${PARCELAS_OPC.map(n=>`<button type="button" class="${c.parcelas===n?'on':''}"
+          onclick="Venda.setParcelasConta(${n})">${n===1?'à vista':n+'x'}</button>`).join('')}
+      </div>
+      <div class="parc-info" id="parcInfo"></div>
+      <button class="btn" onclick="Venda.confirmarAddConta()">Somar na conta &#10003;</button>
+      <button class="btn discreto" onclick="Venda.cancelarAddConta()">Cancelar</button>`);
+    this.pintarParcelaConta(); },
+  setParcelasConta(n){ this.carrinho.parcelas=n;
+    document.querySelectorAll('#parcGrid button').forEach((b,i)=>
+      b.classList.toggle('on', PARCELAS_OPC[i]===n));
+    this.pintarParcelaConta(); },
+  /* aqui a parcela se calcula sobre o que FALTA, nao sobre o total: o que ela ja
+     pagou nao volta a ser parcelado */
+  pintarParcelaConta(){
+    const el=document.getElementById('parcInfo'); if(!el) return;
+    const v=D.dados.vendas.find(x=>x.id===this._addVenda); if(!v) return;
+    const c=this.carrinho, n=c.parcelas||1;
+    const novoTotal=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    const falta=Math.round((v.total+novoTotal-this.jaPago(v))*100)/100;
+    el.innerHTML = n>1
+      ? `<b>${n}x de ${rs(valorParcela(falta,n))}</b> · faltam ${rs(falta)}`
+      : 'ela paga os '+rs(falta)+' de uma vez';
+  },
+  confirmarAddConta(){
+    const v=D.dados.vendas.find(x=>x.id===this._addVenda), c=this.carrinho;
+    if(!v||!c||!c.itens.length){ this.cancelarAddConta(); return; }
+    /* baixa do estoque so dos produtos que entram agora */
+    c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
+    /* o mesmo produto ja existente na venda SOMA na linha, em vez de duplicar */
+    c.itens.forEach(i=>{
+      const ex=v.itens.find(x=>x.produtoId===i.produtoId && x.preco===i.preco);
+      if(ex) ex.qtd+=i.qtd; else v.itens.push({produtoId:i.produtoId,nome:i.nome,qtd:i.qtd,preco:i.preco,custo:i.custo});
+    });
+    v.total=Math.round(v.itens.reduce((s,i)=>s+i.preco*i.qtd,0)*100)/100;
+    v.custo=Math.round(v.itens.reduce((s,i)=>s+i.custo*i.qtd,0)*100)/100;
+    v.parcelas=c.parcelas||1;
+    /* o acordo foi feito sobre o que FALTA, entao e esse o valor que parcela */
+    v.parcelasBase=Math.max(0, Math.round((v.total - this.jaPago(v))*100)/100);
+    /* a conta cresceu: se estava quitada, volta a ter saldo aberto */
+    v.pago=this.saldo(v)<=0;
+    /* registro de que a conta foi mexida depois de aberta, pra ela nao estranhar a data */
+    if(!Array.isArray(v.adicoes)) v.adicoes=[];
+    v.adicoes.push({data:hoje(),itens:c.itens.map(i=>({nome:i.nome,qtd:i.qtd,preco:i.preco}))});
+    D.dados.config.vendasDesdeBackup++;
+    D.salvar(); this.carrinho=null; this._addVenda=null; Modal.fechar(); Tela.render();
+    toast('Somado na conta · ela deve '+rs(this.saldo(v)));
+  },
+  cancelarAddConta(){ this.carrinho=null; this._addVenda=null; Modal.fechar(); Tela.render(); },
+  _addVenda:null,
+
   desfazerPgto(id, idx){
     const v=D.dados.vendas.find(x=>x.id===id); if(!v||!Array.isArray(v.pagamentos)) return;
     const x=v.pagamentos[idx]; if(!x) return;
@@ -826,7 +1211,12 @@ const Venda = {
       extra = falta>0
         ? `%0AJá pago: ${encodeURIComponent(rs(pg))}%0A*Falta: ${encodeURIComponent(rs(falta))}*`
         : `%0A*Pago por completo*`; }
-    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${extra}%0A%0AObrigada pela preferência!`;
+    /* parcelas no recibo: e o numero que a freguesa quer ver, e evita a discussao
+       de "quanto era por mes mesmo?" la na frente */
+    const par=textoParcelas(v);
+    const linhaPar = par ? `%0AParcelado em: ${encodeURIComponent(par)}` : '';
+    const linhaCli = v.cliente ? `%0ACliente: ${encodeURIComponent(v.cliente)}` : '';
+    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}${linhaCli}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${linhaPar}${extra}%0A%0AObrigada pela preferência!`;
     window.open('https://wa.me/?text='+txt,'_blank'); }
 };
 /* ============ PRODUTO ============ */
@@ -927,38 +1317,75 @@ const Tela = {
   telaVender(){
     const ym=mesDe(hoje()), tt=Calc.totais(ym);
     const hj=D.dados.vendas.filter(v=>v.data===hoje());
-    const lucroHoje=hj.reduce((s,v)=>s+v.total-v.custo,0);
+    /* O lucro de hoje e o que ENTROU hoje: venda a vista de hoje mais fiado velho
+       recebido hoje. Fiado anotado hoje e sem pagamento nao conta (14/09/2026). */
+    const lucroHoje=D.dados.vendas.reduce((s,v)=>{
+      if(v.pgto!=='fiado') return s + (v.data===hoje() ? v.total-v.custo : 0);
+      if(!Array.isArray(v.pagamentos) || v.total<=0) return s;
+      const recHoje=v.pagamentos.reduce((a,x)=>a+(String(x.data)===hoje()?(Number(x.valor)||0):0),0);
+      return s + (v.total-v.custo)*(recHoje/v.total);
+    },0);
+    /* fiado aberto de todo o periodo: o dinheiro que esta na rua */
+    const aReceber=tt.fiadoPend;
+    /* quantas vendas de hoje de fato puseram dinheiro no caixa: contar as 4 do dia
+       ao lado de um valor que ignora 2 fiados em aberto faria a conta parecer errada */
+    const nCaixaHoje=D.dados.vendas.filter(v=>{
+      if(v.pgto!=='fiado') return v.data===hoje();
+      return Array.isArray(v.pagamentos) && v.pagamentos.some(x=>String(x.data)===hoje());
+    }).length;
     return `${this.avisoBackup()}
       <div class="card"><div class="kpis">
-        <div class="kpi"><div class="v pos">${rs(lucroHoje)}</div><div class="l">lucro de HOJE (${hj.length} venda${hj.length===1?'':'s'})</div></div>
+        <div class="kpi"><div class="v pos">${rs(lucroHoje)}</div><div class="l">entrou hoje (${nCaixaHoje} venda${nCaixaHoje===1?'':'s'})</div></div>
         <div class="kpi"><div class="v">${rs(tt.lucro)}</div><div class="l">lucro do mês</div></div>
-      </div></div>
+      </div>
+      ${aReceber>0?`<button class="kpi-link" onclick="Tela.filtroVendas='fiado';Tela.ir('vendas')">
+        <span><b>${rs(aReceber)}</b> em fiado pra receber</span><span class="seta">›</span></button>`:''}
+      </div>
       <button class="btn" style="padding:22px;font-size:19px" onclick="Venda.iniciar()">+ Registrar venda</button>
-      <div class="card" style="margin-top:12px"><h2>últimas vendas</h2>
+      <div class="card" style="margin-top:12px"><h2>vendas de hoje</h2>
         ${hj.length?hj.slice(0,5).map(v=>this.itemVenda(v)).join(''):'<div class="vazio">Nenhuma venda hoje ainda.<br>Quando sair, registra em 3 toques.</div>'}
       </div>`;
   },
   itemVenda(v){
-    /* fiado agora tem 3 estados: nada recebido, PARCIAL, e quitado */
+    /* fiado tem 3 estados: nada recebido, PARCIAL, e quitado */
     const ehFiado = v.pgto==='fiado';
     const falta = ehFiado ? Venda.saldo(v) : 0;
     const pago = ehFiado ? Venda.jaPago(v) : 0;
     const parcial = ehFiado && falta>0 && pago>0;
     const badge = ehFiado
       ? (falta<=0 ? '<span class="badge ok">fiado pago</span>'
-         : `<span class="badge fiado">${parcial?'faltam '+rs(falta):'fiado'}</span>`)
+         : `<span class="badge fiado">a receber ${rs(falta)}</span>`)
       : `<span class="badge ok">${v.pgto}</span>`;
-    const linhaFiado = parcial
-      ? ` · <b>pagou ${rs(pago)} de ${rs(v.total)}</b>`
-      : '';
-    return `<div class="lista-item"><div class="info">
-        <div class="t">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</div>
-        <div class="s">${v.data.split('-').reverse().join('/')}${v.cliente?' · '+v.cliente:''} · lucro ${rs(v.total-v.custo)}${linhaFiado}</div></div>
-      <div style="text-align:right">
-        <div style="font-weight:800">${rs(v.total)}</div>${badge}<br>
-        <button class="btn mini sec" style="margin-top:6px;font-size:12px" onclick="Venda.recibo(${v.id})">recibo</button>
-        ${falta>0?`<button class="btn mini" style="margin-top:6px;font-size:12px" onclick="Venda.telaReceber(${v.id})">${parcial?'recebi mais':'recebi ✓'}</button>`:''}
-        <button class="btn mini perigo" style="margin-top:6px;font-size:12px" onclick="Venda.excluir(${v.id})">excluir</button>
+    /* O lucro que aparece e o que JA ENTROU no caixa. Num fiado em aberto isso e
+       zero, e a linha diz "a receber" em vez de anunciar lucro que nao chegou.
+       Antes de 14/09/2026 a lista mostrava o lucro cheio de um fiado nao pago. */
+    const parc = textoParcelas(v);
+    let dinheiro;
+    if(ehFiado && falta>0)
+      dinheiro = parcial
+        ? `recebeu ${rs(pago)} de ${rs(v.total)}`
+        : `nada recebido ainda`;
+    else
+      dinheiro = `lucro ${rs(v.total-v.custo)}`;
+    const detalhe = [
+      v.data.split('-').reverse().join('/'),
+      v.cliente || null,
+      parc || null,
+      dinheiro
+    ].filter(Boolean).join(' · ');
+    return `<div class="venda-bloco">
+      <div class="venda-topo">
+        <div class="info">
+          <div class="t">${v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', ')}</div>
+          <div class="s">${detalhe}</div>
+        </div>
+        <div class="venda-valor"><div class="vv">${rs(v.total)}</div>${badge}</div>
+      </div>
+      <div class="venda-acoes">
+        ${falta>0?`<button class="va principal" onclick="Venda.telaReceber(${v.id})">receber</button>`:''}
+        ${ehFiado?`<button class="va" onclick="Venda.addNaConta(${v.id})">+ produto</button>`:''}
+        <button class="va" onclick="Venda.recibo(${v.id})">recibo</button>
+        <button class="va perigo" onclick="Venda.excluir(${v.id})">excluir</button>
       </div></div>`;
   },
   telaVendas(){
@@ -1008,12 +1435,14 @@ const Tela = {
     return `<div class="mes-nav">
         <button onclick="Tela.mudaMes(-1)">‹</button><span class="m">${nomeMes(ym)}</span><button onclick="Tela.mudaMes(1)">›</button></div>
       <div class="card"><div class="kpis">
-        <div class="kpi"><div class="v">${rs(tt.vendido)}</div><div class="l">vendido (${tt.n} vendas)</div></div>
-        <div class="kpi"><div class="v pos">${rs(tt.lucro)}</div><div class="l">lucro das vendas</div></div>
+        <div class="kpi"><div class="v">${rs(tt.vendido)}</div><div class="l">entrou no caixa (${tt.n} recebimento${tt.n===1?'':'s'})</div></div>
+        <div class="kpi"><div class="v pos">${rs(tt.lucro)}</div><div class="l">lucro do que entrou</div></div>
         <div class="kpi"><div class="v neg">${rs(tt.despesas)}</div><div class="l">despesas</div></div>
         <div class="kpi"><div class="v ${tt.liquido>=0?'pos':'neg'}">${rs(tt.liquido)}</div><div class="l">sobrou de verdade</div></div>
       </div>
-      ${tt.fiadoPend>0?`<div class="aviso backup" style="margin-top:10px"><svg style="width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7c0 2.6-5 1.6-5 4.4 0 1 1.1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/></svg> <span><b>${rs(tt.fiadoPend)} em fiado pra receber.</b> A lista tá na aba Vendas.</span></div>`:''}
+      <p class="nota-caixa">Conta só o dinheiro que você já recebeu. O fiado entra no mês em que a freguesa paga.</p>
+      ${tt.fiadoPend>0?`<button class="kpi-link" onclick="Tela.filtroVendas='fiado';Tela.ir('vendas')">
+        <span><b>${rs(tt.fiadoPend)}</b> em fiado pra receber${tt.fiadoDoMes>0&&tt.fiadoDoMes!==tt.fiadoPend?` · ${rs(tt.fiadoDoMes)} deste mês`:''}</span><span class="seta">›</span></button>`:''}
       </div>
       <div class="card"><h2>campeões de lucro do mês</h2>
         ${top.length?top.map((p,i)=>`<div class="lista-item"><div class="info"><div class="t">${i+1}º ${p.nome}</div>
