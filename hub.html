@@ -78,6 +78,30 @@ main{padding:16px;max-width:560px;margin:0 auto}
   .faixa-inst{flex-wrap:wrap}
   .faixa-inst .fi-btn{width:100%;order:9}
 }
+/* ===== FAIXA DA NOVIDADE (21/09/2026) =====
+   Regra do Vini: aparece pra quem usa o link do front (/c/) e do bump (/cd/),
+   uma vez, e volta a cada 24h ate a pessoa comprar.
+
+   POR QUE FAIXA E NAO MODAL: a lojista abre o app pra registrar uma venda, muitas
+   vezes com a freguesa na frente. Modal que cobre a tela nessa hora irrita e
+   ensina a fechar sem ler. A faixa fica acima do menu, chama a atencao pela cor
+   e pelo selo, e nao bloqueia nada. */
+.faixa-nov{position:relative;background:linear-gradient(140deg,var(--vinho),#5c1838);
+  color:#fff;border-radius:16px;padding:15px 16px 16px;margin:0 auto 14px;max-width:560px;
+  box-shadow:0 14px 30px -18px rgba(61,15,36,.9)}
+.faixa-nov .fn-selo{display:inline-block;background:#fff;color:var(--vinho);
+  font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 14px;border-radius:999px;margin-bottom:11px;
+  box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.faixa-nov .fn-tit{display:block;font-size:17px;font-weight:800;line-height:1.22;
+  letter-spacing:-.3px;margin-bottom:5px;padding-right:22px}
+.faixa-nov .fn-txt{display:block;font-size:13px;line-height:1.45;opacity:.92;margin-bottom:12px}
+.faixa-nov .fn-btn{display:block;background:#fff;color:var(--vinho);text-align:center;
+  text-decoration:none;font-weight:800;font-size:15px;padding:13px;border-radius:12px}
+.faixa-nov .fn-btn:active{opacity:.85}
+.faixa-nov .fn-x{position:absolute;top:9px;right:10px;background:none;border:0;color:#fff;
+  font-size:22px;line-height:1;padding:3px 7px;cursor:pointer;opacity:.75;font-family:inherit}
+
 /* passo a passo de instalacao (iPhone, e Android que nao ofereceu o prompt) */
 .ps-fundo{position:fixed;inset:0;background:rgba(43,34,48,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
 .ps-fundo.aberto{display:flex}
@@ -223,6 +247,20 @@ main{padding:16px;max-width:560px;margin:0 auto}
   <div class="fi-txt"><b>Coloque o app no seu celular</b><span>ícone na tela inicial, abre sem navegador e funciona sem internet</span></div>
   <button class="fi-btn" onclick="Instalar.instalar()">Instalar</button>
   <button class="fi-x" onclick="Instalar.dispensarFaixa()" aria-label="dispensar">&times;</button>
+</div>
+
+<!-- ===== AVISO DA NOVIDADE (21/09/2026) =====
+     So aparece pra quem NAO tem o Catalogo, ou seja, quem entrou por /c/ (front)
+     ou /cd/ (front + bump). Quem ja comprou nunca ve.
+     Some no X e volta 24h depois, ate ela comprar. -->
+<div class="faixa-nov" id="faixaNovidade" style="display:none">
+  <button class="fn-x" onclick="Novidade.dispensar()" aria-label="fechar">&times;</button>
+  <div class="fn-selo">✨ novidade especial para você</div>
+  <b class="fn-tit">Mande vários produtos numa mensagem só</b>
+  <span class="fn-txt">Em vez de mandar foto por foto e responder "quanto é?",
+    você manda um catálogo com os produtos que já estão no seu estoque, com a sua
+    logo e o preço de cada peça.</span>
+  <a class="fn-btn" id="fnBtn" href="#" target="_blank" rel="noopener">Ver como funciona</a>
 </div>
 </div>
 
@@ -471,6 +509,50 @@ const Config = {
   },
   instalar(){ Instalar.instalar(); }
 };
+
+/* ===== AVISO DA NOVIDADE (21/09/2026) =====
+
+   Regra do Vini: quem usa o link do front (/c/) e do bump (/cd/) ve um aviso do
+   Catalogo. Aparece uma vez, some no X, e volta 24h depois. Quem ja comprou
+   nunca ve, e o aviso para de aparecer sozinho quando ela compra (porque ai o
+   'preco' passa a estar liberado).
+
+   POR QUE 24h E NAO "uma vez so": quem abre o app todo dia e o publico mais
+   quente que existe pra este upsell, mas no primeiro aviso ela pode estar no meio
+   de uma venda. Voltar depois de um dia da outra chance sem virar insistencia.
+
+   O RELOGIO e o do aparelho dela. Trocar a data pra tras faz o aviso voltar antes,
+   e isso e aceitavel: o custo de errar pra mais e uma faixa a mais, nao uma
+   cobranca indevida. */
+const Novidade = {
+  chave: 'lucronamao_novidade_fechada',
+  espera: 24 * 60 * 60 * 1000,        // 24h em milissegundos
+  destino: 'https://lucronamao.online/oferta-catalogo.html',
+
+  pintar(){
+    const f = document.getElementById('faixaNovidade');
+    if(!f) return;
+    /* quem JA tem o Catalogo nao ve nunca. `tem` e a mesma funcao que decide os
+       cards, entao comprar faz o aviso sumir sozinho, sem codigo extra. */
+    if(tem('preco')) { f.style.display = 'none'; return; }
+
+    let fechadaEm = 0;
+    try { fechadaEm = parseInt(localStorage.getItem(this.chave) || '0', 10) || 0; } catch(e){}
+    const passou = (Date.now() - fechadaEm) >= this.espera;
+    f.style.display = passou ? '' : 'none';
+
+    const b = document.getElementById('fnBtn');
+    if(b) b.href = this.destino;
+  },
+
+  dispensar(){
+    try { localStorage.setItem(this.chave, String(Date.now())); } catch(e){}
+    this.pintar();
+  }
+};
+/* pintado aqui, e nao junto da montagem do menu: o objeto so existe a partir
+   desta linha, e a faixa depende de `tem('preco')`, que ja esta resolvido. */
+Novidade.pintar();
 
 /* ====== ANIMACAO DO CAMINHO NO IPHONE ======
    Roteiro fiel ao fluxo real do iOS 26, conferido em video do aparelho (27/08/2026).
