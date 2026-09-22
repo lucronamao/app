@@ -106,6 +106,19 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .fi-linha{display:flex;justify-content:space-between;font-size:14.5px;padding:3px 0}
 .fi-linha.falta{border-top:1px solid var(--rose);margin-top:5px;padding-top:7px;font-weight:800;font-size:16px}
 .fi-linha.falta .v{color:var(--vinho)}
+/* ===== O NUMERO QUE IMPORTA E GRANDE (21/09/2026) =====
+   Regra do Vini: "as clientes tem MUITA dificuldade com app, tem que ser facil e
+   visualmente simples". Antes, "ainda falta" era mais uma linha do mesmo tamanho
+   entre outras duas, e o resultado do que ela digitava vinha como frase corrida.
+   Agora o que ela precisa conferir de relance (quanto deve agora, quanto fica
+   depois) e numero grande, e a frase vira so o rotulo em cima dele. */
+.fi-falta{border-top:1px solid var(--rose);margin-top:8px;padding-top:9px;text-align:center}
+.fi-falta .rot{font-size:12.5px;color:var(--cinza);font-weight:600;text-transform:lowercase}
+.fi-falta .big{font-size:29px;font-weight:800;color:var(--vinho);line-height:1.15;margin-top:2px}
+.fi-previa .rot{font-size:12.5px;color:var(--cinza);font-weight:600;line-height:1.35}
+.fi-previa .big{font-size:25px;font-weight:800;color:var(--vinho);line-height:1.15;margin-top:3px}
+.fi-previa.quita .rot{color:var(--verde)}
+.fi-previa.quita .big{color:var(--verde)}
 .fi-hist{font-size:12.5px;color:var(--cinza);margin-top:8px;line-height:1.6}
 /* parcelas combinadas, dentro do quadro de valores do fiado */
 .fi-parc{border-top:1px solid var(--rose);margin-top:8px;padding-top:8px;
@@ -126,6 +139,15 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .fi-previa.aviso-erro b{color:var(--verm)}
 .fi-previa.aviso-vazio{background:var(--rose-2);color:var(--cinza)}
 .btn:disabled{opacity:.45}
+/* data da despesa: hoje/ontem resolvem o caso comum sem abrir o calendario */
+.dt-atalhos{display:flex;gap:7px;margin:6px 0 8px}
+.dt-atalhos button{flex:1;padding:12px 8px;background:#fff;border:1.5px solid var(--linha);
+  color:var(--vinho);font-size:14.5px;font-weight:700;border-radius:11px}
+.dt-atalhos button.on{background:var(--vinho);color:#fff;border-color:var(--vinho)}
+.dt-atalhos button:active{opacity:.75}
+.dt-previa{margin-top:9px;background:var(--rose-2);border-radius:11px;padding:10px 12px;
+  font-size:13.5px;text-align:center;color:var(--tinta);line-height:1.45}
+.dt-previa b{color:var(--vinho)}
 /* cancelar embaixo de um botao de acao nao pode ter o mesmo peso dele */
 .btn.discreto{background:none;color:var(--cinza);font-weight:600;padding:12px;font-size:14.5px}
 .btn.discreto:active{background:var(--rose-2)}
@@ -439,8 +461,15 @@ function textoParcelas(v){
   const n = v && v.parcelas ? v.parcelas : 1;
   return n>1 ? n+'x de '+rs(valorParcela(baseParcela(v),n)) : '';
 }
+/* ===== A MASCARA RODA NA CAPTURA, E O MOTIVO E UM BUG REAL (21/09/2026) =====
+   Um listener no `document` em fase de BORBULHA roda DEPOIS do `oninput` do proprio
+   campo. Entao a previa do fiado lia o valor AINDA SEM mascara: a lojista digitava
+   "6000", o campo mostrava "R$ 60,00" e o botao prometia "Receber R$ 6,00", dez
+   vezes menos, com a previa e o botao se contradizendo na mesma tela.
+   Com `capture:true` a mascara formata ANTES de qualquer oninput, entao todo mundo
+   que le o campo le o mesmo numero que ela esta vendo. */
 document.addEventListener('input',function(e){
-  const el=e.target; if(!el.matches) return;
+  const el=e.target; if(!el||!el.matches) return;
   if(el.matches('[data-moeda]')){
     const d=el.value.replace(/\D/g,'').replace(/^0+(?=\d{3})/,'').slice(0,10);
     el.value=d?'R$ '+(parseInt(d)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
@@ -450,6 +479,10 @@ document.addEventListener('input',function(e){
     if(i>=0) v=v.slice(0,i+1)+v.slice(i+1).replace(/,/g,'').slice(0,1);
     el.value=v.slice(0,6);
   }
+},true);
+/* na borbulha sobra so o que depende do valor JA mascarado */
+document.addEventListener('input',function(e){
+  const el=e.target; if(!el||!el.matches) return;
   if(typeof POSMASK==='function') POSMASK(el);
 });
 function POSMASK(el){ if(el.id==='pCusto'||el.id==='pPreco'){ try{Produto.previa();}catch(e){} } }
@@ -1011,7 +1044,7 @@ const Venda = {
       <div class="fi-linhas">
         <div class="fi-linha"><span>total da venda</span><span class="v">${rs(v.total)}</span></div>
         <div class="fi-linha"><span>já recebido</span><span class="v">${rs(pg)}</span></div>
-        <div class="fi-linha falta"><span>ainda falta</span><span class="v">${rs(falta)}</span></div>
+        <div class="fi-falta"><div class="rot">ela ainda deve</div><div class="big">${rs(falta)}</div></div>
         ${linhaParc}
       </div>
       <label>quanto ela está pagando agora?</label>
@@ -1052,9 +1085,13 @@ const Venda = {
     bt.disabled=false;
     const resta=Math.round((falta-val)*100)/100;
     el.className='fi-previa'+(resta<=0?' quita':'');
+    /* o resultado em NUMERO GRANDE, nao em frase: a lojista confere o "depois fica"
+       de relance, do mesmo jeito que confere o "ela ainda deve" ali em cima */
     el.innerHTML = resta<=0
-      ? `Com esse valor o fiado fica <b>quitado</b>.`
-      : `Depois desse pagamento ainda faltam <b>${rs(resta)}</b>.`;
+      ? `<div class="rot">depois desse pagamento</div>
+         <div class="big">tudo pago ✓</div>`
+      : `<div class="rot">depois desse pagamento ela fica devendo</div>
+         <div class="big">${rs(resta)}</div>`;
     bt.textContent = resta<=0 ? 'Receber '+rs(val)+' e quitar' : 'Receber '+rs(val);
   },
   receber(id){
@@ -1252,15 +1289,59 @@ const Produto = {
 };
 
 /* ============ DESPESA ============ */
+/* ===== A DESPESA TEM DATA, E ELA MANDA NO MES (21/09/2026) =====
+   Regra do Vini: "pode ser que ela queira lancar do mes passado". Antes a despesa
+   nascia sempre com hoje(), entao a compra de embalagem de setembro lancada em
+   outubro somava no mes errado e a conta de "sobrou de verdade" mentia nos dois
+   meses. O resumo ja filtra por mesDe(d.data): basta gravar a data que ela escolheu.
+
+   A tela e feita pra quem tem dificuldade com app: dois botoes grandes (hoje /
+   ontem) resolvem o caso comum sem abrir calendario, e uma linha embaixo diz em
+   bom portugues em que mes aquilo vai entrar. */
 const Despesa = {
   form(){ Modal.abrir(`<h3>Nova despesa</h3><p class="sub">embalagem, frete, sacola, motoboy...</p>
     <label>o que foi</label><input id="dDesc" placeholder="ex: embalagens">
     <label>valor</label><input id="dValor" data-moeda inputmode="numeric" placeholder="R$ 0,00">
-    <button class="btn" onclick="Despesa.salvar()">Lançar despesa</button>`); },
+    <label>quando foi essa despesa?</label>
+    <div class="dt-atalhos">
+      <button type="button" id="dtHoje" onclick="Despesa.setData(0)">hoje</button>
+      <button type="button" id="dtOntem" onclick="Despesa.setData(1)">ontem</button>
+    </div>
+    <input id="dData" type="date" value="${hoje()}" max="${hoje()}" onchange="Despesa.previa()">
+    <div class="dt-previa" id="dPrevia"></div>
+    <button class="btn" onclick="Despesa.salvar()">Lançar despesa</button>
+    <button class="btn discreto" onclick="Modal.fechar()">Cancelar</button>`);
+    this.previa(); },
+  /* atalho: n dias atras, sem a lojista precisar abrir o calendario do celular */
+  setData(diasAtras){
+    const d=new Date(); d.setDate(d.getDate()-diasAtras);
+    const iso=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const el=document.getElementById('dData'); if(el){ el.value=iso; this.previa(); }
+  },
+  /* diz, em portugues, em que mes esse lancamento vai cair */
+  previa(){
+    const el=document.getElementById('dPrevia'), inp=document.getElementById('dData');
+    if(!el||!inp) return;
+    const h=hoje();
+    const bh=document.getElementById('dtHoje'), bo=document.getElementById('dtOntem');
+    const o=new Date(); o.setDate(o.getDate()-1);
+    const ontem=new Date(o.getTime()-o.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    if(bh) bh.classList.toggle('on', inp.value===h);
+    if(bo) bo.classList.toggle('on', inp.value===ontem);
+    if(!inp.value){ el.textContent='Escolhe o dia da despesa.'; return; }
+    el.innerHTML = 'Vai entrar nas contas de <b>'+nomeMes(mesDe(inp.value))+'</b>'
+      + (mesDe(inp.value)!==mesDe(h) ? ' (mês passado, não neste).' : '.');
+  },
   salvar(){ const desc=document.getElementById('dDesc').value.trim(), valor=num(document.getElementById('dValor').value);
+    const data=(document.getElementById('dData').value||'').trim();
     if(!desc||valor<=0){ toast('Preenche o que foi e o valor'); return; }
-    D.dados.despesas.unshift({id:D.id(),data:hoje(),desc,valor});
-    D.salvar(); Modal.fechar(); Tela.render(); toast('Despesa lançada'); },
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(data)){ toast('Escolhe o dia da despesa'); return; }
+    D.dados.despesas.unshift({id:D.id(),data,desc,valor});
+    /* a lista do resumo e por mes: se ela lancou de outro mes, leva a tela junto,
+       senao o lancamento "some" e ela lanca de novo achando que nao salvou */
+    if(Tela.mesResumo && mesDe(data)!==Tela.mesResumo) Tela.mesResumo=mesDe(data);
+    D.salvar(); Modal.fechar(); Tela.render();
+    toast('Despesa lançada em '+nomeMes(mesDe(data))); },
   excluir(id){ D.dados.despesas=D.dados.despesas.filter(d=>d.id!==id); D.salvar(); Tela.render(); }
 };
 
