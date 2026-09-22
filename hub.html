@@ -381,6 +381,18 @@ const CHECKOUT = {
   preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Catalogo na Mao (era Precificacao), R$ 67 */
 };
 
+/* ===== PAGINA DE OFERTA (21/09/2026) =====
+   Antes o botao do app caia DIRETO no checkout, entao quem estava aqui dentro
+   nunca via a VSL nem a copy: decidia so pelo card. Agora passa por uma pagina
+   de oferta, que e a MESMA do upsell pos-compra, porem sem a faixa de "pagamento
+   confirmado" e com CTA de link normal (os botoes de 1 clique da Cakto so
+   funcionam logo apos um pagamento aprovado).
+
+   Quem nao tem pagina de oferta continua indo direto pro checkout, sem mudanca. */
+const OFERTA = {
+  preco: 'https://lucronamao.online/oferta-catalogo.html'
+};
+
 const ICO = {
   controle:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   /* catalogo: a grade de pecas com a etiqueta de preco. Era um cifrao, da epoca
@@ -407,7 +419,7 @@ function card(app){
     <div class="pitch">${app.pitch}</div>
     ${bens}
     <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
-      <a href="${app.checkout}" target="_blank" rel="noopener">Liberar agora</a></div></div>`;
+      <a href="${app.oferta || app.checkout}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div></div>`;
 }
 
 const APPS=[
@@ -427,7 +439,7 @@ const APPS=[
   { id:'preco', nome:'Catálogo na Mão', icone:ICO.preco, url:'precificacao.html',
     desc:'aumente as vendas mandando o catálogo da lojinha no WhatsApp',
     tags:['pronto em 1 toque','com a sua logo','direto do seu estoque'],
-    liberado:tem('preco'), preco:'R$ 67', checkout:CHECKOUT.preco,
+    liberado:tem('preco'), preco:'R$ 67', checkout:CHECKOUT.preco, oferta:OFERTA.preco,
     pitch:'Mandar foto solta e responder "quanto é?" o dia todo cansa, e faz a freguesa desistir no meio.',
     beneficios:['seu catálogo sai pronto com os produtos que JÁ estão no seu estoque: você não cadastra nada duas vezes',
       'com a sua logo, o nome da sua lojinha e o preço de cada peça, do jeito que loja grande manda',
