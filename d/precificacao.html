@@ -381,8 +381,13 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
 function num(v){ const s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isNaN(n)?0:n; }
 function fmtMoeda(n){ return n||n===0 ? 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
+/* a mascara roda na CAPTURA, antes de qualquer listener de campo (21/09/2026).
+   Aqui os campos tem listener proprio (custo, frete, extras, testePreco) que roda
+   antes de um handler de borbulha: sem capture, esses listeners calculavam com o
+   valor ainda sem mascara. Era o mesmo defeito que fazia o fiado do Controle
+   prometer "Receber R$ 6,00" com "R$ 60,00" escrito no campo. */
 document.addEventListener('input',function(e){
-  const el=e.target; if(!el.matches) return;
+  const el=e.target; if(!el||!el.matches) return;
   if(el.matches('[data-moeda]')){
     const d=el.value.replace(/\D/g,'').replace(/^0+(?=\d{3})/,'').slice(0,10);
     el.value=d?'R$ '+(parseInt(d)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
@@ -392,6 +397,9 @@ document.addEventListener('input',function(e){
     if(i>=0) v=v.slice(0,i+1)+v.slice(i+1).replace(/,/g,'').slice(0,1);
     el.value=v.slice(0,6);
   }
+},true);
+document.addEventListener('input',function(e){
+  const el=e.target; if(!el||!el.matches) return;
   if(typeof POSMASK==='function') POSMASK(el);
 });
 function POSMASK(el){ try{calc();}catch(e){} }
