@@ -80,7 +80,7 @@ main{padding:16px;max-width:560px;margin:0 auto}
 }
 /* ===== FAIXA DA NOVIDADE (21/09/2026) =====
    Regra do Vini: aparece pra quem usa o link do front (/c/) e do bump (/cd/),
-   uma vez, e volta a cada 24h ate a pessoa comprar.
+   uma vez, e volta a cada 10h ate a pessoa comprar.
 
    POR QUE FAIXA E NAO MODAL: a lojista abre o app pra registrar uma venda, muitas
    vezes com a freguesa na frente. Modal que cobre a tela nessa hora irrita e
@@ -252,7 +252,7 @@ main{padding:16px;max-width:560px;margin:0 auto}
 <!-- ===== AVISO DA NOVIDADE (21/09/2026) =====
      So aparece pra quem NAO tem o Catalogo, ou seja, quem entrou por /c/ (front)
      ou /cd/ (front + bump). Quem ja comprou nunca ve.
-     Some no X e volta 24h depois, ate ela comprar. -->
+     Some no X e volta 10h depois, ate ela comprar. -->
 <div class="faixa-nov" id="faixaNovidade" style="display:none">
   <button class="fn-x" onclick="Novidade.dispensar()" aria-label="fechar">&times;</button>
   <div class="fn-selo">✨ novidade especial para você</div>
@@ -513,20 +513,24 @@ const Config = {
 /* ===== AVISO DA NOVIDADE (21/09/2026) =====
 
    Regra do Vini: quem usa o link do front (/c/) e do bump (/cd/) ve um aviso do
-   Catalogo. Aparece uma vez, some no X, e volta 24h depois. Quem ja comprou
+   Catalogo. Aparece uma vez, some no X, e volta 10h depois. Quem ja comprou
    nunca ve, e o aviso para de aparecer sozinho quando ela compra (porque ai o
    'preco' passa a estar liberado).
 
-   POR QUE 24h E NAO "uma vez so": quem abre o app todo dia e o publico mais
+   POR QUE VOLTAR E NAO "uma vez so": quem abre o app todo dia e o publico mais
    quente que existe pra este upsell, mas no primeiro aviso ela pode estar no meio
-   de uma venda. Voltar depois de um dia da outra chance sem virar insistencia.
+   de uma venda. Voltar depois da outra chance sem virar insistencia.
+
+   POR QUE 10h E NAO 24h (26/09/2026, Vini): as 24h contam da hora em que ela
+   fechou. Quem abre o app no mesmo horario todo dia chegava sempre um pouco antes
+   e so via o aviso dia sim, dia nao. Com 10h, a abertura do dia seguinte ja pega.
 
    O RELOGIO e o do aparelho dela. Trocar a data pra tras faz o aviso voltar antes,
    e isso e aceitavel: o custo de errar pra mais e uma faixa a mais, nao uma
    cobranca indevida. */
 const Novidade = {
   chave: 'lucronamao_novidade_fechada',
-  espera: 24 * 60 * 60 * 1000,        // 24h em milissegundos
+  espera: 10 * 60 * 60 * 1000,        // 10h em milissegundos
   destino: 'https://lucronamao.online/oferta-catalogo.html',
 
   pintar(){
