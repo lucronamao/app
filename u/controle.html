@@ -180,8 +180,8 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .venda-valor{text-align:right;flex-shrink:0}
 .venda-valor .vv{font-weight:800;font-size:16px;white-space:nowrap}
 .venda-valor .badge{display:inline-block;margin-top:4px}
-.venda-acoes{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.venda-acoes .va{flex:1;min-width:72px;padding:9px 6px;font-size:12.5px;font-weight:700;
+.venda-acoes{display:flex;gap:5px;margin-top:10px}
+.venda-acoes .va{flex:1 1 0;min-width:0;white-space:nowrap;padding:9px 3px;font-size:12.5px;font-weight:700;
   background:var(--rose);color:var(--vinho);border-radius:10px}
 .venda-acoes .va.principal{background:var(--vinho);color:#fff}
 .venda-acoes .va.perigo{background:var(--verm-bg);color:var(--verm)}
@@ -199,6 +199,23 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .parc-info{margin-top:9px;background:var(--rose-2);border:1px solid var(--rose);border-radius:11px;
   padding:10px 12px;font-size:14.5px;color:var(--tinta);text-align:center}
 .parc-info b{color:var(--vinho);font-size:16px}
+/* resumo da venda com desconto (30/09/2026): subtotal, desconto e total, como no caixa */
+.resumo{margin:12px 0 4px;border:1px solid var(--linha);border-radius:14px;padding:4px 14px}
+.resumo .rl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;font-size:14.5px}
+.resumo .rl + .rl{border-top:1px solid var(--linha)}
+.resumo .rl .v{font-weight:700;white-space:nowrap}
+.resumo .rl.menos .v{color:var(--verm)}
+.resumo .rl.tot{font-weight:800;font-size:16px;border-top:1px solid var(--linha)}
+.resumo .rl.tot .v{font-size:20px;color:var(--vinho);font-weight:800}
+.desc-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.desc-tipo{display:flex;background:var(--rose);border-radius:9px;padding:3px}
+.desc-tipo button{padding:6px 11px;background:transparent;color:var(--cinza);font-weight:800;font-size:13.5px;border-radius:7px}
+.desc-tipo button.on{background:#fff;color:var(--vinho);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.resumo input#descValor{width:108px;margin:0;padding:9px 10px;text-align:right;font-size:15px;font-weight:700}
+.desc-info{font-size:12.5px;color:var(--cinza);text-align:right;margin:-4px 0 10px;line-height:1.4}
+.desc-info .ruim{color:var(--verm);font-weight:700}
+.edit-aviso{margin:10px 0 4px;background:var(--ambar-bg);color:var(--ambar);border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.55}
+.edit-aviso.oculto{display:none}
 .opcional{font-weight:600;color:var(--cinza);text-transform:none;letter-spacing:0}
 .opcional.obrig{color:var(--vinho)}
 .mes-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -461,6 +478,22 @@ function textoParcelas(v){
   const n = v && v.parcelas ? v.parcelas : 1;
   return n>1 ? n+'x de '+rs(valorParcela(baseParcela(v),n)) : '';
 }
+/* ===== DESCONTO NA HORA DA VENDA (30/09/2026) =====
+   Pedido de compradoras: nao dava pra dar desconto no ato. A venda guarda o
+   desconto JA EM REAIS em v.desconto, e v.total nasce liquido (itens - desconto).
+   Por isso faturamento, lucro, fiado, parcelas e recibo continuam lendo v.total e
+   batem sem mudar nada. Quem soma os itens de novo (backup, "+ produto" no fiado,
+   ranking de produtos) tem que descontar v.desconto, senao o desconto some.
+   v.descPct existe so pra mostrar "10%" no recibo; a conta nunca le ele. */
+function somaItens(itens){ return Math.round(itens.reduce((s,i)=>s+i.preco*i.qtd,0)*100)/100; }
+function descEmReais(sub, tipo, valor){
+  const d = tipo==='pct' ? sub*Math.min(Math.max(valor,0),100)/100 : Math.max(valor,0);
+  return Math.round(Math.min(d, sub)*100)/100;
+}
+function descontoDe(v){ return v && v.desconto>0 ? v.desconto : 0; }
+function textoDesconto(v){
+  return descontoDe(v) ? rs(v.desconto)+(v.descPct?' ('+String(v.descPct).replace('.',',')+'%)':'') : '';
+}
 /* ===== A MASCARA RODA NA CAPTURA, E O MOTIVO E UM BUG REAL (21/09/2026) =====
    Um listener no `document` em fase de BORBULHA roda DEPOIS do `oninput` do proprio
    campo. Entao a previa do fiado lia o valor AINDA SEM mascara: a lojista digitava
@@ -607,9 +640,12 @@ const Calc = {
   },
   topProdutos(ym){
     const cont={};
-    this.vendasDoMes(ym).forEach(v=>v.itens.forEach(i=>{
+    this.vendasDoMes(ym).forEach(v=>{
+      /* o desconto da venda se reparte entre os itens na proporcao do preco */
+      const sub=somaItens(v.itens), f=sub>0 ? (sub-descontoDe(v))/sub : 1;
+      v.itens.forEach(i=>{
       cont[i.nome]=cont[i.nome]||{nome:i.nome,qtd:0,lucro:0};
-      cont[i.nome].qtd+=i.qtd; cont[i.nome].lucro+=(i.preco-i.custo)*i.qtd; }));
+      cont[i.nome].qtd+=i.qtd; cont[i.nome].lucro+=(i.preco*f-i.custo)*i.qtd; }); });
     return Object.values(cont).sort((a,b)=>b.lucro-a.lucro).slice(0,5);
   }
 };
@@ -635,10 +671,13 @@ const Backup = {
     L.push('#VENDAS');
     /* coluna 'parcelas' entrou em 14/09/2026, no fim da linha: backup gerado antes
        disso simplesmente nao tem a coluna, e a leitura assume 1 */
-    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido;parcelas;base_parcela');
+    /* desconto e desconto_pct entraram em 30/09/2026, tambem no fim: se repetem em
+       toda linha da mesma venda, e backup antigo sem elas le desconto zero */
+    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido;parcelas;base_parcela;desconto;desconto_pct');
     D.dados.vendas.forEach(v=>v.itens.forEach(i=>
       L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao',n(Venda.jaPago(v)),v.parcelas||1,
-        (typeof v.parcelasBase==='number'?n(v.parcelasBase):'')].join(';'))));
+        (typeof v.parcelasBase==='number'?n(v.parcelasBase):''),
+        (descontoDe(v)?n(v.desconto):''),(v.descPct?n(v.descPct):'')].join(';'))));
     L.push('');
     /* Historico de recebimento do fiado: uma linha por pagamento parcial.
        Sem esta secao, restaurar um backup perderia as datas dos parciais. */
@@ -714,6 +753,9 @@ const Backup = {
           /* coluna 12: sobre quanto a parcela foi combinada (fiado em que a lojista
              parcelou o saldo devedor). Vazio = a parcela e sobre o total. */
           parcelasBase:(c2.length>12&&String(c2[12]).trim()!=='')?num2(c2[12]):null,
+          /* colunas 13 e 14 (desconto) so existem do backup de 30/09/2026 em diante */
+          desconto:(c2.length>13&&String(c2[13]).trim()!=='')?num2(c2[13]):0,
+          descPct:(c2.length>14&&String(c2[14]).trim()!=='')?num2(c2[14]):0,
           pagamentos:null};
         vendasMap[id].itens.push({produtoId:parseInt(c2[2])||0,nome:uns(c2[3]),
           qtd:parseInt(c2[4])||1,preco:num2(c2[5]),custo:num2(c2[6])});
@@ -727,8 +769,10 @@ const Backup = {
         d.despesas.push({id:parseInt(c2[0])||0,data:c2[1],desc:uns(c2[2]),valor:num2(c2[3])});
     }
     d.vendas=Object.values(vendasMap).map(v=>{
-      v.total=v.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+      v.total=Math.round((somaItens(v.itens)-descontoDe(v))*100)/100;
       v.custo=v.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+      if(!v.desconto) delete v.desconto;
+      if(!v.descPct) delete v.descPct;
       /* Reconstruir o fiado, na ordem de confianca:
          (1) historico #RECEBIMENTOS, (2) coluna 'recebido' do backup novo,
          (3) backup antigo, que so tem o binario 'pago'. */
@@ -755,10 +799,11 @@ const Backup = {
     toast('Backup restaurado! Tudo de volta no lugar'); },
   exportarCSV(ym){
     const vs=Calc.vendasDoMes(ym);
-    let csv='data;produtos;quantidade;forma de pagamento;parcelas;cliente;total;custo;lucro;status\n';
+    let csv='data;produtos;quantidade;forma de pagamento;parcelas;cliente;desconto;total;custo;lucro;status\n';
     vs.forEach(v=>{ csv+=[v.data, v.itens.map(i=>i.nome+' x'+i.qtd).join(' + '),
       v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto,
       (v.parcelas&&v.parcelas>1)?v.parcelas+'x':'a vista', v.cliente||'',
+      String(descontoDe(v)).replace('.',','),
       String(v.total).replace('.',','), String(v.custo).replace('.',','),
       String(v.total-v.custo).replace('.',','),
       v.pgto==='fiado'
@@ -776,6 +821,7 @@ const Backup = {
 const Venda = {
   carrinho:null,
   iniciar(){ if(!D.dados.produtos.length){ Tela.ir('estoque'); toast('Cadastra um produto primeiro'); return; }
+    this._editVenda=null; this._addVenda=null;
     this.carrinho={itens:[],pgto:null,cliente:''}; this.busca=''; this.pag=1; this._editIdx=null; this.telaProduto(); },
   busca:'', pag:1, _editIdx:null,
   /* quantas pecas ja entraram no carrinho */
@@ -786,7 +832,8 @@ const Venda = {
     const p=D.dados.produtos.find(x=>x.id===prodId); if(!p) return 0;
     const noCarrinho=this.carrinho ? this.carrinho.itens.reduce((s,i,idx)=>
       (i.produtoId===prodId && idx!==ignorarIdx) ? s+i.qtd : s, 0) : 0;
-    return p.qtd - noCarrinho;
+    const jaDaVenda=(this._editVenda && this._editOrig) ? (this._editOrig[prodId]||0) : 0;
+    return p.qtd + jaDaVenda - noCarrinho;
   },
   telaProduto(){
     let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
@@ -809,6 +856,11 @@ const Venda = {
     }).join('');
     const n=this.nItens();
     const naConta=!!this._addVenda;
+    if(this._editVenda){
+      Modal.abrir(`<div class="passo">adicionar produto à venda</div>${busca}
+      <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
+      ${barraPag(pg,'Venda.irPag')}<button class="btn sec" style="margin-top:10px" onclick="Venda.telaEditar()">Voltar para a venda</button>`);
+      return; }
     const voltar = n>0
       ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">${naConta?`ver a conta (${n} ${n===1?'item':'itens'})`:`voltar pro carrinho (${n} ${n===1?'item':'itens'})`}</button>`
       : (naConta?`<button class="btn sec" style="margin-top:10px" onclick="Venda.cancelarAddConta()">Cancelar</button>`:'');
@@ -863,7 +915,9 @@ const Venda = {
     }
     this._editIdx=null; this.telaCarrinho();
   },
-  removerItem(idx){ this.carrinho.itens.splice(idx,1);
+  removerItem(idx){
+    if(this._editVenda && this.carrinho.itens.length<=1){ toast('A venda precisa de ao menos um produto. Para cancelar, use Excluir'); return; }
+    this.carrinho.itens.splice(idx,1);
     if(!this.carrinho.itens.length){ this.busca=''; this.pag=1; this.telaProduto();
       toast(this._addVenda?'Escolhe o que ela está levando':'Carrinho vazio'); return; }
     this.telaCarrinho(); },
@@ -871,6 +925,7 @@ const Venda = {
     const c=this.carrinho;
     /* somando numa conta de fiado ja aberta: o "carrinho" e o resumo daquela conta,
        nunca a tela que leva a criar uma venda nova */
+    if(this._editVenda){ this._editIdx=null; this.telaEditar(); return; }
     if(this._addVenda){
       if(!c || !c.itens.length){ this.busca=''; this.pag=1; this.telaProduto(); return; }
       this._editIdx=null; this.telaAddResumo(); return;
@@ -905,14 +960,16 @@ const Venda = {
   telaPgto(){
     const c=this.carrinho;
     if(!c || !c.itens.length){ this.telaProduto(); return; }
-    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
     const resumo=c.itens.length===1
       ? c.itens[0].nome+' x'+c.itens[0].qtd
       : c.itens.length+' produtos · '+this.nItens()+' peças';
     if(!c.parcelas) c.parcelas=1;
+    if(!c.desc) c.desc={tipo:'rs',valor:0};
     const par=this.ehParcelavel(c.pgto);
     Modal.abrir(`<div class="passo">passo 4 de 4 · como ela pagou?</div>
-      <h3>${rs(total)}</h3><p class="sub">${resumo}</p>
+      <p class="sub" style="margin-top:2px">${resumo}</p>
+      <div id="descArea"></div>
+      <label>forma de pagamento</label>
       <div class="pgto-grid">
         ${['pix','dinheiro','cartão','fiado'].map(f=>`<button id="pg-${f}" class="${c.pgto===f?'on':''}" onclick="Venda.pgto('${f}')">${f==='fiado'?'fiado (anotar)':f}</button>`).join('')}
       </div>
@@ -931,7 +988,61 @@ const Venda = {
 
       <button class="btn" onclick="Venda.confirmar()">Registrar venda &#10003;</button>
       <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`);
-    this.pgtoPintar(); },
+    this.descMontar(); this.pgtoPintar(); },
+  /* os numeros do carrinho com o desconto que esta digitado agora */
+  contaCarrinho(){
+    const c=this.carrinho, sub=somaItens(c.itens);
+    const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+    const d=c.desc||{};
+    const desc=descEmReais(sub, d.tipo, d.valor||0);
+    return {sub, desc, total:Math.round((sub-desc)*100)/100, custo};
+  },
+  /* resumo da venda: subtotal, desconto e total. Campo vazio = sem desconto,
+     entao a venda comum passa reto, sem botao nenhum a mais pra tocar */
+  descMontar(){
+    const el=document.getElementById('descArea'); if(!el) return;
+    const d=this.carrinho.desc, pct=d.tipo==='pct';
+    const val=d.valor>0 ? (pct ? String(d.valor).replace('.',',') : fmtMoeda(d.valor)) : '';
+    el.innerHTML=`<div class="resumo">
+      <div class="rl"><span>Subtotal</span><span class="v" id="rSub"></span></div>
+      <div class="rl"><span>Desconto</span>
+        <span class="desc-ctrl">
+          <span class="desc-tipo">
+            <button type="button" class="${pct?'':'on'}" onclick="Venda.descTipo('rs')">R$</button>
+            <button type="button" class="${pct?'on':''}" onclick="Venda.descTipo('pct')">%</button>
+          </span>
+          <input id="descValor" inputmode="${pct?'decimal':'numeric'}" ${pct?'data-pct':'data-moeda'}
+            placeholder="${pct?'0%':'R$ 0,00'}" value="${val}" autocomplete="off" oninput="Venda.descLer()">
+        </span></div>
+      <div class="desc-info" id="descInfo"></div>
+      <div class="rl tot"><span>Total</span><span class="v" id="rTot"></span></div>
+    </div>`;
+    this.descPintar();
+  },
+  /* trocar R$ por % zera o campo: 10 reais e 10% sao coisas diferentes */
+  descTipo(t){ const d=this.carrinho.desc; if(d.tipo===t) return;
+    d.tipo=t; d.valor=0; this.descMontar(); this.pintarParcela();
+    if(this._editVenda) this.editAviso();
+    setTimeout(()=>{ const i=document.getElementById('descValor'); if(i) i.focus(); },60); },
+  descLer(){ const i=document.getElementById('descValor'); if(!i) return;
+    this.carrinho.desc.valor=num(i.value); this.descPintar(); this.pintarParcela();
+    if(this._editVenda) this.editAviso(); },
+  descPintar(){
+    const k=this.contaCarrinho(), d=this.carrinho.desc;
+    const s=document.getElementById('rSub'), t=document.getElementById('rTot');
+    if(s) s.textContent=rs(k.sub);
+    if(t) t.textContent=rs(k.total);
+    const el=document.getElementById('descInfo'); if(!el) return;
+    if(!(d.valor>0)){ el.innerHTML=''; el.style.display='none'; return; }
+    el.style.display='';
+    const passou = d.tipo==='pct' ? d.valor>100 : d.valor>k.sub;
+    if(passou){ el.innerHTML=`<span class="ruim">Desconto maior que o subtotal</span>`; return; }
+    const lucro=k.total-k.custo;
+    const quanto = d.tipo==='pct' ? '−'+rs(k.desc)
+      : (k.sub>0 ? String(Math.round(k.desc/k.sub*1000)/10).replace('.',',')+'% do subtotal' : '');
+    el.innerHTML = quanto + ' · ' + (lucro>=0 ? 'lucro: '+rs(lucro)
+      : `<span class="ruim">abaixo do custo: prejuízo de ${rs(-lucro)}</span>`);
+  },
   pgto(f){ const c=this.carrinho; c.pgto=f;
     ['pix','dinheiro','cartão','fiado'].forEach(x=>document.getElementById('pg-'+x).classList.toggle('on',x===f));
     if(!this.ehParcelavel(f)) c.parcelas=1;
@@ -952,7 +1063,7 @@ const Venda = {
   pintarParcela(){
     const el=document.getElementById('parcInfo'); if(!el) return;
     const c=this.carrinho, n=c.parcelas||1;
-    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
+    const total=this.contaCarrinho().total;
     el.innerHTML = n>1
       ? `<b>${n}x de ${rs(valorParcela(total,n))}</b> · total ${rs(total)}`
       : 'pagamento em uma vez só';
@@ -963,8 +1074,10 @@ const Venda = {
     if(!c.pgto){ toast('Escolhe como ela pagou'); return; }
     c.cliente=(document.getElementById('fiadoNome').value||'').trim();
     if(c.pgto==='fiado' && !c.cliente){ toast('Anota o nome de quem levou fiado'); return; }
-    const total=c.itens.reduce((s,i)=>s+i.preco*i.qtd,0);
-    const custo=c.itens.reduce((s,i)=>s+i.custo*i.qtd,0);
+    const d=c.desc||{};
+    if(d.valor>0 && (d.tipo==='pct' ? d.valor>100 : d.valor>somaItens(c.itens))){
+      toast('Desconto maior que o subtotal da venda'); return; }
+    const {total, custo, desc}=this.contaCarrinho();
     const parcelas=this.ehParcelavel(c.pgto)?(c.parcelas||1):1;
     const v={id:D.id(),data:hoje(),criadaEm:agora(),itens:c.itens,pgto:c.pgto,
       cliente:c.cliente||null,pago:c.pgto!=='fiado',total,custo,
@@ -972,6 +1085,7 @@ const Venda = {
       parcelas,
       /* fiado nasce com historico de recebimento vazio; o parcial vira linha aqui */
       pagamentos:c.pgto==='fiado'?[]:null};
+    if(desc>0){ v.desconto=desc; if(d.tipo==='pct') v.descPct=d.valor; }
     D.dados.vendas.unshift(v);
     c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
     D.dados.config.vendasDesdeBackup++;
@@ -1135,7 +1249,7 @@ const Venda = {
     const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     if(v.pgto!=='fiado'){ toast('Só dá pra somar em conta de fiado'); return; }
     if(!D.dados.produtos.length){ Modal.fechar(); Tela.ir('estoque'); toast('Cadastra um produto primeiro'); return; }
-    this._addVenda=id;
+    this._editVenda=null; this._addVenda=id;
     this.carrinho={itens:[],pgto:'fiado',cliente:v.cliente||'',parcelas:v.parcelas||1};
     this.busca=''; this.pag=1; this._editIdx=null;
     this.telaProduto();
@@ -1202,7 +1316,8 @@ const Venda = {
       const ex=v.itens.find(x=>x.produtoId===i.produtoId && x.preco===i.preco);
       if(ex) ex.qtd+=i.qtd; else v.itens.push({produtoId:i.produtoId,nome:i.nome,qtd:i.qtd,preco:i.preco,custo:i.custo});
     });
-    v.total=Math.round(v.itens.reduce((s,i)=>s+i.preco*i.qtd,0)*100)/100;
+    /* o desconto dado na venda original continua valendo, em reais; o que entra agora vai cheio */
+    v.total=Math.round((somaItens(v.itens)-descontoDe(v))*100)/100;
     v.custo=Math.round(v.itens.reduce((s,i)=>s+i.custo*i.qtd,0)*100)/100;
     v.parcelas=c.parcelas||1;
     /* o acordo foi feito sobre o que FALTA, entao e esse o valor que parcela */
@@ -1219,6 +1334,145 @@ const Venda = {
   cancelarAddConta(){ this.carrinho=null; this._addVenda=null; Modal.fechar(); Tela.render(); },
   _addVenda:null,
 
+  /* ===== EDITAR UMA VENDA JA REGISTRADA (30/09/2026) =====
+     Pedido de compradoras: troca, reembolso, desconto esquecido. Antes o unico
+     caminho era excluir e registrar de novo, perdendo a data e o fiado.
+     Reaproveita o carrinho da venda (mesma lista, mesma tela de quantidade, mesmo
+     resumo com desconto). So ao SALVAR mexe no estoque, e so pela diferenca: o
+     que saiu da venda volta pro estoque, o que entrou a mais sai. */
+  _editVenda:null, _editOrig:null,
+  qtdPorProduto(itens){ const m={}; itens.forEach(i=>{ m[i.produtoId]=(m[i.produtoId]||0)+i.qtd; }); return m; },
+  editar(id){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    this._addVenda=null; this._editVenda=id; this._editOrig=this.qtdPorProduto(v.itens);
+    this.carrinho={itens:v.itens.map(i=>({...i})), pgto:v.pgto, cliente:v.cliente||'',
+      desc:{tipo:v.descPct?'pct':'rs', valor:v.descPct||descontoDe(v)}};
+    this.busca=''; this.pag=1; this._editIdx=null;
+    this.telaEditar();
+  },
+  telaEditar(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda);
+    if(!v){ this.cancelarEdicao(); return; }
+    const c=this.carrinho;
+    const linhas=c.itens.map((i,idx)=>
+      `<div class="cart-item">
+        <div style="min-width:0;flex:1;cursor:pointer" onclick="Venda.editarItem(${idx})">
+          <div class="n">${i.nome}</div>
+          <div class="s">${i.qtd} x ${rs(i.preco)} · toque para alterar</div>
+        </div>
+        <span class="v">${rs(i.preco*i.qtd)}</span>
+        <button class="x" onclick="Venda.removerItem(${idx})" aria-label="remover da venda">&times;</button>
+      </div>`).join('');
+    Modal.abrir(`<h3>Editar venda</h3>
+      <p class="sub">${v.data.split('-').reverse().join('/')}${v.cliente?' · '+v.cliente:''} · ${v.pgto}</p>
+      ${linhas}
+      <button class="btn sec" style="margin-top:10px" onclick="Venda.busca='';Venda.pag=1;Venda.telaProduto()">Adicionar produto</button>
+      <div id="descArea"></div>
+      <div class="edit-aviso oculto" id="editAviso"></div>
+      <button class="btn" onclick="Venda.revisarEdicao()">Salvar alterações</button>
+      <button class="btn sec" onclick="Venda.sairEdicao()">Cancelar</button>`);
+    this.descMontar(); this.editAviso();
+  },
+  /* o que a alteracao significa no bolso dela e no estoque, antes de salvar */
+  editAviso(){
+    const el=document.getElementById('editAviso'); if(!el) return;
+    const L=this.editLinhas();
+    el.innerHTML=L.join('<br>'); el.classList.toggle('oculto', !L.length);
+  },
+  editLinhas(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda); if(!v) return [];
+    const k=this.contaCarrinho(), L=[];
+    if(v.pgto==='fiado'){
+      const pg=this.jaPago(v);
+      if(pg>k.total+0.004) L.push(`Já recebido: ${rs(pg)}<br><b>Devolver à cliente: ${rs(pg-k.total)}</b>`);
+      else if(Math.abs(k.total-v.total)>0.004) L.push(`<b>Saldo a receber: ${rs(k.total-pg)}</b> (antes: ${rs(this.saldo(v))})`);
+    } else {
+      const dif=Math.round((v.total-k.total)*100)/100;
+      if(dif>0) L.push(`<b>Devolver à cliente: ${rs(dif)}</b>`);
+      else if(dif<0) L.push(`<b>Cobrar da cliente: ${rs(-dif)}</b>`);
+    }
+    const agora_=this.qtdPorProduto(this.carrinho.itens), volta=[], sai=[];
+    const ids=new Set([...Object.keys(this._editOrig),...Object.keys(agora_)]);
+    ids.forEach(pid=>{ const d=(this._editOrig[pid]||0)-(agora_[pid]||0); if(!d) return;
+      const it=this.carrinho.itens.find(i=>String(i.produtoId)===pid) || v.itens.find(i=>String(i.produtoId)===pid);
+      (d>0?volta:sai).push(Math.abs(d)+' '+(it?it.nome:'produto')); });
+    if(volta.length) L.push('Retorna ao estoque: '+volta.join(', '));
+    if(sai.length) L.push('Baixa no estoque: '+sai.join(', '));
+    return L;
+  },
+  /* houve mudanca de fato? compara produtos, quantidades, precos e desconto */
+  editMudou(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda); if(!v||!this.carrinho) return false;
+    const assin=itens=>itens.map(i=>i.produtoId+':'+i.qtd+':'+i.preco).sort().join('|');
+    return assin(v.itens)!==assin(this.carrinho.itens)
+      || Math.abs(this.contaCarrinho().desc-descontoDe(v))>0.004;
+  },
+  /* SEGURANCA: nada e gravado sem ela ver o resumo e confirmar */
+  revisarEdicao(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda), c=this.carrinho;
+    if(!v||!c){ this.cancelarEdicao(); return; }
+    if(!c.itens.length){ toast('A venda precisa de ao menos um produto. Para cancelar, use Excluir'); return; }
+    const d=c.desc||{};
+    if(d.valor>0 && (d.tipo==='pct' ? d.valor>100 : d.valor>somaItens(c.itens))){
+      toast('Desconto maior que o subtotal da venda'); return; }
+    if(!this.editMudou()){ toast('Nenhuma alteração para salvar'); this.cancelarEdicao(); return; }
+    const k=this.contaCarrinho(), L=this.editLinhas();
+    Modal.abrir(`<h3>Confirmar alteração?</h3>
+      <p class="sub">A venda de ${v.data.split('-').reverse().join('/')}${v.cliente?' ('+v.cliente+')':''} será atualizada.</p>
+      <div class="resumo">
+        <div class="rl"><span>Valor anterior</span><span class="v">${rs(v.total)}</span></div>
+        <div class="rl tot"><span>Novo valor</span><span class="v">${rs(k.total)}</span></div>
+      </div>
+      ${L.length?`<div class="edit-aviso">${L.join('<br>')}</div>`:''}
+      <button class="btn" onclick="Venda.salvarEdicao()">Confirmar alteração</button>
+      <button class="btn sec" onclick="Venda.telaEditar()">Voltar e revisar</button>`);
+  },
+  /* cancelar com alteracao feita pergunta antes de descartar */
+  sairEdicao(){
+    if(!this.editMudou()){ this.cancelarEdicao(); return; }
+    Modal.abrir(`<h3>Descartar alterações?</h3>
+      <p class="sub">As mudanças feitas nesta venda não serão salvas.</p>
+      <button class="btn perigo" onclick="Venda.cancelarEdicao()">Descartar</button>
+      <button class="btn sec" onclick="Venda.telaEditar()">Continuar editando</button>`);
+  },
+  salvarEdicao(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda), c=this.carrinho;
+    if(!v||!c){ this.cancelarEdicao(); return; }
+    if(!c.itens.length){ toast('A venda precisa de ao menos um produto. Para cancelar, use Excluir'); return; }
+    const d=c.desc||{};
+    if(d.valor>0 && (d.tipo==='pct' ? d.valor>100 : d.valor>somaItens(c.itens))){
+      toast('Desconto maior que o subtotal da venda'); return; }
+    const k=this.contaCarrinho(), antes=v.total;
+    /* estoque: so a diferenca entre o que a venda tinha e o que ela tem agora */
+    const novo=this.qtdPorProduto(c.itens);
+    new Set([...Object.keys(this._editOrig),...Object.keys(novo)]).forEach(pid=>{
+      const p=D.dados.produtos.find(x=>String(x.id)===pid); if(!p) return;
+      p.qtd=Math.max(0, p.qtd + (this._editOrig[pid]||0) - (novo[pid]||0)); });
+    v.itens=c.itens.map(i=>({produtoId:i.produtoId,nome:i.nome,qtd:i.qtd,preco:i.preco,custo:i.custo}));
+    v.total=k.total;
+    v.custo=Math.round(c.itens.reduce((s,i)=>s+i.custo*i.qtd,0)*100)/100;
+    if(k.desc>0){ v.desconto=k.desc; if(d.tipo==='pct') v.descPct=d.valor; else delete v.descPct; }
+    else { delete v.desconto; delete v.descPct; }
+    if(v.pgto==='fiado'){
+      /* pagou mais do que a venda vale agora: o excesso foi devolvido, entao sai
+         do historico, a partir do recebimento mais recente */
+      if(!Array.isArray(v.pagamentos)) v.pagamentos=(v.pago&&antes>0)?[{data:v.data,valor:antes}]:[];
+      let sobra=Math.round((this.jaPago(v)-v.total)*100)/100;
+      for(let i=v.pagamentos.length-1; i>=0 && sobra>0; i--){
+        const tira=Math.min(sobra, v.pagamentos[i].valor);
+        v.pagamentos[i].valor=Math.round((v.pagamentos[i].valor-tira)*100)/100; sobra=Math.round((sobra-tira)*100)/100;
+        if(v.pagamentos[i].valor<=0) v.pagamentos.splice(i,1); }
+      if(typeof v.parcelasBase==='number') v.parcelasBase=Math.max(0, Math.round((v.parcelasBase+v.total-antes)*100)/100);
+      v.pago=this.saldo(v)<=0;
+    }
+    if(!Array.isArray(v.edicoes)) v.edicoes=[];
+    v.edicoes.push({data:agora(), antes, depois:v.total});
+    D.dados.config.vendasDesdeBackup++;
+    D.salvar(); this.cancelarEdicao();
+    toast('Venda atualizada: '+rs(v.total), true);
+  },
+  cancelarEdicao(){ this.carrinho=null; this._editVenda=null; this._editOrig=null; Modal.fechar(); Tela.render(); },
+
   desfazerPgto(id, idx){
     const v=D.dados.vendas.find(x=>x.id===id); if(!v||!Array.isArray(v.pagamentos)) return;
     const x=v.pagamentos[idx]; if(!x) return;
@@ -1234,7 +1488,8 @@ const Venda = {
   excluir(id){ const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     const pg=this.jaPago(v);
     Modal.abrir(`<h3>Excluir esta venda?</h3><p class="sub">${v.itens.map(i=>i.nome+' x'+i.qtd).join(', ')} · ${rs(v.total)}.
-      O estoque volta pros produtos.${(pg>0&&v.pgto==='fiado')?` <b>Atenção: essa venda já tem ${rs(pg)} recebido.</b>`:''}</p>
+      Os produtos retornam ao estoque e a venda sai do faturamento. <b>Esta ação não pode ser desfeita.</b>${(pg>0&&v.pgto==='fiado')?` <b>Atenção: esta venda já tem ${rs(pg)} recebido.</b>`:''}</p>
+      <p class="sub">Se for troca ou devolução de parte da venda, use <b>Editar</b>.</p>
       <button class="btn perigo" onclick="Venda.confirmaExcluir(${id})">Sim, excluir</button>
       <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`); },
   confirmaExcluir(id){ const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
@@ -1253,7 +1508,9 @@ const Venda = {
     const par=textoParcelas(v);
     const linhaPar = par ? `%0AParcelado em: ${encodeURIComponent(par)}` : '';
     const linhaCli = v.cliente ? `%0ACliente: ${encodeURIComponent(v.cliente)}` : '';
-    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}${linhaCli}%0A%0A${linhas}%0A%0A*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${linhaPar}${extra}%0A%0AObrigada pela preferência!`;
+    const linhaDesc = descontoDe(v)
+      ? `Subtotal: ${encodeURIComponent(rs(somaItens(v.itens)))}%0ADesconto: - ${encodeURIComponent(textoDesconto(v))}%0A` : '';
+    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}${linhaCli}%0A%0A${linhas}%0A%0A${linhaDesc}*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${linhaPar}${extra}%0A%0AObrigada pela preferência!`;
     window.open('https://wa.me/?text='+txt,'_blank'); }
 };
 /* ============ PRODUTO ============ */
@@ -1451,6 +1708,7 @@ const Tela = {
     const detalhe = [
       v.data.split('-').reverse().join('/'),
       v.cliente || null,
+      descontoDe(v) ? 'desconto '+textoDesconto(v) : null,
       parc || null,
       dinheiro
     ].filter(Boolean).join(' · ');
@@ -1464,7 +1722,8 @@ const Tela = {
       </div>
       <div class="venda-acoes">
         ${falta>0?`<button class="va principal" onclick="Venda.telaReceber(${v.id})">receber</button>`:''}
-        ${ehFiado?`<button class="va" onclick="Venda.addNaConta(${v.id})">+ produto</button>`:''}
+        ${ehFiado?`<button class="va" onclick="Venda.addNaConta(${v.id})">adicionar</button>`:''}
+        <button class="va" onclick="Venda.editar(${v.id})">editar</button>
         <button class="va" onclick="Venda.recibo(${v.id})">recibo</button>
         <button class="va perigo" onclick="Venda.excluir(${v.id})">excluir</button>
       </div></div>`;
