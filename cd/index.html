@@ -100,7 +100,40 @@ main{padding:16px;max-width:560px;margin:0 auto}
   text-decoration:none;font-weight:800;font-size:15px;padding:13px;border-radius:12px}
 .faixa-nov .fn-btn:active{opacity:.85}
 .faixa-nov .fn-x{position:absolute;top:9px;right:10px;background:none;border:0;color:#fff;
-  font-size:22px;line-height:1;padding:3px 7px;cursor:pointer;opacity:.75;font-family:inherit}
+  font-size:22px;line-height:1;padding:3px 7px;cursor:pointer;opacity:.75;font-family:inherit;z-index:2}
+
+/* ===== RODIZIO DA FAIXA (06/10/2026) =====
+   Pedido do Vini: quem abre o app todo dia via a MESMA mensagem e parava de ler.
+   Sao 7 faixas; a classe fx-N muda o fundo, o texto mora em Novidade.FAIXAS.
+   REGRA (Vini, 06/10): frase GRANDE que provoca e ja diz o que e, UMA linha curta,
+   e o botao dizendo o que ela leva. Nada de historinha nem bloco de prova: faixa
+   alta e cheia virou anuncio e foi reprovada. Cores so do app. */
+.fn-grande{display:block;font-size:24px;font-weight:900;line-height:1.1;letter-spacing:-.6px;
+  margin:2px 0 9px;padding-right:22px}
+.fn-grande em{font-style:normal;color:#ffd0e4}
+.fn-riscado{text-decoration:line-through;text-decoration-thickness:3px;opacity:.6}
+/* fundo claro (fx-1 branca, fx-6 rosa): letra vinho, botao vinho */
+.faixa-nov.fx-1,.faixa-nov.fx-6{color:var(--tinta);border:2px solid var(--vinho);box-shadow:0 14px 30px -20px rgba(61,15,36,.6)}
+.faixa-nov.fx-1{background:#fff}
+.faixa-nov.fx-6{background:var(--rose)}
+.fx-1 .fn-x,.fx-6 .fn-x{color:var(--vinho)}
+.fx-1 .fn-grande em,.fx-6 .fn-grande em{color:var(--vinho)}
+.fx-1 .fn-riscado{text-decoration-color:var(--vinho)}
+.fx-1 .fn-btn,.fx-6 .fn-btn{background:var(--vinho);color:#fff}
+/* fx-4 escura, "loja grande" */
+.faixa-nov.fx-4{background:linear-gradient(160deg,#2a0f1d,#14070e);border:1px solid #4a1f33}
+.fx-4 .fn-grande em{color:#f3a9c8}
+.fx-4 .fn-btn{background:var(--vinho);color:#fff}
+/* fx-7 vinho escuro liso, pra nao repetir o degrade das outras */
+.faixa-nov.fx-7{background:var(--vinho-escuro)}
+/* fx-2: miniatura do catalogo real ao lado da linha de apoio */
+.fn-prova{display:grid;grid-template-columns:56px 1fr;gap:11px;align-items:center;margin:0 0 12px}
+.fn-prova img{width:56px;border-radius:6px;transform:rotate(-4deg);box-shadow:0 8px 16px -8px rgba(0,0,0,.55);display:block}
+.fn-prova .fn-txt{margin:0}
+/* fx-3: as perguntas que ela responde o dia todo, numa linha */
+.fn-bolhas{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.fn-bolhas span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);font-size:12.5px;
+  padding:5px 10px;border-radius:12px 12px 12px 3px}
 
 /* passo a passo de instalacao (iPhone, e Android que nao ofereceu o prompt) */
 .ps-fundo{position:fixed;inset:0;background:rgba(43,34,48,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
@@ -252,15 +285,11 @@ main{padding:16px;max-width:560px;margin:0 auto}
 <!-- ===== AVISO DA NOVIDADE (21/09/2026) =====
      So aparece pra quem NAO tem o Catalogo, ou seja, quem entrou por /c/ (front)
      ou /cd/ (front + bump). Quem ja comprou nunca ve.
-     Some no X e volta 10h depois, ate ela comprar. -->
+     Some no X e volta 10h depois, ate ela comprar.
+     O conteudo vem de Novidade.FAIXAS (rodizio de 7, 06/10/2026). -->
 <div class="faixa-nov" id="faixaNovidade" style="display:none">
   <button class="fn-x" onclick="Novidade.dispensar()" aria-label="fechar">&times;</button>
-  <div class="fn-selo">✨ novidade especial para você</div>
-  <b class="fn-tit">Mande vários produtos numa mensagem só</b>
-  <span class="fn-txt">Em vez de mandar foto por foto e responder "quanto é?",
-    você manda um catálogo com os produtos que já estão no seu estoque, com a sua
-    logo e o preço de cada peça.</span>
-  <a class="fn-btn" id="fnBtn" href="#" target="_blank" rel="noopener">Ver como funciona</a>
+  <div id="fnCorpo"></div>
 </div>
 </div>
 
@@ -542,31 +571,89 @@ const Config = {
 const Novidade = {
   chave: 'lucronamao_novidade_fechada',
   espera: 10 * 60 * 60 * 1000,        // 10h em milissegundos
-  destino: comOrigem('https://lucronamao.online/oferta-catalogo.html', 'preco'),
+  destino: 'https://lucronamao.online/oferta-catalogo.html',
+
+  /* ===== RODIZIO (06/10/2026) =====
+     Regra do Vini: UMA faixa por vez, em ordem e sem repetir. Comeca na 1; quando
+     ela fecha no X, a faixa some pela mesma espera de sempre e volta JA na proxima.
+     Depois da 7 volta pra 1, ate ela comprar. Quem nao fecha continua vendo a mesma.
+     Cada uma marca o link com utm_medium=preco-faixaN: a Cakto grava, e da pra
+     ler qual faixa trouxe a venda. O card travado continua com utm_medium=preco.
+     Tudo que elas prometem foi conferido no Catalogo: sai do estoque, leva logo,
+     nome e preco, vai pro grupo/status/cliente, e o botao "so o que tem em
+     estoque" tira o que acabou (NAO e automatico, e a copy diz isso).
+     Previa: ?faixa=N forca a faixa N e ignora o X (so pra conferir o visual). */
+  chaveVez: 'lucronamao_faixa_vez',
+  FAIXAS: [
+    { n:1, html:`<b class="fn-grande"><span class="fn-riscado">Foto solta</span> não vende.<br><em>Catálogo vende.</em></b>
+      <span class="fn-txt">Numa imagem só, com foto e preço, a freguesa escolhe na hora.</span>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero o meu catálogo</a>` },
+    { n:2, html:`<b class="fn-grande">É sério que você ainda manda <em>foto solta</em> no WhatsApp?</b>
+      <div class="fn-prova"><img src="../catalogo-faixa.jpg" alt="Catálogo pronto com logo, foto e preço de cada peça" width="56" height="70">
+      <span class="fn-txt">Manda o catálogo: todas as peças numa imagem, com a sua logo e o preço.</span></div>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero mandar catálogo também</a>` },
+    { n:3, html:`<b class="fn-grande">Chega de responder "quanto é?". <em>Manda o catálogo com preço.</em></b>
+      <div class="fn-bolhas"><span>quanto é?</span><span>e esse?</span><span>tem outra cor?</span></div>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero meu catálogo com preço</a>` },
+    { n:4, html:`<b class="fn-grande">Loja grande manda catálogo. <em>Você ainda manda foto solta?</em></b>
+      <span class="fn-txt">Com a sua logo e o preço de cada peça. Cara de loja de verdade.</span>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero o meu com a minha logo</a>` },
+    { n:5, html:`<b class="fn-grande">Ainda oferece peça que já acabou? <em>Seu catálogo sai do estoque.</em></b>
+      <span class="fn-txt">Um toque e só entra no catálogo o que você ainda tem.</span>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero meu catálogo do estoque</a>` },
+    { n:6, html:`<b class="fn-grande">Peça nova parada não vende. <em>Manda o catálogo hoje.</em></b>
+      <span class="fn-txt">Um toque e vai pro grupo, pro status ou pra cliente.</span>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero mandar o meu hoje</a>` },
+    { n:7, html:`<b class="fn-grande">Sua cliente escolhe sem perguntar preço. <em>É só mandar o catálogo.</em></b>
+      <span class="fn-txt">Todas as peças numa imagem só, com foto e preço, direto do seu estoque.</span>
+      <a class="fn-btn" id="fnBtn" target="_blank" rel="noopener">Quero o meu catálogo</a>` }
+  ],
+
+  /* qual faixa mostrar agora: ?faixa=N na previa, senao a da vez no rodizio */
+  vez(){
+    const total = this.FAIXAS.length;
+    const forcada = parseInt(new URLSearchParams(location.search).get('faixa') || '', 10);
+    if(forcada >= 1 && forcada <= total) return { i: forcada - 1, previa: true };
+    let i = 0;
+    try { i = parseInt(localStorage.getItem(this.chaveVez) || '0', 10) || 0; } catch(e){}
+    return { i: ((i % total) + total) % total, previa: false };
+  },
 
   pintar(){
     const f = document.getElementById('faixaNovidade');
     if(!f) return;
-    /* quem JA tem o Catalogo nao ve nunca. `tem` e a mesma funcao que decide os
-       cards, entao comprar faz o aviso sumir sozinho, sem codigo extra. */
-    if(tem('preco')) { f.style.display = 'none'; return; }
+    /* so quem entrou pelo link do FRONT (/c/) ou do BUMP (/cd/): tem o Controle e
+       ainda nao tem o Catalogo (regra do Vini, 06/10/2026). Quem so tem o Cobrar
+       (/d/) nao ve. `tem` e a mesma funcao que decide os cards, entao comprar o
+       Catalogo faz a faixa sumir sozinha, sem codigo extra. */
+    if(!tem('controle') || tem('preco')) { f.style.display = 'none'; return; }
 
+    const v = this.vez();
     let fechadaEm = 0;
     try { fechadaEm = parseInt(localStorage.getItem(this.chave) || '0', 10) || 0; } catch(e){}
-    const passou = (Date.now() - fechadaEm) >= this.espera;
+    const passou = v.previa || (Date.now() - fechadaEm) >= this.espera;
     f.style.display = passou ? '' : 'none';
+    if(!passou) return;
 
+    const faixa = this.FAIXAS[v.i];
+    f.className = 'faixa-nov fx-' + faixa.n;
+    document.getElementById('fnCorpo').innerHTML = faixa.html;
     const b = document.getElementById('fnBtn');
-    if(b) b.href = this.destino;
+    if(b) b.href = comOrigem(this.destino, 'preco-faixa' + faixa.n);
   },
 
+  /* fechou no X: comeca a espera e ja deixa a PROXIMA faixa engatilhada */
   dispensar(){
-    try { localStorage.setItem(this.chave, String(Date.now())); } catch(e){}
+    try {
+      localStorage.setItem(this.chave, String(Date.now()));
+      const i = parseInt(localStorage.getItem(this.chaveVez) || '0', 10) || 0;
+      localStorage.setItem(this.chaveVez, String((i + 1) % this.FAIXAS.length));
+    } catch(e){}
     this.pintar();
   }
 };
 /* pintado aqui, e nao junto da montagem do menu: o objeto so existe a partir
-   desta linha, e a faixa depende de `tem('preco')`, que ja esta resolvido. */
+   desta linha, e a faixa depende de `tem()`, que ja esta resolvido. */
 Novidade.pintar();
 
 /* ====== ANIMACAO DO CAMINHO NO IPHONE ======

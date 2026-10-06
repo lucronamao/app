@@ -69,7 +69,7 @@ def ajustar(html, dentro_da_pasta):
     # imagens, icones e o service worker ficam em /app/, nao em /app/<chave>/
     for a in ['favicon-16.png','favicon-32.png','favicon-48.png','favicon-96.png',
               'favicon-180.png','icone-192.png','icone-512.png',
-              'logo-branca.png','logo-vinho.png']:
+              'logo-branca.png','logo-vinho.png','catalogo-faixa.jpg']:
         html = html.replace('"' + a + '"', '"../' + a + '"')
         html = html.replace("'" + a + "'", "'../" + a + "'")
     return html
