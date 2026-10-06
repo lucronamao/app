@@ -135,6 +135,21 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .fn-bolhas span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);font-size:12.5px;
   padding:5px 10px;border-radius:12px 12px 12px 3px}
 
+/* botao chamativo (Vini, 06/10): pulsa com um anel e um brilho atravessa de tempos
+   em tempos. Botao branco ganha brilho vinho; botao vinho ganha brilho branco. */
+.faixa-nov{--fn-brilho:rgba(142,39,87,.22);--fn-anel:rgba(255,255,255,.55)}
+.faixa-nov.fx-1,.faixa-nov.fx-6{--fn-brilho:rgba(255,255,255,.45);--fn-anel:rgba(142,39,87,.38)}
+.faixa-nov.fx-4{--fn-brilho:rgba(255,255,255,.4);--fn-anel:rgba(243,169,200,.45)}
+.faixa-nov .fn-btn{position:relative;overflow:hidden;animation:fnPulsa 1.8s ease-in-out infinite}
+.faixa-nov .fn-btn::after{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;
+  background:linear-gradient(100deg,transparent,var(--fn-brilho),transparent);transform:skewX(-18deg);
+  animation:fnBrilho 3s ease-in-out infinite;pointer-events:none}
+.faixa-nov .fn-btn:active{animation:none;transform:scale(.98)}
+@keyframes fnPulsa{0%,100%{transform:scale(1);box-shadow:0 0 0 0 var(--fn-anel)}
+  50%{transform:scale(1.035);box-shadow:0 0 0 7px rgba(255,255,255,0)}}
+@keyframes fnBrilho{0%{left:-60%}55%,100%{left:120%}}
+@media (prefers-reduced-motion:reduce){.faixa-nov .fn-btn,.faixa-nov .fn-btn::after{animation:none}}
+
 /* passo a passo de instalacao (iPhone, e Android que nao ofereceu o prompt) */
 .ps-fundo{position:fixed;inset:0;background:rgba(43,34,48,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
 .ps-fundo.aberto{display:flex}
