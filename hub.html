@@ -431,6 +431,17 @@ const OFERTA = {
   preco: 'https://lucronamao.online/oferta-catalogo.html'
 };
 
+/* ===== ORIGEM DA COMPRA (06/10/2026) =====
+   Toda compra que sai daqui leva utm_source=app e o degrau em utm_medium. Antes o
+   pedido chegava na Cakto sem UTM nenhuma: de 06/09 a 06/10, 43 das 62 vendas "sem
+   origem" eram cliente antigo comprando aqui dentro. O ANUNCIO de origem quem
+   resolve e o painel, pelo e-mail da cliente; isto so marca o canal.
+   NAO usar utm_content nem utm_campaign: o coletor do painel le os dois como
+   anuncio e campanha, e um valor aqui viraria criativo fantasma. */
+function comOrigem(url, degrau){
+  return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'utm_source=app&utm_medium=' + degrau;
+}
+
 const ICO = {
   controle:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   /* catalogo: a grade de pecas com a etiqueta de preco. Era um cifrao, da epoca
@@ -457,7 +468,7 @@ function card(app){
     <div class="pitch">${app.pitch}</div>
     ${bens}
     <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
-      <a href="${app.oferta || app.checkout}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div></div>`;
+      <a href="${comOrigem(app.oferta || app.checkout, app.id)}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div></div>`;
 }
 
 const APPS=[
@@ -531,7 +542,7 @@ const Config = {
 const Novidade = {
   chave: 'lucronamao_novidade_fechada',
   espera: 10 * 60 * 60 * 1000,        // 10h em milissegundos
-  destino: 'https://lucronamao.online/oferta-catalogo.html',
+  destino: comOrigem('https://lucronamao.online/oferta-catalogo.html', 'preco'),
 
   pintar(){
     const f = document.getElementById('faixaNovidade');
