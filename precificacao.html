@@ -588,9 +588,54 @@ const Aba = {
    Foto e OPCIONAL de proposito: catalogo com foto vende mais, mas exigir foto de
    todo mundo antes de ver qualquer resultado mataria o uso. Sem foto, o produto
    sai num quadro com a inicial, e continua profissional. */
+
+/* ===== AS FOTOS MORAM NO INDEXEDDB (13/10/2026) =====
+   Bug reclamado por compradoras: "a foto nao salva" e "diz que nao tem espaco".
+   As fotos iam no localStorage, que tem ~5MB por site e e DIVIDIDO com o Controle.
+   Reproduzido: da foto 53 em diante aparecia "nao tem espaco" e logo depois
+   "Foto adicionada" por cima; a foto ficava na tela e sumia ao reabrir (52 de 120
+   voltaram). E dali em diante nem marcar peca gravava, porque o cfg ia inteiro
+   junto com as fotos.
+   O IndexedDB e do mesmo aparelho e da mesma origem, mas com espaco de centenas
+   de MB. Quem ja tinha foto no localStorage e migrado na primeira abertura, e a
+   foto so sai de la depois de conferida aqui. Sem IndexedDB (aba anonima, aparelho
+   antigo), segue no localStorage como antes, com o aviso honesto. */
+const FotosDB = {
+  nome:'lucronamao_fotos', loja:'fotos',
+  abrir(){
+    if(this._p) return this._p;
+    this._p = new Promise(r=>{
+      /* o Safari ja travou o open() sem responder nunca: 4s e segue sem banco */
+      const t=setTimeout(()=>r(null),4000);
+      try{
+        const q=indexedDB.open(this.nome,1);
+        q.onupgradeneeded=()=>q.result.createObjectStore(this.loja);
+        q.onsuccess=()=>{ clearTimeout(t); r(q.result); };
+        q.onerror=()=>{ clearTimeout(t); r(null); };
+      }catch(e){ clearTimeout(t); r(null); }
+    });
+    return this._p; },
+  /* null = sem banco; {} = banco vazio */
+  todas(){ return this.abrir().then(db=>new Promise(r=>{ if(!db) return r(null);
+    try{ const out={}, tx=db.transaction(this.loja,'readonly'), c=tx.objectStore(this.loja).openCursor();
+      c.onsuccess=()=>{ const k=c.result; if(k){ out[k.key]=k.value; k.continue(); } };
+      tx.oncomplete=()=>r(out); tx.onerror=tx.onabort=()=>r(null);
+    }catch(e){ r(null); } })); },
+  /* grava varias de uma vez; valor null apaga. Resolve true so com a transacao concluida */
+  gravar(mapa){ return this.abrir().then(db=>new Promise(r=>{ if(!db) return r(false);
+    try{ const tx=db.transaction(this.loja,'readwrite'), st=tx.objectStore(this.loja);
+      Object.keys(mapa).forEach(k=>{ if(mapa[k]==null) st.delete(String(k)); else st.put(mapa[k],String(k)); });
+      tx.oncomplete=()=>r(true); tx.onerror=tx.onabort=()=>r(false);
+    }catch(e){ r(false); } })); }
+};
+
 const Catalogo = {
   chave:'lucronamao_catalogo',
   cfg:{titulo:'', rodape:'', cor:'vinho', fotos:{}, fora:[]},
+  /* as fotos em uso, por id. No banco novo elas NAO vao no cfg */
+  fotos:{}, noBanco:false,
+  /* 480px: a foto sai no catalogo com no maximo 198px numa folha de 1080 */
+  ladoFoto:480,
   produtos:[],
   /* 8 por pagina: 2 colunas x 4 linhas num 1080x1350 deixa cada peca legivel no
      celular de quem RECEBE, que e onde o catalogo e lido. */
@@ -598,13 +643,34 @@ const Catalogo = {
 
   carregar(){ try{ Object.assign(this.cfg, JSON.parse(localStorage.getItem(this.chave))||{}); }catch(e){}
     if(!this.cfg.fotos) this.cfg.fotos={};
-    if(!Array.isArray(this.cfg.fora)) this.cfg.fora=[]; },
+    if(!Array.isArray(this.cfg.fora)) this.cfg.fora=[];
+    if(!this.noBanco) this.fotos=this.cfg.fotos; },
   salvarCfg(){
     this.cfg.titulo=(document.getElementById('catTitulo').value||'').trim();
     this.cfg.rodape=(document.getElementById('catRodape').value||'').trim();
     this.salvar(); },
-  salvar(){ try{ localStorage.setItem(this.chave, JSON.stringify(this.cfg)); }
-    catch(e){ toastP('O celular não tem espaço pra mais fotos'); } },
+  /* devolve se gravou. "quieto" e pra quem vai dar o proprio aviso */
+  salvar(quieto){
+    if(this.noBanco) this.cfg.fotos={};
+    try{ localStorage.setItem(this.chave, JSON.stringify(this.cfg)); return true; }
+    catch(e){ if(!quieto) toastP('O celular está sem espaço pra guardar o catálogo'); return false; } },
+
+  /* uma vez por abertura: le o banco e muda pra la as fotos que estao no localStorage */
+  prepararFotos(){
+    if(this._fotosP) return this._fotosP;
+    return this._fotosP = FotosDB.todas().then(banco=>{
+      this.carregar();
+      if(!banco) return;
+      /* foto no localStorage com o banco ja em uso so existe se uma abertura ficou
+         sem banco e ela trocou a foto ali: a do localStorage e a mais nova e vence */
+      const antigas=this.cfg.fotos;
+      const migrar = Object.keys(antigas).length ? FotosDB.gravar(antigas) : Promise.resolve(true);
+      return migrar.then(ok=>ok ? FotosDB.todas() : null).then(conf=>{
+        if(!conf || !Object.keys(antigas).every(k=>k in conf)) return; /* fica no localStorage */
+        this.noBanco=true; this.fotos=conf;
+        if(Object.keys(antigas).length) this.salvar(true);
+      });
+    }); },
 
   /* le o estoque do Controle. Produto sem preco de venda nao entra: catalogo sem
      preco gera pergunta no WhatsApp, que e exatamente o trabalho que ela quer evitar */
@@ -631,8 +697,8 @@ const Catalogo = {
      continua enviando uma vez so e vendo nos dois. */
   perfilChave:'lucronamao_divulga',
   lerPerfilBruto(){ try{ return JSON.parse(localStorage.getItem(this.perfilChave))||{}; }catch(e){ return {}; } },
-  gravarPerfil(d){ try{ localStorage.setItem(this.perfilChave, JSON.stringify(d)); }
-    catch(e){ toastP('O celular não tem espaço pra guardar a logo'); } },
+  gravarPerfil(d){ try{ localStorage.setItem(this.perfilChave, JSON.stringify(d)); return true; }
+    catch(e){ toastP('O celular não tem espaço pra guardar a logo'); return false; } },
   salvarPerfil(){
     const d=this.lerPerfilBruto();
     d.nome =(document.getElementById('catLoja').value||'').trim();
@@ -650,15 +716,26 @@ const Catalogo = {
     this.mostrarLogo(); this.entrar(); },
   pedirLogo(arq){
     if(!arq) return;
-    const img=new Image(), fr=new FileReader();
-    fr.onload=()=>{ img.onload=()=>{
-        const lado=Math.min(img.width,img.height), cv=document.createElement('canvas');
-        cv.width=320; cv.height=320;
-        cv.getContext('2d').drawImage(img,(img.width-lado)/2,(img.height-lado)/2,lado,lado,0,0,320,320);
-        const d=this.lerPerfilBruto(); d.logo=cv.toDataURL('image/jpeg',.85);
-        this.gravarPerfil(d); this.mostrarLogo(); this.entrar(); toastP('Logo salva!'); };
-      img.src=fr.result; };
-    fr.readAsDataURL(arq); },
+    this.recortar(arq,320,.85).then(url=>{
+      const d=this.lerPerfilBruto(); d.logo=url;
+      /* "Logo salva!" so quando gravou: antes saia por cima do aviso de sem espaco */
+      if(this.gravarPerfil(d)) toastP('Logo salva!');
+      this.mostrarLogo(); this.entrar();
+    }).catch(()=>toastP('Não consegui abrir essa imagem. Tente escolher outra.')); },
+
+  /* recorta o quadrado do meio e reduz. Le pelo endereco do arquivo, nao por
+     FileReader: a foto de 12MP do celular virava uma string de ~15MB na memoria,
+     e celular fraco fechava a aba no meio */
+  recortar(arq,lado,qual){ return new Promise((ok,falha)=>{
+    const url=URL.createObjectURL(arq), img=new Image();
+    img.onload=()=>{ try{
+        const w=img.naturalWidth, h=img.naturalHeight, m=Math.min(w,h), cv=document.createElement('canvas');
+        cv.width=lado; cv.height=lado;
+        cv.getContext('2d').drawImage(img,(w-m)/2,(h-m)/2,m,m,0,0,lado,lado);
+        URL.revokeObjectURL(url); ok(cv.toDataURL('image/jpeg',qual));
+      }catch(e){ URL.revokeObjectURL(url); falha(e); } };
+    img.onerror=()=>{ URL.revokeObjectURL(url); falha(new Error('imagem nao abriu')); };
+    img.src=url; }); },
 
   entrar(){
     this.carregar();
@@ -680,14 +757,13 @@ const Catalogo = {
       av.style.display='';
       av.innerHTML='Com a <b>sua logo</b> o catálogo fica com cara de loja de verdade. Dá pra enviar aqui em cima.';
     } else av.style.display='none';
-    this.render();
-    this.desenhar(); },
+    this.prepararFotos().then(()=>{ this.render(); this.desenhar(); }); },
 
   render(){
     const el=document.getElementById('catLista');
     el.innerHTML=this.produtos.map(p=>{
       const on=this.cfg.fora.indexOf(p.id)<0;
-      const f=this.cfg.fotos[p.id];
+      const f=this.fotos[p.id];
       const foto = f
         ? `<img class="cat-foto" src="${f}" alt="" onclick="Catalogo.pedirFoto(${p.id})">`
         : `<div class="cat-foto-vazia" onclick="Catalogo.pedirFoto(${p.id})">+ foto</div>`;
@@ -713,25 +789,32 @@ const Catalogo = {
   somenteComEstoque(){ this.cfg.fora = this.produtos.filter(p=>Number(p.qtd)<=0).map(p=>p.id);
     this.salvar(); this.render(); this.desenhar(); },
 
-  /* foto: comprimida a 600px e guardada como JPEG. O localStorage e pequeno
-     (~5MB), entao 600px e o ponto onde a peca ainda fica nitida no catalogo sem
-     estourar o espaco com uma duzia de fotos. */
+  /* foto: recortada em quadrado de 480px, JPEG, e guardada no banco do aparelho
+     (ver FotosDB). "Foto adicionada" so aparece depois de gravada de verdade. */
   pedirFoto(id){
+    document.querySelectorAll('input[data-cat-foto]').forEach(e=>e.remove());
     const inp=document.createElement('input');
-    inp.type='file'; inp.accept='image/*';
-    inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return;
-      const img=new Image(), fr=new FileReader();
-      fr.onload=()=>{ img.onload=()=>{
-          const lado=Math.min(img.width,img.height), cv=document.createElement('canvas');
-          cv.width=600; cv.height=600;
-          const cx=cv.getContext('2d');
-          cx.drawImage(img,(img.width-lado)/2,(img.height-lado)/2,lado,lado,0,0,600,600);
-          this.cfg.fotos[id]=cv.toDataURL('image/jpeg',.82);
-          this.salvar(); this.render(); this.desenhar();
-          toastP('Foto adicionada'); };
-        img.src=fr.result; };
-      fr.readAsDataURL(f); };
+    inp.type='file'; inp.accept='image/*'; inp.className='oculto'; inp.setAttribute('data-cat-foto','');
+    /* dentro da pagina, como o da logo: input solto no ar as vezes nao avisa o
+       app que a foto foi escolhida */
+    document.body.appendChild(inp);
+    inp.onchange=()=>{ const f=inp.files&&inp.files[0]; inp.remove(); if(!f) return;
+      this.recortar(f,this.ladoFoto,.82)
+        .then(url=>this.guardarFoto(id,url))
+        .catch(()=>toastP('Não consegui abrir essa foto. Tente escolher outra.')); };
     inp.click(); },
+  guardarFoto(id,url){
+    const k=String(id), antes=this.fotos[k];
+    this.fotos[k]=url;
+    const gravou = this.noBanco ? FotosDB.gravar({[k]:url}) : Promise.resolve(this.salvar(true));
+    return gravou.then(ok=>{
+      if(ok) toastP('Foto adicionada');
+      else {
+        if(antes) this.fotos[k]=antes; else delete this.fotos[k];
+        toastP(this.noBanco ? 'Não consegui guardar a foto. Feche o app, abra de novo e tente outra vez.'
+                            : 'O celular não tem espaço pra mais fotos');
+      }
+      this.render(); this.desenhar(); }); },
 
   cores:{ vinho:{fundo:'#8e2757', tinta:'#ffffff', card:'#ffffff', preco:'#8e2757', suave:'#f6e7ee'},
           preto:{fundo:'#1d1b1e', tinta:'#ffffff', card:'#ffffff', preco:'#1d1b1e', suave:'#ededed'},
@@ -770,7 +853,7 @@ const Catalogo = {
     const carregar=src=>new Promise(r=>{ if(!src) return r(null);
       const im=new Image(); im.onload=()=>r(im); im.onerror=()=>r(null); im.src=src; });
     const fontes=document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    Promise.all([carregar(pf.logo), fontes].concat(sel.map(p=>carregar(this.cfg.fotos[p.id]))))
+    Promise.all([carregar(pf.logo), fontes].concat(sel.map(p=>carregar(this.fotos[p.id]))))
       .then(res=>{
         const logo=res[0], fotos={};
         sel.forEach((p,i)=>{ fotos[p.id]=res[i+2]; });
