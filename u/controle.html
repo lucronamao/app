@@ -148,6 +148,8 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .dt-previa{margin-top:9px;background:var(--rose-2);border-radius:11px;padding:10px 12px;
   font-size:13.5px;text-align:center;color:var(--tinta);line-height:1.45}
 .dt-previa b{color:var(--vinho)}
+.dt-previa.erro{background:var(--verm-bg);color:var(--verm)}
+.dt-previa.erro b{color:var(--verm)}
 /* cancelar embaixo de um botao de acao nao pode ter o mesmo peso dele */
 .btn.discreto{background:none;color:var(--cinza);font-weight:600;padding:12px;font-size:14.5px}
 .btn.discreto:active{background:var(--rose-2)}
@@ -456,8 +458,16 @@ const D = {
   salvar(){ localStorage.setItem(CHAVE, JSON.stringify(this.dados)); },
   id(){ return this.dados.seq++; }
 };
-function hoje(){ return new Date().toISOString().slice(0,10); }
+/* ===== O DIA E O DO CELULAR DELA (16/10/2026) =====
+   Antes era new Date().toISOString(), que da o dia em Londres (UTC). No horario de
+   Brasilia, das 21h a meia-noite a venda nascia com a data de AMANHA, sumia da tela
+   Hoje e, no ultimo dia do mes, caia no mes seguinte. Agora e o dia do fuso do
+   aparelho, que no Brasil e o da cidade dela (Brasilia, Manaus, Acre, Noronha). */
+function hoje(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
 function agora(){ return new Date().toISOString(); }
+function dataBR(iso){ return String(iso).split('-').reverse().join('/'); }
+/* n dias antes de um dia ISO, sem o fuso mexer no resultado */
+function diaAntes(iso, n){ const d=new Date(iso+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()-n); return d.toISOString().slice(0,10); }
 /* o espaco aqui e NAO-SEPARAVEL (\u00a0): sem ele "4x de R$ 35,00" quebrava entre
    o "R$" e o numero no fim da linha, e a lojista tinha que remontar o valor */
 function rs(n){ return 'R$\u00a0' + Number(Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -1346,7 +1356,7 @@ const Venda = {
     const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
     this._addVenda=null; this._editVenda=id; this._editOrig=this.qtdPorProduto(v.itens);
     this.carrinho={itens:v.itens.map(i=>({...i})), pgto:v.pgto, cliente:v.cliente||'',
-      desc:{tipo:v.descPct?'pct':'rs', valor:v.descPct||descontoDe(v)}};
+      desc:{tipo:v.descPct?'pct':'rs', valor:v.descPct||descontoDe(v)}, data:v.data};
     this.busca=''; this.pag=1; this._editIdx=null;
     this.telaEditar();
   },
@@ -1368,10 +1378,90 @@ const Venda = {
       ${linhas}
       <button class="btn sec" style="margin-top:10px" onclick="Venda.busca='';Venda.pag=1;Venda.telaProduto()">Adicionar produto</button>
       <div id="descArea"></div>
+      <label>${v.pgto==='fiado'?'quando foi esse fiado?':'quando foi essa venda?'}</label>
+      <div class="dt-atalhos">
+        <button type="button" id="eDtHoje" onclick="Venda.editDataAtalho(0)">hoje</button>
+        <button type="button" id="eDtOntem" onclick="Venda.editDataAtalho(1)">ontem</button>
+      </div>
+      <input id="eData" type="date" value="${c.data||''}" max="${hoje()}"
+        oninput="Venda.editDataLer()" onchange="Venda.editDataLer()">
+      <div class="dt-previa" id="ePrevia" style="display:none"></div>
       <div class="edit-aviso oculto" id="editAviso"></div>
       <button class="btn" onclick="Venda.revisarEdicao()">Salvar alterações</button>
       <button class="btn sec" onclick="Venda.sairEdicao()">Cancelar</button>`);
-    this.descMontar(); this.editAviso();
+    this.descMontar(); this.editAviso(); this.editDataPintar();
+  },
+  /* ===== A DATA DA VENDA SE CORRIGE NA EDICAO (16/10/2026) =====
+     Pedido do Vini: a venda nasce sempre com a data de hoje, e so na edicao ela
+     pode mudar (venda de ontem lancada hoje, fiado anotado dias depois). Vale para
+     venda e para fiado. Mesmo padrao da data da despesa: hoje/ontem resolvem o caso
+     comum sem abrir o calendario.
+     O que a data move: no pix, dinheiro e cartao, o mes em que o valor entra nas
+     contas. No fiado, so onde a conta aparece: o que ela ja pagou continua no dia em
+     que entrou, e por isso a data do fiado nao pode passar do primeiro recebimento. */
+  editDataAtalho(diasAtras){
+    this.carrinho.data=diaAntes(hoje(), diasAtras);
+    const i=document.getElementById('eData'); if(i) i.value=this.carrinho.data;
+    this.editDataPintar();
+  },
+  editDataLer(){
+    const i=document.getElementById('eData'); if(!i) return;
+    this.carrinho.data=(i.value||'').trim(); this.editDataPintar();
+  },
+  editMudouData(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda);
+    return !!(v && this.carrinho && this.carrinho.data!==v.data);
+  },
+  /* '' = data valida; senao, o motivo em portugues */
+  editDataErro(){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda), d=this.carrinho&&this.carrinho.data;
+    /* a data que ela nao mexeu nunca trava a edicao. Venda lancada depois das 21h
+       antes de 16/10/2026 tem a data de "amanha" gravada, e editar o produto dela
+       tem que continuar funcionando */
+    if(!v || d===v.data) return '';
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d||'') || d<'2000-01-01')
+      return 'Escolhe o dia '+(v.pgto==='fiado'?'do fiado.':'da venda.');
+    if(d>hoje()) return 'Essa data ainda não chegou. Escolhe hoje ou um dia antes.';
+    const p1=this.primeiroPgto(v);
+    if(p1 && d>p1) return `O primeiro pagamento dela foi em <b>${dataBR(p1)}</b>. A data do fiado não pode ser depois disso.`;
+    return '';
+  },
+  primeiroPgto(v){
+    if(v.pgto!=='fiado') return null;
+    /* fiado antigo, sem historico: se esta quitado, o dinheiro entrou no dia da venda */
+    if(!Array.isArray(v.pagamentos)) return v.pago ? v.data : null;
+    const ds=v.pagamentos.map(x=>String(x.data||'')).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
+    return ds[0]||null;
+  },
+  /* o que a troca de data significa; '' quando a data nao mudou. soImpacto: so a
+     consequencia, para a confirmacao, que ja mostra a data na linha de cima */
+  editDataTexto(soImpacto){
+    const v=D.dados.vendas.find(x=>x.id===this._editVenda);
+    if(!v || !this.editMudouData() || this.editDataErro()) return '';
+    const d=this.carrinho.data;
+    const impacto = v.pgto==='fiado'
+      ? (this.jaPago(v)>0 ? 'O que ela já pagou continua no dia em que entrou.' : '')
+      : (mesDe(d)!==mesDe(v.data) ? `O valor entra nas contas de <b>${nomeMes(mesDe(d))}</b>, não mais de ${nomeMes(mesDe(v.data))}.` : '');
+    if(soImpacto) return impacto;
+    return `${v.pgto==='fiado'?'O fiado':'A venda'} passa para <b>${dataBR(d)}</b>.`+(impacto?' '+impacto:'');
+  },
+  editDataPintar(){
+    const el=document.getElementById('ePrevia'); if(!el||!this.carrinho) return;
+    const d=this.carrinho.data;
+    const bh=document.getElementById('eDtHoje'), bo=document.getElementById('eDtOntem');
+    if(bh) bh.classList.toggle('on', d===hoje());
+    if(bo) bo.classList.toggle('on', d===diaAntes(hoje(),1));
+    const erro=this.editDataErro(), txt=erro||this.editDataTexto();
+    el.className='dt-previa'+(erro?' erro':'');
+    el.innerHTML=txt; el.style.display=txt?'':'none';
+  },
+  /* a venda muda de lugar na lista: as vendas ficam do dia mais novo pro mais velho */
+  reposicionar(v){
+    const L=D.dados.vendas, i=L.indexOf(v); if(i<0) return;
+    L.splice(i,1);
+    let j=L.findIndex(x=>String(x.data)<v.data || (String(x.data)===v.data && x.id<v.id));
+    if(j<0) j=L.length;
+    L.splice(j,0,v);
   },
   /* o que a alteracao significa no bolso dela e no estoque, antes de salvar */
   editAviso(){
@@ -1401,12 +1491,13 @@ const Venda = {
     return L;
   },
   /* houve mudanca de fato? compara produtos, quantidades, precos e desconto */
-  editMudou(){
+  editMudouItens(){
     const v=D.dados.vendas.find(x=>x.id===this._editVenda); if(!v||!this.carrinho) return false;
     const assin=itens=>itens.map(i=>i.produtoId+':'+i.qtd+':'+i.preco).sort().join('|');
     return assin(v.itens)!==assin(this.carrinho.itens)
       || Math.abs(this.contaCarrinho().desc-descontoDe(v))>0.004;
   },
+  editMudou(){ return this.editMudouItens() || this.editMudouData(); },
   /* SEGURANCA: nada e gravado sem ela ver o resumo e confirmar */
   revisarEdicao(){
     const v=D.dados.vendas.find(x=>x.id===this._editVenda), c=this.carrinho;
@@ -1415,13 +1506,20 @@ const Venda = {
     const d=c.desc||{};
     if(d.valor>0 && (d.tipo==='pct' ? d.valor>100 : d.valor>somaItens(c.itens))){
       toast('Desconto maior que o subtotal da venda'); return; }
+    const errData=this.editDataErro();
+    if(errData){ toast(errData.replace(/<[^>]+>/g,'')); this.editDataPintar(); return; }
     if(!this.editMudou()){ toast('Nenhuma alteração para salvar'); this.cancelarEdicao(); return; }
-    const k=this.contaCarrinho(), L=this.editLinhas();
+    /* so a data mudou: o resumo mostra a data e o valor, que fica igual */
+    const soData=!this.editMudouItens(), mData=this.editMudouData();
+    const k=this.contaCarrinho(), L=soData ? [] : this.editLinhas();
+    if(mData && this.editDataTexto(true)) L.push(this.editDataTexto(true));
     Modal.abrir(`<h3>Confirmar alteração?</h3>
       <p class="sub">A venda de ${v.data.split('-').reverse().join('/')}${v.cliente?' ('+v.cliente+')':''} será atualizada.</p>
       <div class="resumo">
-        <div class="rl"><span>Valor anterior</span><span class="v">${rs(v.total)}</span></div>
-        <div class="rl tot"><span>Novo valor</span><span class="v">${rs(k.total)}</span></div>
+        ${mData?`<div class="rl"><span>Data</span><span class="v">${dataBR(v.data)} → ${dataBR(c.data)}</span></div>`:''}
+        ${soData?`<div class="rl"><span>Valor</span><span class="v">${rs(v.total)}</span></div>`
+        :`<div class="rl"><span>Valor anterior</span><span class="v">${rs(v.total)}</span></div>
+        <div class="rl tot"><span>Novo valor</span><span class="v">${rs(k.total)}</span></div>`}
       </div>
       ${L.length?`<div class="edit-aviso">${L.join('<br>')}</div>`:''}
       <button class="btn" onclick="Venda.salvarEdicao()">Confirmar alteração</button>
@@ -1438,6 +1536,23 @@ const Venda = {
   salvarEdicao(){
     const v=D.dados.vendas.find(x=>x.id===this._editVenda), c=this.carrinho;
     if(!v||!c){ this.cancelarEdicao(); return; }
+    if(this.editDataErro()){ this.telaEditar(); return; }
+    const dataAntes=v.data, mData=this.editMudouData();
+    /* so a data mudou: grava a data e mais nada. Estoque, valor e recebimentos ficam
+       exatamente como estavam */
+    if(!this.editMudouItens()){
+      if(!mData){ this.cancelarEdicao(); return; }
+      /* fiado antigo quitado: o pagamento fica no dia em que entrou, nao vai junto */
+      if(v.pgto==='fiado' && !Array.isArray(v.pagamentos))
+        v.pagamentos=(v.pago&&v.total>0)?[{data:dataAntes,valor:v.total}]:[];
+      v.data=c.data; this.reposicionar(v);
+      if(!Array.isArray(v.edicoes)) v.edicoes=[];
+      v.edicoes.push({data:agora(), antes:v.total, depois:v.total, dataAntes, dataDepois:v.data});
+      D.dados.config.vendasDesdeBackup++;
+      D.salvar(); this.cancelarEdicao();
+      toast((v.pgto==='fiado'?'Fiado movido para ':'Venda movida para ')+dataBR(v.data), true);
+      return;
+    }
     if(!c.itens.length){ toast('A venda precisa de ao menos um produto. Para cancelar, use Excluir'); return; }
     const d=c.desc||{};
     if(d.valor>0 && (d.tipo==='pct' ? d.valor>100 : d.valor>somaItens(c.itens))){
@@ -1465,11 +1580,15 @@ const Venda = {
       if(typeof v.parcelasBase==='number') v.parcelasBase=Math.max(0, Math.round((v.parcelasBase+v.total-antes)*100)/100);
       v.pago=this.saldo(v)<=0;
     }
+    /* a data troca por ultimo: o fiado antigo acima converte o que ja estava pago
+       usando a data de ANTES, que e o dia em que aquele dinheiro entrou */
+    if(mData){ v.data=c.data; this.reposicionar(v); }
     if(!Array.isArray(v.edicoes)) v.edicoes=[];
-    v.edicoes.push({data:agora(), antes, depois:v.total});
+    v.edicoes.push(mData ? {data:agora(), antes, depois:v.total, dataAntes, dataDepois:v.data}
+                         : {data:agora(), antes, depois:v.total});
     D.dados.config.vendasDesdeBackup++;
     D.salvar(); this.cancelarEdicao();
-    toast('Venda atualizada: '+rs(v.total), true);
+    toast('Venda atualizada: '+rs(v.total)+(mData?' · '+dataBR(v.data):''), true);
   },
   cancelarEdicao(){ this.carrinho=null; this._editVenda=null; this._editOrig=null; Modal.fechar(); Tela.render(); },
 
