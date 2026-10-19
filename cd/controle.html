@@ -66,11 +66,18 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .badge.baixo{background:var(--ambar-bg);color:var(--ambar)}
 .badge.zero{background:var(--verm-bg);color:var(--verm)}
 .badge.fiado{background:var(--ambar-bg);color:var(--ambar)}
-.modal-fundo{position:fixed;inset:0;background:rgba(43,34,48,.5);z-index:40;display:none;
+/* O fundo do modal segue a AREA VISIVEL (visualViewport), nao a tela inteira: top e height vem do
+   script "MODAL ACIMA DO TECLADO". Bug real, 19/10/2026: o teclado do celular cobre o fundo da tela
+   sem encolher a pagina; a busca do "Registrar venda" filtrava a lista, o modal (preso no fundo)
+   encolhia e ia inteiro para tras do teclado. */
+.modal-fundo{position:fixed;left:0;right:0;top:0;height:100%;background:rgba(43,34,48,.5);z-index:40;display:none;
   align-items:flex-end;justify-content:center}
 .modal-fundo.aberto{display:flex}
 .modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;
-  max-height:88vh;overflow-y:auto;padding:18px 16px 24px}
+  max-height:88%;overflow-y:auto;padding:18px 16px 24px}
+/* teclado aberto: o modal ocupa a area visivel inteira, entao o campo fica parado no topo
+   enquanto a lista encolhe embaixo dele */
+.modal-fundo.teclado .modal{height:100%;max-height:none;border-radius:0}
 .modal h3{font-size:17px;margin-bottom:4px}
 .modal .sub{font-size:13px;color:var(--cinza);margin-bottom:10px}
 .aviso{border-radius:12px;padding:11px 12px;font-size:13.5px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
@@ -559,9 +566,20 @@ function toast(msg, lucro){ const t=document.getElementById('toast');
 /* ============ MODAL ============ */
 const Modal = {
   abrir(html){ document.getElementById('modalCorpo').innerHTML=html;
-    document.getElementById('modalFundo').classList.add('aberto'); },
-  fechar(){ document.getElementById('modalFundo').classList.remove('aberto'); }
+    document.getElementById('modalFundo').classList.add('aberto'); this.ajustarArea(); },
+  fechar(){ document.getElementById('modalFundo').classList.remove('aberto'); },
+  /* ===== MODAL ACIMA DO TECLADO (19/10/2026) =====
+     O teclado do celular (iPhone e Chrome do Android) encolhe so a area VISIVEL, nao a pagina,
+     entao um position:fixed preso no fundo fica atras dele. Aqui o fundo do modal copia o
+     tamanho e a posicao da area visivel a cada mudanca. */
+  ajustarArea(){ const vv=window.visualViewport, f=document.getElementById('modalFundo'); if(!vv||!f) return;
+    f.style.top=vv.offsetTop+'px'; f.style.height=vv.height+'px';
+    f.classList.toggle('teclado', document.documentElement.clientHeight - vv.height > 120); }
 };
+if(window.visualViewport){
+  visualViewport.addEventListener('resize', ()=>Modal.ajustarArea());
+  visualViewport.addEventListener('scroll', ()=>Modal.ajustarArea());
+}
 
 
 /* ============ PAGINACAO (20 por pagina) ============ */
@@ -846,14 +864,34 @@ const Venda = {
     return p.qtd + jaDaVenda - noCarrinho;
   },
   telaProduto(){
-    let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
-    const total=ps.length;
-    if(this.busca) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.busca.toLowerCase()));
-    const pg=paginar(ps, this.pag);
+    const total=D.dados.produtos.length;
+    /* A busca repinta SO a lista (pintarLista), nunca o campo (19/10/2026). Antes cada letra
+       redesenhava o modal inteiro e criava um campo novo, refocado num setTimeout. */
     const busca = total>8
       ? `<input id="buscaProd" placeholder="buscar produto..." value="${this.busca}" autocomplete="off"
-          oninput="Venda.busca=this.value;Venda.pag=1;Venda.telaProduto();setTimeout(()=>{const b=document.getElementById('buscaProd');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)">`
+          oninput="Venda.busca=this.value;Venda.pag=1;Venda.pintarLista()">`
       : '';
+    const n=this.nItens();
+    const naConta=!!this._addVenda;
+    if(this._editVenda){
+      Modal.abrir(`<div class="passo">adicionar produto à venda</div>${busca}
+      <div id="vendaLista">${this.listaHTML()}</div>
+      <button class="btn sec" style="margin-top:10px" onclick="Venda.telaEditar()">Voltar para a venda</button>`);
+      return; }
+    const voltar = n>0
+      ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">${naConta?`ver a conta (${n} ${n===1?'item':'itens'})`:`voltar pro carrinho (${n} ${n===1?'item':'itens'})`}</button>`
+      : (naConta?`<button class="btn sec" style="margin-top:10px" onclick="Venda.cancelarAddConta()">Cancelar</button>`:'');
+    const passo = naConta
+      ? (n>0?'toque em outro produto que ela levou':'o que mais ela está levando?')
+      : (n>0?'adicionar outro produto · toque nele':'passo 1 de 4 · toque no produto');
+    Modal.abrir(`<div class="passo">${passo}</div>${busca}
+      <div id="vendaLista">${this.listaHTML()}</div>${voltar}`);
+  },
+  /* a lista de produtos (filtrada pela busca) e a paginacao */
+  listaHTML(){
+    let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
+    if(this.busca) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.busca.toLowerCase()));
+    const pg=paginar(ps, this.pag);
     const lista = pg.itens.map(p=>{
       const d=this.dispon(p.id);
       const noCar=p.qtd-d;
@@ -864,24 +902,12 @@ const Venda = {
         <span class="n">${p.nome}${obs}</span>
         <span class="p">${rs(p.preco)}</span></button>`;
     }).join('');
-    const n=this.nItens();
-    const naConta=!!this._addVenda;
-    if(this._editVenda){
-      Modal.abrir(`<div class="passo">adicionar produto à venda</div>${busca}
-      <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
-      ${barraPag(pg,'Venda.irPag')}<button class="btn sec" style="margin-top:10px" onclick="Venda.telaEditar()">Voltar para a venda</button>`);
-      return; }
-    const voltar = n>0
-      ? `<button class="btn sec" style="margin-top:10px" onclick="Venda.telaCarrinho()">${naConta?`ver a conta (${n} ${n===1?'item':'itens'})`:`voltar pro carrinho (${n} ${n===1?'item':'itens'})`}</button>`
-      : (naConta?`<button class="btn sec" style="margin-top:10px" onclick="Venda.cancelarAddConta()">Cancelar</button>`:'');
-    const passo = naConta
-      ? (n>0?'toque em outro produto que ela levou':'o que mais ela está levando?')
-      : (n>0?'adicionar outro produto · toque nele':'passo 1 de 4 · toque no produto');
-    Modal.abrir(`<div class="passo">${passo}</div>${busca}
-      <div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
-      ${barraPag(pg,'Venda.irPag')}${voltar}`);
+    return `<div style="margin-top:10px">${lista || '<div class="vazio">Nenhum produto encontrado.</div>'}</div>
+      ${barraPag(pg,'Venda.irPag')}`;
   },
-  irPag(p){ this.pag=p; this.telaProduto();
+  pintarLista(){ const el=document.getElementById('vendaLista');
+    if(el) el.innerHTML=this.listaHTML(); else this.telaProduto(); },
+  irPag(p){ this.pag=p; this.pintarLista();
     document.querySelector('.modal')?.scrollTo({top:0,behavior:'smooth'}); },
   escolheu(id){ this._prod=D.dados.produtos.find(p=>p.id===id); this._qtd=1; this._editIdx=null; this.telaQtd(); },
   /* mudar a quantidade de um item que JA esta no carrinho */
