@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#8e2757">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -14,10 +14,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Controle da Lojinha · Lucro na Mão</title>
+<!-- ativacao pelo e-mail da compra: roda ANTES de tudo (ver ativacao.js) -->
+<script>/* rede de seguranca da ativacao: decide "legado" ou "pendente" ANTES de a pagina gravar o tema,
+   mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
+try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
+<script src="ativacao.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
-  --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
+  --tinta:#2b2230; --cinza:#675c6d; --linha:#eadfe6; --branco:#fff;
   --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
   --verm:#b3261e; --verm-bg:#fbeae9; --radius:14px;
 }
@@ -44,7 +49,7 @@ button{font-family:inherit;border:0;cursor:pointer;border-radius:12px;font-size:
 .btn.sec{background:var(--rose);color:var(--vinho)}
 .btn.mini{width:auto;padding:8px 14px;font-size:14px;margin:0}
 .btn.perigo{background:var(--verm-bg);color:var(--verm)}
-input,select{width:100%;padding:13px;border:1.5px solid var(--linha);border-radius:12px;
+input,select{width:100%;padding:13px;border:1.5px solid #8f8496;border-radius:12px;
   font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
 input:focus,select:focus{outline:none;border-color:var(--vinho)}
 label{font-size:13px;color:var(--cinza);font-weight:600;display:block;margin-top:12px}
@@ -220,7 +225,7 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .desc-tipo{display:flex;background:var(--rose);border-radius:9px;padding:3px}
 .desc-tipo button{padding:6px 11px;background:transparent;color:var(--cinza);font-weight:800;font-size:13.5px;border-radius:7px}
 .desc-tipo button.on{background:#fff;color:var(--vinho);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.resumo input#descValor{width:108px;margin:0;padding:9px 10px;text-align:right;font-size:15px;font-weight:700}
+.resumo input#descValor{width:108px;margin:0;padding:9px 10px;text-align:right;font-size:16px;font-weight:700}
 .desc-info{font-size:12.5px;color:var(--cinza);text-align:right;margin:-4px 0 10px;line-height:1.4}
 .desc-info .ruim{color:var(--verm);font-weight:700}
 .edit-aviso{margin:10px 0 4px;background:var(--ambar-bg);color:var(--ambar);border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.55}
@@ -411,6 +416,15 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .demo-ctrl button{background:none;border:1px solid var(--linha);border-radius:99px;
   padding:5px 13px;font-size:11.5px;color:var(--cinza);cursor:pointer;font-family:inherit;font-weight:600}
 @media (prefers-reduced-motion: reduce){.dedo,.menu,.folha,.f-lista,.final{transition:none}}
+/* acessibilidade (26/10/2026): toque sem atraso de duplo toque agora que o zoom
+   esta liberado, e placeholder legivel (o padrao do navegador fica perto de 2,3:1) */
+html{touch-action:manipulation}
+::placeholder{color:#7a6f80;opacity:1}
+/* alvos de toque (26/10/2026): voltar, fechar faixa e engrenagem tinham de 20 a 31 px;
+   a margem negativa aumenta a area do toque sem mudar o desenho */
+#voltarMenu{padding:11px;margin:-11px}
+.fi-x,.fn-x{min-width:44px;min-height:44px}
+.btn-cfg{padding:10px;margin:-6px}
 </style>
 </head>
 <body>
@@ -449,9 +463,9 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 </nav>
 
 <div class="modal-fundo" id="modalFundo" onclick="if(event.target===this)Modal.fechar()">
-  <div class="modal" id="modalCorpo"></div>
+  <div class="modal" id="modalCorpo" role="dialog" aria-modal="true" tabindex="-1"></div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============ DADOS (localStorage, 1 chave, versao no schema) ============ */
@@ -462,7 +476,12 @@ const D = {
            produtos:[], vendas:[], despesas:[], seq:1}; },
   carregar(){ try{ this.dados = JSON.parse(localStorage.getItem(CHAVE)) || this.novo(); }
               catch(e){ this.dados = this.novo(); } },
-  salvar(){ localStorage.setItem(CHAVE, JSON.stringify(this.dados)); },
+  /* Celular sem espaco (o localStorage tem uns 5 MB, dividido com fotos e logo):
+     antes o erro parava o fluxo no meio, sem aviso, e a venda sumia ao reabrir.
+     Agora avisa alto e por mais tempo, e devolve false (26/10/2026). */
+  salvar(){ try{ localStorage.setItem(CHAVE, JSON.stringify(this.dados)); return true; }
+    catch(e){ toast('Não deu pra salvar: o celular ficou sem espaço. Toque em backup lá em cima agora e libere espaço no celular.'); clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>{ document.getElementById('toast').className='toast'; },9000); return false; } },
   id(){ return this.dados.seq++; }
 };
 /* ===== O DIA E O DO CELULAR DELA (16/10/2026) =====
@@ -543,7 +562,7 @@ function nomeMes(ym){ const [a,m]=ym.split('-'); const n=['janeiro','fevereiro',
 const TEMAS={
   vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
   violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
-  esmeralda:{a:'#1c7a5c',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
+  esmeralda:{a:'#176b50',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
   petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa',nome:'Petróleo'},
   grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9',nome:'Grafite'}
 };
@@ -557,25 +576,46 @@ aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
 /* ============ DEFESA 1: armazenamento persistente ============ */
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
 
+/* texto da usuaria dentro de value="..." (aspas no nome cortavam o campo ao editar) */
+const escA = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
 /* ============ TOAST ============ */
 let toastTimer=null;
 function toast(msg, lucro){ const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast mostra'+(lucro?' lucro':'');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='toast',2600); }
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='toast',4500); }
 
 /* ============ MODAL ============ */
 const Modal = {
-  abrir(html){ document.getElementById('modalCorpo').innerHTML=html;
-    document.getElementById('modalFundo').classList.add('aberto'); this.ajustarArea(); },
-  fechar(){ document.getElementById('modalFundo').classList.remove('aberto'); },
+  /* ===== O MODAL E UM DIALOGO (acessibilidade, 26/10/2026) =====
+     O leitor de tela nao sabia que o modal tinha aberto e seguia lendo a tela de
+     tras. Agora: o titulo da nome ao dialogo, o resto da pagina fica inerte, o
+     foco entra no modal (se nenhum campo dele ja pegou), Esc fecha, e ao fechar o
+     foco volta pra onde estava. O toast e a tela de ativacao nunca ficam inertes. */
+  _volta:null,
+  abrir(html){ const c=document.getElementById('modalCorpo'), f=document.getElementById('modalFundo');
+    if(!f.classList.contains('aberto')) this._volta=document.activeElement;
+    c.innerHTML=html; f.classList.add('aberto'); this.ajustarArea();
+    const tit=c.querySelector('h3, .passo, .wizard-logo .m1');
+    if(tit){ tit.id='modalTit'; c.setAttribute('aria-labelledby','modalTit'); } else c.removeAttribute('aria-labelledby');
+    Array.prototype.forEach.call(document.body.children, el=>{
+      if(el===f || el.id==='toast' || el.id==='ativ' || el.hasAttribute('inert')) return;
+      el.setAttribute('inert',''); el.setAttribute('data-modal-inert',''); });
+    setTimeout(()=>{ if(f.classList.contains('aberto') && !c.contains(document.activeElement)) c.focus({preventScroll:true}); },60); },
+  fechar(){ document.getElementById('modalFundo').classList.remove('aberto');
+    document.querySelectorAll('[data-modal-inert]').forEach(el=>{ el.removeAttribute('inert'); el.removeAttribute('data-modal-inert'); });
+    const v=this._volta; this._volta=null;
+    if(v && document.body.contains(v) && v.focus) v.focus({preventScroll:true}); },
   /* ===== MODAL ACIMA DO TECLADO (19/10/2026) =====
      O teclado do celular (iPhone e Chrome do Android) encolhe so a area VISIVEL, nao a pagina,
      entao um position:fixed preso no fundo fica atras dele. Aqui o fundo do modal copia o
      tamanho e a posicao da area visivel a cada mudanca. */
   ajustarArea(){ const vv=window.visualViewport, f=document.getElementById('modalFundo'); if(!vv||!f) return;
     f.style.top=vv.offsetTop+'px'; f.style.height=vv.height+'px';
-    f.classList.toggle('teclado', document.documentElement.clientHeight - vv.height > 120); }
+    f.classList.toggle('teclado', document.documentElement.clientHeight - vv.height > 120 && vv.scale < 1.05); }
 };
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('modalFundo').classList.contains('aberto')) Modal.fechar(); });
 if(window.visualViewport){
   visualViewport.addEventListener('resize', ()=>Modal.ajustarArea());
   visualViewport.addEventListener('scroll', ()=>Modal.ajustarArea());
@@ -831,9 +871,9 @@ const Backup = {
     vs.forEach(v=>{ csv+=[v.data, v.itens.map(i=>i.nome+' x'+i.qtd).join(' + '),
       v.itens.reduce((s,i)=>s+i.qtd,0), v.pgto,
       (v.parcelas&&v.parcelas>1)?v.parcelas+'x':'a vista', v.cliente||'',
-      String(descontoDe(v)).replace('.',','),
-      String(v.total).replace('.',','), String(v.custo).replace('.',','),
-      String(v.total-v.custo).replace('.',','),
+      String(Math.round(descontoDe(v)*100)/100).replace('.',','),
+      String(Math.round(v.total*100)/100).replace('.',','), String(Math.round(v.custo*100)/100).replace('.',','),
+      String(Math.round((v.total-v.custo)*100)/100).replace('.',','),
       v.pgto==='fiado'
         ? (Venda.saldo(v)<=0 ? 'pago'
            : (Venda.jaPago(v)>0 ? 'parcial (falta '+String(Venda.saldo(v)).replace('.',',')+')' : 'pendente'))
@@ -868,7 +908,7 @@ const Venda = {
     /* A busca repinta SO a lista (pintarLista), nunca o campo (19/10/2026). Antes cada letra
        redesenhava o modal inteiro e criava um campo novo, refocado num setTimeout. */
     const busca = total>8
-      ? `<input id="buscaProd" placeholder="buscar produto..." value="${this.busca}" autocomplete="off"
+      ? `<input id="buscaProd" placeholder="buscar produto..." value="${escA(this.busca)}" autocomplete="off"
           oninput="Venda.busca=this.value;Venda.pag=1;Venda.pintarLista()">`
       : '';
     const n=this.nItens();
@@ -898,7 +938,7 @@ const Venda = {
       let obs='';
       if(d<=0) obs=` <span style="font-weight:600;font-size:12.5px">(${noCar>0?'tudo no carrinho':'sem estoque'})</span>`;
       else if(noCar>0) obs=` <span style="font-weight:600;font-size:12.5px;color:var(--vinho)">(${noCar} no carrinho)</span>`;
-      return `<button class="escolha-prod" onclick="Venda.escolheu(${p.id})" ${d<=0?'style="opacity:.5"':''}>
+      return `<button class="escolha-prod" onclick="Venda.escolheu(${p.id})" ${d<=0?'style="opacity:.7"':''}>
         <span class="n">${p.nome}${obs}</span>
         <span class="p">${rs(p.preco)}</span></button>`;
     }).join('');
@@ -919,9 +959,9 @@ const Venda = {
     Modal.abrir(`<div class="passo">${ed?'mudar a quantidade':'passo 2 de 4 · quantidade'}</div>
       <h3>${p.nome}</h3><p class="sub">${rs(p.preco)} cada · ${p.qtd} em estoque</p>
       <div class="qtd-row">
-        <button onclick="Venda.mudaQtd(-1)">&minus;</button>
-        <span class="n" id="qtdN">${this._qtd}</span>
-        <button onclick="Venda.mudaQtd(1)">+</button>
+        <button onclick="Venda.mudaQtd(-1)" aria-label="diminuir quantidade">&minus;</button>
+        <span class="n" id="qtdN" aria-live="polite">${this._qtd}</span>
+        <button onclick="Venda.mudaQtd(1)" aria-label="aumentar quantidade">+</button>
       </div>
       <div class="aviso backup oculto" id="avisoEstoque"></div>
       <button class="btn" onclick="Venda.addAoCarrinho()">${ed?'Salvar':'Adicionar ao carrinho'}</button>
@@ -1019,8 +1059,8 @@ const Venda = {
         <div class="parc-info" id="parcInfo"></div>
       </div>
 
-      <label>nome da cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
-      <input id="fiadoNome" placeholder="ex: Ana do 302" value="${c.cliente||''}" autocomplete="off">
+      <label for="fiadoNome">nome da cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
+      <input id="fiadoNome" placeholder="ex: Ana do 302" value="${escA(c.cliente||'')}" autocomplete="off">
 
       <button class="btn" onclick="Venda.confirmar()">Registrar venda &#10003;</button>
       <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`);
@@ -1197,7 +1237,7 @@ const Venda = {
         <div class="fi-falta"><div class="rot">ela ainda deve</div><div class="big">${rs(falta)}</div></div>
         ${linhaParc}
       </div>
-      <label>quanto ela está pagando agora?</label>
+      <label for="fiValor">quanto ela está pagando agora?</label>
       <input id="fiValor" data-moeda inputmode="numeric" value="${fmtMoeda(falta)}"
         oninput="Venda.previaReceber(${id})">
       <div class="fi-atalhos">
@@ -1642,7 +1682,7 @@ const Venda = {
     D.dados.vendas=D.dados.vendas.filter(x=>x.id!==id); D.salvar(); Modal.fechar(); Tela.render(); toast('Venda excluída'); },
   recibo(id){ const v=D.dados.vendas.find(x=>x.id===id); const loja=D.dados.config.loja||'Minha lojinha';
     // DEFESA VoC: recibo NUNCA mostra custo nem lucro
-    const linhas=v.itens.map(i=>`${i.qtd}x ${i.nome} — ${rs(i.preco*i.qtd)}`).join('%0A');
+    const linhas=v.itens.map(i=>encodeURIComponent(`${i.qtd}x ${i.nome}: ${rs(i.preco*i.qtd)}`)).join('%0A');
     let extra='';
     if(v.pgto==='fiado'){ const pg=Venda.jaPago(v), falta=Venda.saldo(v);
       extra = falta>0
@@ -1655,19 +1695,19 @@ const Venda = {
     const linhaCli = v.cliente ? `%0ACliente: ${encodeURIComponent(v.cliente)}` : '';
     const linhaDesc = descontoDe(v)
       ? `Subtotal: ${encodeURIComponent(rs(somaItens(v.itens)))}%0ADesconto: - ${encodeURIComponent(textoDesconto(v))}%0A` : '';
-    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}${linhaCli}%0A%0A${linhas}%0A%0A${linhaDesc}*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${v.pgto}${linhaPar}${extra}%0A%0AObrigada pela preferência!`;
+    const txt=`*${encodeURIComponent(loja)}*%0A${encodeURIComponent(v.data.split('-').reverse().join('/'))}${linhaCli}%0A%0A${linhas}%0A%0A${linhaDesc}*Total: ${encodeURIComponent(rs(v.total))}*%0AForma de pagamento: ${encodeURIComponent(v.pgto)}${linhaPar}${extra}%0A%0AObrigada pela preferência!`;
     window.open('https://wa.me/?text='+txt,'_blank'); }
 };
 /* ============ PRODUTO ============ */
 const Produto = {
   form(id){ const p=id?D.dados.produtos.find(x=>x.id===id):null;
     Modal.abrir(`<h3>${p?'Editar':'Novo'} produto</h3>
-      <label>nome do produto</label><input id="pNome" value="${p?p.nome:''}" placeholder="ex: Blusa canelada P">
+      <label for="pNome">nome do produto</label><input id="pNome" value="${p?escA(p.nome):''}" placeholder="ex: Blusa canelada P">
       <div class="linha2">
-        <div><label>quanto VOCÊ pagou (custo)</label><input id="pCusto" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.custo):''}" placeholder="R$ 0,00"></div>
-        <div><label>preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.preco):''}" placeholder="R$ 0,00"></div>
+        <div><label for="pCusto">quanto VOCÊ pagou (custo)</label><input id="pCusto" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.custo):''}" placeholder="R$ 0,00"></div>
+        <div><label for="pPreco">preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" value="${p?fmtMoeda(p.preco):''}" placeholder="R$ 0,00"></div>
       </div>
-      <label>quantidade em estoque</label><input id="pQtd" inputmode="numeric" value="${p?p.qtd:''}" placeholder="0">
+      <label for="pQtd">quantidade em estoque</label><input id="pQtd" inputmode="numeric" value="${p?p.qtd:''}" placeholder="0">
       <div id="pLucroPrev" class="aviso verde oculto" style="margin-top:12px"></div>
       <button class="btn" onclick="Produto.salvar(${p?p.id:0})">Salvar produto</button>
       ${p?`<button class="btn perigo" onclick="Produto.excluir(${p.id})">Excluir produto</button>`:''}`);
@@ -1686,7 +1726,12 @@ const Produto = {
     if(id){ const p=D.dados.produtos.find(x=>x.id===id); Object.assign(p,{nome,custo,preco,qtd}); }
     else D.dados.produtos.push({id:D.id(),nome,custo,preco,qtd});
     D.salvar(); Modal.fechar(); Tela.render(); toast(id?'Produto atualizado ✓':'Produto cadastrado ✓'); },
-  excluir(id){ D.dados.produtos=D.dados.produtos.filter(p=>p.id!==id);
+  /* o botao vermelho fica logo abaixo do Salvar: um toque errado apagava na hora */
+  excluir(id){ const p=D.dados.produtos.find(x=>x.id===id); if(!p) return;
+    Modal.abrir(`<h3>Excluir este produto?</h3><p class="sub"><b>${escA(p.nome)}</b> sai do estoque. As vendas já registradas continuam no histórico.</p>
+      <button class="btn perigo" onclick="Produto.confirmaExcluir(${id})">Sim, excluir</button>
+      <button class="btn sec" onclick="Produto.form(${id})">Cancelar</button>`); },
+  confirmaExcluir(id){ D.dados.produtos=D.dados.produtos.filter(p=>p.id!==id);
     D.salvar(); Modal.fechar(); Tela.render(); toast('Produto excluído'); }
 };
 
@@ -1702,8 +1747,8 @@ const Produto = {
    bom portugues em que mes aquilo vai entrar. */
 const Despesa = {
   form(){ Modal.abrir(`<h3>Nova despesa</h3><p class="sub">embalagem, frete, sacola, motoboy...</p>
-    <label>o que foi</label><input id="dDesc" placeholder="ex: embalagens">
-    <label>valor</label><input id="dValor" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+    <label for="dDesc">o que foi</label><input id="dDesc" placeholder="ex: embalagens">
+    <label for="dValor">valor</label><input id="dValor" data-moeda inputmode="numeric" placeholder="R$ 0,00">
     <label>quando foi essa despesa?</label>
     <div class="dt-atalhos">
       <button type="button" id="dtHoje" onclick="Despesa.setData(0)">hoje</button>
@@ -1744,7 +1789,12 @@ const Despesa = {
     if(Tela.mesResumo && mesDe(data)!==Tela.mesResumo) Tela.mesResumo=mesDe(data);
     D.salvar(); Modal.fechar(); Tela.render();
     toast('Despesa lançada em '+nomeMes(mesDe(data))); },
-  excluir(id){ D.dados.despesas=D.dados.despesas.filter(d=>d.id!==id); D.salvar(); Tela.render(); }
+  /* o "x" e pequeno e fica colado no valor: confirma antes de apagar */
+  excluir(id){ const d=D.dados.despesas.find(x=>x.id===id); if(!d) return;
+    Modal.abrir(`<h3>Excluir esta despesa?</h3><p class="sub">${escA(d.desc)} · ${rs(d.valor)}</p>
+      <button class="btn perigo" onclick="Despesa.confirmaExcluir(${id})">Sim, excluir</button>
+      <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`); },
+  confirmaExcluir(id){ D.dados.despesas=D.dados.despesas.filter(d=>d.id!==id); D.salvar(); Modal.fechar(); Tela.render(); toast('Despesa excluída'); }
 };
 
 /* ============ WIZARD (quick win < 10 min) ============ */
@@ -1752,7 +1802,7 @@ const Wizard = {
   passo1(){ Modal.abrir(`<div class="wizard-logo"><div class="m1">Lucro na Mão</div>
       <div class="m2">Controle da Lojinha · seu app, pra sempre</div></div>
     <p class="sub" style="text-align:center">Em 3 passinhos você registra sua primeira venda<br>e vê seu lucro na tela. Bora?</p>
-    <label>como chama a sua lojinha?</label><input id="wLoja" placeholder="ex: Closet da Ju">
+    <label for="wLoja">como chama a sua lojinha?</label><input id="wLoja" placeholder="ex: Closet da Ju">
     <button class="btn" onclick="Wizard.passo2()">Começar</button>`); },
   passo2(){ const loja=document.getElementById('wLoja').value.trim();
     D.dados.config.loja=loja||'Minha lojinha'; D.salvar();
@@ -1760,12 +1810,12 @@ const Wizard = {
     Modal.abrir(`<div class="passo">quase lá · cadastre seu 1º produto</div>
       <h3>Cadastra um produto que você vende</h3>
       <p class="sub">Pode ser qualquer um. Depois você cadastra o resto com calma.</p>
-      <label>nome do produto</label><input id="pNome" placeholder="ex: Blusa canelada P">
+      <label for="pNome">nome do produto</label><input id="pNome" placeholder="ex: Blusa canelada P">
       <div class="linha2">
-        <div><label>quanto você pagou</label><input id="pCusto" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
-        <div><label>preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+        <div><label for="pCusto">quanto você pagou</label><input id="pCusto" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+        <div><label for="pPreco">preço de venda</label><input id="pPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
       </div>
-      <label>quantas você tem</label><input id="pQtd" inputmode="numeric" placeholder="0">
+      <label for="pQtd">quantas você tem</label><input id="pQtd" inputmode="numeric" placeholder="0">
       <button class="btn" onclick="Wizard.fim()">Cadastrar e concluir</button>`); },
   fim(){ const nome=document.getElementById('pNome').value.trim();
     const custo=num(document.getElementById('pCusto').value), preco=num(document.getElementById('pPreco').value);
@@ -1786,7 +1836,7 @@ const Tela = {
   irPagEstoque(p){ this.pagEstoque=p; this.render(); window.scrollTo({top:0,behavior:'smooth'}); },
   avisoBackup(){ return Backup.precisa()
     ? `<div class="aviso backup"><svg style="width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 8.3L12 13l8.7-4.7M12 13v8"/></svg> <span><b>${D.dados.config.vendasDesdeBackup||D.dados.vendas.length} vendas sem backup.</b>
-       Toca em "salvar backup" lá em cima e manda o arquivo pro seu WhatsApp. Leva 5 segundos.</span></div>` : ''; },
+       Toca em "backup" lá em cima e manda o arquivo pro seu WhatsApp. Leva 5 segundos.</span></div>` : ''; },
   render(){
     document.getElementById('hdrLoja').textContent=D.dados.config.loja;
     const app=document.getElementById('app');
@@ -1818,7 +1868,7 @@ const Tela = {
     }).length;
     return `${this.avisoBackup()}
       <div class="card"><div class="kpis">
-        <div class="kpi"><div class="v pos">${rs(lucroHoje)}</div><div class="l">entrou hoje (${nCaixaHoje} venda${nCaixaHoje===1?'':'s'})</div></div>
+        <div class="kpi"><div class="v pos">${rs(lucroHoje)}</div><div class="l">seu lucro hoje (${nCaixaHoje} venda${nCaixaHoje===1?'':'s'})</div></div>
         <div class="kpi"><div class="v">${rs(tt.lucro)}</div><div class="l">lucro do mês</div></div>
       </div>
       ${aReceber>0?`<button class="kpi-link" onclick="Tela.filtroVendas='fiado';Tela.ir('vendas')">
@@ -1896,7 +1946,7 @@ const Tela = {
         <div class="kpi"><div class="v ${investido>=10000?'grande':''}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
       </div></div>
       <button class="btn" onclick="Produto.form()">+ Cadastrar produto</button>
-      ${total>8?`<input placeholder="buscar produto..." value="${this.buscaEstoque||''}"
+      ${total>8?`<input placeholder="buscar produto..." value="${escA(this.buscaEstoque||'')}"
         oninput="Tela.buscaEstoque=this.value;Tela.pagEstoque=1;Tela.render();setTimeout(()=>{const b=document.querySelector('#app input');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)"
         style="margin-top:12px">
       <div class="filtros" style="margin-top:10px">
@@ -1918,7 +1968,7 @@ const Tela = {
     const ym=this.mesResumo, tt=Calc.totais(ym), top=Calc.topProdutos(ym);
     const desp=D.dados.despesas.filter(d=>mesDe(d.data)===ym);
     return `<div class="mes-nav">
-        <button onclick="Tela.mudaMes(-1)">‹</button><span class="m">${nomeMes(ym)}</span><button onclick="Tela.mudaMes(1)">›</button></div>
+        <button onclick="Tela.mudaMes(-1)" aria-label="mês anterior">‹</button><span class="m">${nomeMes(ym)}</span><button onclick="Tela.mudaMes(1)" aria-label="próximo mês">›</button></div>
       <div class="card"><div class="kpis">
         <div class="kpi"><div class="v">${rs(tt.vendido)}</div><div class="l">entrou no caixa (${tt.n} recebimento${tt.n===1?'':'s'})</div></div>
         <div class="kpi"><div class="v pos">${rs(tt.lucro)}</div><div class="l">lucro do que entrou</div></div>
@@ -1957,8 +2007,8 @@ const Tela = {
         <input type="file" id="arqRestaura" accept=".csv,.json" class="oculto" onchange="if(this.files[0])Backup.restaurar(this.files[0]);this.value=''">
       </div>
       <div class="card"><h2>sua lojinha</h2>
-        <label>nome da lojinha (sai no recibo)</label>
-        <input id="cfgLoja" value="${c.loja}" onchange="D.dados.config.loja=this.value.trim();D.salvar();Tela.render()">
+        <label for="cfgLoja">nome da lojinha (sai no recibo)</label>
+        <input id="cfgLoja" value="${escA(c.loja)}" onchange="D.dados.config.loja=this.value.trim();D.salvar();Tela.render()">
       </div>
       `;
   }
@@ -2144,7 +2194,7 @@ Instalar.init();
 </script>
 
 <div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
-  <div class="cfg-box">
+  <div class="cfg-box" role="dialog" aria-modal="true" aria-label="ajustes">
     <h3>Ajustes</h3>
     <div class="cfg-sub">Deixe o app com a sua cara.</div>
     <h4>cor do aplicativo</h4>
@@ -2160,7 +2210,7 @@ Instalar.init();
 
 
 <div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">
-  <div class="ps-box">
+  <div class="ps-box" role="dialog" aria-modal="true" aria-label="como instalar">
     <h3>Colocar o app na tela inicial</h3>
     <div class="ps-sub" id="psSub"></div>
     <div class="demo">
@@ -2168,7 +2218,7 @@ Instalar.init();
         <span class="demo-rot">como fazer</span>
         <span class="demo-passo" id="dPasso">passo 2</span>
       </div>
-      <div class="fone">
+      <div class="fone" aria-hidden="true">
         <div class="fone-tela">
           <div class="pag">
             <div class="pag-top"><b>Lucro na Mão</b><i>seus apps, pagos uma vez, seus pra sempre</i></div>
@@ -2346,6 +2396,13 @@ Instalar.init();
     }
   }catch(e){}
 })();
+</script>
+<script>
+/* Esc fecha as folhas de ajustes e de instalacao (acessibilidade, 26/10/2026) */
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  const ps=document.getElementById('psFundo'), cf=document.getElementById('cfgFundo');
+  if(ps&&ps.classList.contains('aberto')&&typeof Instalar!=='undefined'&&Instalar.fecharPassos) Instalar.fecharPassos();
+  else if(cf&&cf.classList.contains('aberto')&&typeof Config!=='undefined') Config.fechar(); });
 </script>
 </body>
 </html>

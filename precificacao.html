@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#8e2757">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -14,10 +14,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Catálogo na Mão · Lucro na Mão</title>
+<!-- ativacao pelo e-mail da compra: roda ANTES de tudo (ver ativacao.js) -->
+<script>/* rede de seguranca da ativacao: decide "legado" ou "pendente" ANTES de a pagina gravar o tema,
+   mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
+try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
+<script src="ativacao.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
-  --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
+  --tinta:#2b2230; --cinza:#675c6d; --linha:#eadfe6; --branco:#fff;
   --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
   --verm:#b3261e; --verm-bg:#fbeae9;
 }
@@ -32,7 +37,7 @@ main{padding:14px;max-width:560px;margin:0 auto}
 .card{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:12px}
 .card h2{font-size:14px;color:var(--cinza);font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
 label{font-size:13px;color:var(--cinza);font-weight:600;display:block;margin-top:12px}
-input{width:100%;padding:13px;border:1.5px solid var(--linha);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
+input{width:100%;padding:13px;border:1.5px solid #8f8496;border-radius:12px;font-size:16px;font-family:inherit;background:#fff;margin-top:4px}
 input:focus{outline:none;border-color:var(--vinho)}
 .linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
@@ -266,6 +271,15 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
 .demo-ctrl button{background:none;border:1px solid var(--linha);border-radius:99px;
   padding:5px 13px;font-size:11.5px;color:var(--cinza);cursor:pointer;font-family:inherit;font-weight:600}
 @media (prefers-reduced-motion: reduce){.dedo,.menu,.folha,.f-lista,.final{transition:none}}
+/* acessibilidade (26/10/2026): toque sem atraso de duplo toque agora que o zoom
+   esta liberado, e placeholder legivel (o padrao do navegador fica perto de 2,3:1) */
+html{touch-action:manipulation}
+::placeholder{color:#7a6f80;opacity:1}
+/* alvos de toque (26/10/2026): voltar, fechar faixa e engrenagem tinham de 20 a 31 px;
+   a margem negativa aumenta a area do toque sem mudar o desenho */
+#voltarMenu{padding:11px;margin:-11px}
+.fi-x,.fn-x{min-width:44px;min-height:44px}
+.btn-cfg{padding:10px;margin:-6px}
 </style>
 </head>
 <body>
@@ -328,13 +342,13 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
             <div class="dica" style="margin-top:6px">Sem logo? Sem problema: entra a inicial da lojinha.</div>
           </div>
         </div>
-        <label>nome da lojinha</label>
+        <label for="catLoja">nome da lojinha</label>
         <input id="catLoja" maxlength="30" placeholder="ex: Closet da Ju" oninput="Catalogo.salvarPerfil();Catalogo.desenhar()">
-        <label>seu @ do Instagram (opcional)</label>
+        <label for="catInsta">seu @ do Instagram (opcional)</label>
         <input id="catInsta" maxlength="30" placeholder="ex: @closetdaju" oninput="Catalogo.salvarPerfil();Catalogo.desenhar()">
-        <label>título</label>
+        <label for="catTitulo">título</label>
         <input id="catTitulo" maxlength="40" placeholder="ex: Novidades da semana" oninput="Catalogo.salvarCfg();Catalogo.desenhar()">
-        <label>recado embaixo (opcional)</label>
+        <label for="catRodape">recado embaixo (opcional)</label>
         <input id="catRodape" maxlength="60" placeholder="ex: entrega no bairro · faço pelo Pix" oninput="Catalogo.salvarCfg();Catalogo.desenhar()">
         <label>cor do catálogo</label>
         <div class="chips" id="catCorChips">
@@ -361,14 +375,14 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
   <section id="sec-uma">
     <div class="card">
       <h2>quanto essa peça te custa</h2>
-      <label>nome da peça (aparece na etiqueta)</label>
+      <label for="pecaNome">nome da peça (aparece na etiqueta)</label>
       <input id="pecaNome" placeholder="ex: Blusa canelada P">
-      <label>quanto você PAGOU nela (por peça)</label>
+      <label for="custo">quanto você PAGOU nela (por peça)</label>
       <input id="custo" data-moeda inputmode="numeric" placeholder="R$ 0,00">
       <div class="linha2">
-        <div><label>frete rateado por peça</label><input id="frete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+        <div><label for="frete">frete rateado por peça</label><input id="frete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
           <div class="dica">frete do pedido ÷ nº de peças</div></div>
-        <div><label>embalagem / extras</label><input id="extras" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+        <div><label for="extras">embalagem / extras</label><input id="extras" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
       </div>
       <label>taxa de quem recebe (%)</label>
       <div class="chips" id="chipsTaxa">
@@ -401,7 +415,7 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
 
     <div class="card">
       <h2>e se eu vender por outro preço?</h2>
-      <label>testar um preço</label>
+      <label for="testePreco">testar um preço</label>
       <input id="testePreco" data-moeda inputmode="numeric" placeholder="ex: R$ 49,90">
       <div class="aviso ruim" id="avisoTeste"></div>
       <table class="tabela" id="tabelaCenarios"></table>
@@ -415,13 +429,13 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
     <div class="card">
       <h2>vale para todas as peças do lote</h2>
       <div class="linha2">
-        <div><label>frete do pedido (total)</label><input id="loteFrete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
+        <div><label for="loteFrete">frete do pedido (total)</label><input id="loteFrete" data-moeda inputmode="numeric" placeholder="R$ 0,00">
           <div class="dica">dividido entre as peças abaixo</div></div>
-        <div><label>embalagem por peça</label><input id="loteEmb" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+        <div><label for="loteEmb">embalagem por peça</label><input id="loteEmb" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
       </div>
       <div class="linha2">
-        <div><label>taxa de recebimento (%)</label><input id="loteTaxa" data-pct inputmode="decimal" placeholder="0"></div>
-        <div><label>margem desejada (%)</label><input id="loteMargem" data-pct inputmode="decimal" placeholder="80"></div>
+        <div><label for="loteTaxa">taxa de recebimento (%)</label><input id="loteTaxa" data-pct inputmode="decimal" placeholder="0"></div>
+        <div><label for="loteMargem">margem desejada (%)</label><input id="loteMargem" data-pct inputmode="decimal" placeholder="80"></div>
       </div>
     </div>
 
@@ -463,7 +477,7 @@ canvas{width:100%;border-radius:12px;border:1px solid var(--linha);margin-top:12
 const TEMAS={
   vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
   violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
-  esmeralda:{a:'#1c7a5c',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
+  esmeralda:{a:'#176b50',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
   petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa',nome:'Petróleo'},
   grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9',nome:'Grafite'}
 };
@@ -1018,14 +1032,14 @@ const Precos = {
       this.itens.slice(0,40).map(i=>
         `<tr><td>${escapa(i.nome)}<div style="font-size:11.5px;color:var(--cinza)">custo ${rs(i.custo)} · lucro ${rs(i.preco-i.custo)}</div></td>
          <td class="d">${rs(i.preco)}</td>
-         <td style="text-align:right"><button class="btn-x" style="width:34px;height:34px;font-size:15px" onclick="Precos.excluir(${i.id})">×</button></td></tr>`).join('') +
+         <td style="text-align:right"><button class="btn-x" style="width:34px;height:34px;font-size:15px" onclick="Precos.excluir(${i.id})" aria-label="excluir este preço">×</button></td></tr>`).join('') +
       '</table>' + (this.itens.length>40?`<div class="mini">mostrando 40 de ${this.itens.length}</div>`:'');
   }
 };
 function escapa(s){ return String(s).replace(/[<>&]/g, m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m])); }
-function toastP(m){ const t=document.createElement('div');
+function toastP(m){ const t=document.createElement('div'); t.setAttribute('role','status');
   t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:30px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:70;max-width:92vw;text-align:center';
-  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),2400); }
+  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4500); }
 
 /* ================= EM LOTE ================= */
 const Lote = {
@@ -1084,7 +1098,7 @@ const Lote = {
         <div class="topo">
           <input placeholder="peça ${idx+1} (ex: Blusa canelada)" value="${escapa(i.nome)}"
             oninput="Lote.setCampo(${i.id},'nome',this.value)">
-          <button class="btn-x" onclick="Lote.remover(${i.id})">×</button>
+          <button class="btn-x" onclick="Lote.remover(${i.id})" aria-label="tirar esta peça">×</button>
         </div>
         <div class="linha2">
           <div><label>quanto pagou (un)</label>
@@ -1127,15 +1141,15 @@ const Etiqueta = {
   camposDoModelo(){
     const lista = Precos.itens.slice(0,40);
     const opcoes = lista.length
-      ? `<label>peça salva</label><select id="etqPeca" onchange="Etiqueta.preencher()">
+      ? `<label for="etqPeca">peça salva</label><select id="etqPeca" onchange="Etiqueta.preencher()">
           <option value="">— escolher da lista —</option>
           ${lista.map((i,ix)=>`<option value="${ix}">${escapa(i.nome)} · ${rs(i.preco)}</option>`).join('')}
          </select>` : '';
     const extra = this.modelo==='promo'
-      ? `<div class="linha2"><div><label>preço antigo</label><input id="etqDe" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
-         <div><label>preço promocional</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div></div>`
-      : `<label>preço</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00">`;
-    const nome = this.modelo==='preco' ? '' : `<label>nome da peça</label><input id="etqNome" placeholder="ex: Blusa canelada">`;
+      ? `<div class="linha2"><div><label for="etqDe">preço antigo</label><input id="etqDe" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div>
+         <div><label for="etqPreco">preço promocional</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00"></div></div>`
+      : `<label for="etqPreco">preço</label><input id="etqPreco" data-moeda inputmode="numeric" placeholder="R$ 0,00">`;
+    const nome = this.modelo==='preco' ? '' : `<label for="etqNome">nome da peça</label><input id="etqNome" placeholder="ex: Blusa canelada">`;
     $('etqCampos').innerHTML = opcoes + nome + extra;
   },
   preencher(){
@@ -1218,6 +1232,18 @@ document.querySelectorAll('#catCorChips button').forEach(b=>
   b.addEventListener('click',()=>Catalogo.setCor(b.dataset.v)));
 document.getElementById('catLogoArq').addEventListener('change',function(){
   Catalogo.pedirLogo(this.files&&this.files[0]); this.value=''; });
+/* "Abrir o Controle da Lojinha" (catalogo vazio): dentro da pasta de acesso o
+   Controle e controle.html (o index.html da pasta e o MENU); na raiz e index.html.
+   Era 'controle.html' fixo, que na raiz dava 404 (o app do Mexico ja corrigiu).
+   Leva a chave no #de= pra o voltar de la cair no menu certo. */
+(function(){
+  const PASTAS='c|d|p|cd|cp|u|tudo';
+  const naPasta=new RegExp('/('+PASTAS+')/[^/]*$').test(location.pathname);
+  const h=(location.hash||'').match(new RegExp('de=('+PASTAS+')$'));
+  const pz=location.pathname.match(new RegExp('/('+PASTAS+')/'));
+  const chave=h?h[1]:(pz?pz[1]:'');
+  const el=$('catIrControle'); if(el) el.setAttribute('href',(naPasta?'controle.html':'index.html')+(chave?'#de='+chave:''));
+})();
 Aba.ir('cat');
 document.querySelectorAll('#etqModelos button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#etqModelos button').forEach(x=>x.classList.remove('on'));
@@ -1396,7 +1422,7 @@ Instalar.init();
 </script>
 
 <div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
-  <div class="cfg-box">
+  <div class="cfg-box" role="dialog" aria-modal="true" aria-label="ajustes">
     <h3>Ajustes</h3>
     <div class="cfg-sub">Deixe o app com a sua cara.</div>
     <h4>cor do aplicativo</h4>
@@ -1412,7 +1438,7 @@ Instalar.init();
 
 
 <div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">
-  <div class="ps-box">
+  <div class="ps-box" role="dialog" aria-modal="true" aria-label="como instalar">
     <h3>Colocar o app na tela inicial</h3>
     <div class="ps-sub" id="psSub"></div>
     <div class="demo">
@@ -1420,7 +1446,7 @@ Instalar.init();
         <span class="demo-rot">como fazer</span>
         <span class="demo-passo" id="dPasso">passo 2</span>
       </div>
-      <div class="fone">
+      <div class="fone" aria-hidden="true">
         <div class="fone-tela">
           <div class="pag">
             <div class="pag-top"><b>Lucro na Mão</b><i>seus apps, pagos uma vez, seus pra sempre</i></div>
@@ -1598,6 +1624,13 @@ Instalar.init();
     }
   }catch(e){}
 })();
+</script>
+<script>
+/* Esc fecha as folhas de ajustes e de instalacao (acessibilidade, 26/10/2026) */
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  const ps=document.getElementById('psFundo'), cf=document.getElementById('cfgFundo');
+  if(ps&&ps.classList.contains('aberto')&&typeof Instalar!=='undefined'&&Instalar.fecharPassos) Instalar.fecharPassos();
+  else if(cf&&cf.classList.contains('aberto')&&typeof Config!=='undefined') Config.fechar(); });
 </script>
 </body>
 </html>

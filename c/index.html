@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#8e2757">
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png">
@@ -14,10 +14,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Meus apps · Lucro na Mão</title>
+<!-- ativacao pelo e-mail da compra: roda ANTES de tudo (ver ativacao.js) -->
+<script>/* rede de seguranca da ativacao: decide "legado" ou "pendente" ANTES de a pagina gravar o tema,
+   mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
+try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
+<script src="../ativacao.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
-  --tinta:#2b2230; --cinza:#7a6f80; --linha:#eadfe6; --branco:#fff;
+  --tinta:#2b2230; --cinza:#675c6d; --linha:#eadfe6; --branco:#fff;
   --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -279,13 +284,23 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .demo-ctrl button{background:none;border:1px solid var(--linha);border-radius:99px;
   padding:5px 13px;font-size:11.5px;color:var(--cinza);cursor:pointer;font-family:inherit;font-weight:600}
 @media (prefers-reduced-motion: reduce){.dedo,.menu,.folha,.f-lista,.final{transition:none}}
+/* acessibilidade (26/10/2026): toque sem atraso de duplo toque agora que o zoom
+   esta liberado, e placeholder legivel (o padrao do navegador fica perto de 2,3:1) */
+html{touch-action:manipulation}
+::placeholder{color:#7a6f80;opacity:1}
+/* alvos de toque (26/10/2026): voltar, fechar faixa e engrenagem tinham de 20 a 31 px;
+   a margem negativa aumenta a area do toque sem mudar o desenho */
+#voltarMenu{padding:11px;margin:-11px}
+.fi-x,.fn-x{min-width:44px;min-height:44px}
+.btn-cfg{padding:10px;margin:-6px}
 </style>
 </head>
 <body>
 
 <header style="position:relative">
   <div style="position:absolute;right:14px;top:16px"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
-  <img src="../logo-branca.png" alt="Lucro na Mão" style="height:64px;width:auto;max-width:78%;margin:0 auto 2px;display:block">
+  <!-- o logo e o titulo da pagina (o menu nao tinha h1) -->
+  <h1 style="margin:0;font-size:24px"><img src="../logo-branca.png" alt="Lucro na Mão" style="height:64px;width:auto;max-width:78%;margin:0 auto 2px;display:block"></h1>
   <p id="hdrSub">seus apps, pagos uma vez, seus pra sempre</p>
 </header>
 
@@ -322,7 +337,7 @@ main{padding:16px;max-width:560px;margin:0 auto}
 const TEMAS={
   vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8',nome:'Vinho'},
   violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd',nome:'Violeta'},
-  esmeralda:{a:'#1c7a5c',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
+  esmeralda:{a:'#176b50',b:'#145c45',c:'#e4f2ec',d:'#f3faf7',nome:'Esmeralda'},
   petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa',nome:'Petróleo'},
   grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9',nome:'Grafite'}
 };
@@ -828,7 +843,7 @@ Instalar.init();
 </script>
 
 <div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
-  <div class="cfg-box">
+  <div class="cfg-box" role="dialog" aria-modal="true" aria-label="ajustes">
     <h3>Ajustes</h3>
     <div class="cfg-sub">Deixe o app com a sua cara.</div>
     <h4>cor do aplicativo</h4>
@@ -844,7 +859,7 @@ Instalar.init();
 
 
 <div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">
-  <div class="ps-box">
+  <div class="ps-box" role="dialog" aria-modal="true" aria-label="como instalar">
     <h3>Colocar o app na tela inicial</h3>
     <div class="ps-sub" id="psSub"></div>
     <div class="demo">
@@ -852,7 +867,7 @@ Instalar.init();
         <span class="demo-rot">como fazer</span>
         <span class="demo-passo" id="dPasso">passo 2</span>
       </div>
-      <div class="fone">
+      <div class="fone" aria-hidden="true">
         <div class="fone-tela">
           <div class="pag">
             <div class="pag-top"><b>Lucro na Mão</b><i>seus apps, pagos uma vez, seus pra sempre</i></div>
@@ -1028,6 +1043,13 @@ Instalar.init();
     }
   }catch(e){}
 })();
+</script>
+<script>
+/* Esc fecha as folhas de ajustes e de instalacao (acessibilidade, 26/10/2026) */
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  const ps=document.getElementById('psFundo'), cf=document.getElementById('cfgFundo');
+  if(ps&&ps.classList.contains('aberto')&&typeof Instalar!=='undefined'&&Instalar.fecharPassos) Instalar.fecharPassos();
+  else if(cf&&cf.classList.contains('aberto')&&typeof Config!=='undefined') Config.fechar(); });
 </script>
 </body>
 </html>
