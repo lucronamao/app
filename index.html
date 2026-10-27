@@ -425,6 +425,9 @@ html{touch-action:manipulation}
 #voltarMenu{padding:11px;margin:-11px}
 .fi-x,.fn-x{min-width:44px;min-height:44px}
 .btn-cfg{padding:10px;margin:-6px}
+/* lembrete de backup (26/10/2026) */
+.lembrete-ico{width:54px;height:54px;border-radius:16px;background:var(--rose);display:flex;align-items:center;justify-content:center;margin:4px auto 10px}
+.lembrete-ico svg{width:28px;height:28px;fill:none;stroke:var(--vinho);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
 <body>
@@ -2022,6 +2025,45 @@ D.carregar();
 document.querySelectorAll('#navBar button').forEach(b=>b.addEventListener('click',()=>Tela.ir(b.dataset.tela)));
 Tela.render();
 if(!D.dados.config.wizardOk) Wizard.passo1();
+
+/* ===== LEMBRETE DE BACKUP (26/10/2026) =====
+   A faixa do topo (Backup.precisa) e facil de ignorar, e quem perde o celular sem
+   backup perde tudo. Este modal e o lembrete mais forte, com regra pra nao chatear
+   (decisao do Vini): aparece ao ABRIR o Controle, nunca no meio de uma venda,
+     - com 15 vendas sem backup, ou
+     - com 15 dias desde o ultimo backup e pelo menos 1 venda nova;
+     - sem venda nova, nunca (nao ha o que perder);
+     - "Agora nao" (ou o proprio botao de backup) adia 3 dias.
+   Nao aparece no primeiro uso (assistente), com outro modal aberto, nem por cima
+   da tela de ativacao. O adiamento fica no aparelho, fora do backup. */
+const Lembrete = {
+  chave:'lucronamao_lembrete_backup', VENDAS:15, DIAS:15, ADIA_DIAS:3,
+  diasDesde(){ const c=D.dados.config; const base=new Date(c.ultimoBackup||c.criadoEm||Date.now());
+    return Math.floor((Date.now()-base)/864e5); },
+  devido(){ const c=D.dados.config, n=c.vendasDesdeBackup||0;
+    if(!c.wizardOk || n<1) return false;
+    let ate=0; try{ ate=parseInt(localStorage.getItem(this.chave)||'0',10)||0; }catch(e){}
+    if(Date.now()<ate) return false;
+    return n>=this.VENDAS || this.diasDesde()>=this.DIAS; },
+  adiar(){ try{ localStorage.setItem(this.chave, String(Date.now()+this.ADIA_DIAS*864e5)); }catch(e){} },
+  mostrar(){ const c=D.dados.config, n=c.vendasDesdeBackup||0, d=this.diasDesde();
+    const quanto = n>=this.VENDAS ? `Você tem <b>${n} vendas</b> anotadas desde o último backup.` : (c.ultimoBackup ? `Seu último backup foi há <b>${d} dias</b>.` : `Você ainda não fez nenhum backup das suas vendas.`);
+    Modal.abrir(`<div class="lembrete-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 8.3L12 13l8.7-4.7M12 13v8"/></svg></div>
+      <h3 style="text-align:center">Hora de salvar o seu backup</h3>
+      <p class="sub" style="text-align:center">${quanto} Suas vendas ficam guardadas só neste celular. Se ele quebrar, sumir ou você trocar de aparelho, é o backup que traz tudo de volta.</p>
+      <p class="sub" style="text-align:center;margin-top:-4px">Toque abaixo e mande o arquivo pro seu WhatsApp. Leva uns 5 segundos.</p>
+      <button class="btn" onclick="Lembrete.agora()">Fazer backup agora</button>
+      <button class="btn discreto" onclick="Lembrete.depois()">Agora não</button>`); },
+  /* a tela de compartilhar do celular so abre dentro do toque: fecha e chama no mesmo clique */
+  agora(){ this.adiar(); Modal.fechar(); Backup.compartilhar(); },
+  depois(){ this.adiar(); Modal.fechar(); },
+  talvez(){ setTimeout(()=>{
+      if(!this.devido()) return;
+      if(document.getElementById('modalFundo').classList.contains('aberto')) return;
+      if(document.getElementById('ativ') || document.documentElement.classList.contains('ativ-trava')) return;
+      this.mostrar(); }, 1500); }
+};
+Lembrete.talvez();
 
 /* ============ AJUSTES (engrenagem): cor + instalar ============ */
 const Config = {
