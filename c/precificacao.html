@@ -19,6 +19,8 @@
    mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
 try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
 <script src="../ativacao.js"></script>
+<!-- o que esta liberado: a mesma regra do menu (03/11/2026) -->
+<script src="../liberado.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
@@ -279,7 +281,7 @@ html{touch-action:manipulation}
    a margem negativa aumenta a area do toque sem mudar o desenho */
 #voltarMenu{padding:11px;margin:-11px}
 .fi-x,.fn-x{min-width:44px;min-height:44px}
-.btn-cfg{padding:10px;margin:-6px}
+.btn-cfg{padding:10px;margin:-6px;min-width:44px;min-height:44px;justify-content:center}
 </style>
 </head>
 <body>
@@ -487,6 +489,15 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a);
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
+/* ===== O CATALOGO CONFERE O DIREITO AO ABRIR (03/11/2026) =====
+   Antes abria pra qualquer um pela URL. A regra e a do menu (liberado.js); sem
+   direito, a vitrine do card travado. Sem o liberado.js, recarrega uma vez e, se
+   ainda faltar, abre. */
+const TRAVADA=(function(){
+  if(window.Liberado) return Liberado.travar('preco');
+  try{ if(!sessionStorage.getItem('lucronamao_recarregou')){ sessionStorage.setItem('lucronamao_recarregou','1'); location.reload(); } }catch(e){}
+  return false;
+})();
 function num(v){ const s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isNaN(n)?0:n; }
 function fmtMoeda(n){ return n||n===0 ? 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
 /* a mascara roda na CAPTURA, antes de qualquer listener de campo (21/09/2026).
@@ -779,13 +790,13 @@ const Catalogo = {
       const on=this.cfg.fora.indexOf(p.id)<0;
       const f=this.fotos[p.id];
       const foto = f
-        ? `<img class="cat-foto" src="${f}" alt="" onclick="Catalogo.pedirFoto(${p.id})">`
-        : `<div class="cat-foto-vazia" onclick="Catalogo.pedirFoto(${p.id})">+ foto</div>`;
+        ? `<img class="cat-foto" src="${escapa(f)}" alt="" onclick="Catalogo.pedirFoto(${idn(p.id)})">`
+        : `<div class="cat-foto-vazia" onclick="Catalogo.pedirFoto(${idn(p.id)})">+ foto</div>`;
       const semEstoque = Number(p.qtd)<=0 ? '<small>acabou no estoque</small>' : '';
       return `<div class="cat-item">
-        <input class="ck" type="checkbox" ${on?'checked':''} onchange="Catalogo.alternar(${p.id},this.checked)" aria-label="incluir ${p.nome}">
+        <input class="ck" type="checkbox" ${on?'checked':''} onchange="Catalogo.alternar(${idn(p.id)},this.checked)" aria-label="incluir ${escapa(p.nome)}">
         ${foto}
-        <div class="nm">${p.nome}${semEstoque}</div>
+        <div class="nm">${escapa(p.nome)}${semEstoque}</div>
         <div class="pr">${rs(p.preco)}</div></div>`;
     }).join('');
     const n=this.selecionados().length;
@@ -1032,11 +1043,14 @@ const Precos = {
       this.itens.slice(0,40).map(i=>
         `<tr><td>${escapa(i.nome)}<div style="font-size:11.5px;color:var(--cinza)">custo ${rs(i.custo)} · lucro ${rs(i.preco-i.custo)}</div></td>
          <td class="d">${rs(i.preco)}</td>
-         <td style="text-align:right"><button class="btn-x" style="width:34px;height:34px;font-size:15px" onclick="Precos.excluir(${i.id})" aria-label="excluir este preço">×</button></td></tr>`).join('') +
+         <td style="text-align:right"><button class="btn-x" style="width:34px;height:34px;font-size:15px" onclick="Precos.excluir(${Number(i.id)})" aria-label="excluir o preço de ${escapa(i.nome)}">×</button></td></tr>`).join('') +
       '</table>' + (this.itens.length>40?`<div class="mini">mostrando 40 de ${this.itens.length}</div>`:'');
   }
 };
-function escapa(s){ return String(s).replace(/[<>&]/g, m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m])); }
+/* texto da usuaria no HTML ou em atributo (value="...", aria-label): as 5 (03/11/2026).
+   Antes nao escapava aspas, e o nome da peca ia pra dentro de value="..." */
+function escapa(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+const idn = x => { const n=Number(x); return Number.isInteger(n) ? n : -1; };
 function toastP(m){ const t=document.createElement('div'); t.setAttribute('role','status');
   t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:30px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:70;max-width:92vw;text-align:center';
   t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4500); }
@@ -1244,7 +1258,7 @@ document.getElementById('catLogoArq').addEventListener('change',function(){
   const chave=h?h[1]:(pz?pz[1]:'');
   const el=$('catIrControle'); if(el) el.setAttribute('href',(naPasta?'controle.html':'index.html')+(chave?'#de='+chave:''));
 })();
-Aba.ir('cat');
+if(!TRAVADA) Aba.ir('cat');
 document.querySelectorAll('#etqModelos button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#etqModelos button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); Etiqueta.modelo=b.dataset.v; Etiqueta.camposDoModelo(); }));
@@ -1521,24 +1535,10 @@ Instalar.init();
     var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
     if(!m) return;
 
-    /* GRAVA o nivel tambem daqui (31/08/2026). A compradora instala de DENTRO do
-       app, e o icone nasce apontando pro hub pelado (start_url do manifest de
-       /app/). Sem esta gravacao, quem instalou pelo app e nunca voltou ao menu
-       nao teria nada lembrado, e o hub travaria tudo. Uniao, nunca substituicao. */
-    try{
-      var MAPA_MEM = {c:['controle'],d:['divulga'],p:['preco'],
-                      cd:['controle','divulga'],cp:['controle','preco'],
-                      u:['preco'],tudo:['controle','divulga','preco']};
-      var itens = MAPA_MEM[m[1]] || [];
-      if(itens.length){
-        var K = 'lucronamao_liberado';
-        var antes = JSON.parse(localStorage.getItem(K) || '[]');
-        if(!Array.isArray(antes)) antes = [];
-        var uniao = antes.slice();
-        itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
-        if(uniao.length !== antes.length) localStorage.setItem(K, JSON.stringify(uniao));
-      }
-    }catch(e){}
+    /* O #de= NAO grava mais o nivel (03/11/2026, achado de seguranca): qualquer um
+       abria `divulga.html#de=tudo` e ganhava tudo pra sempre. A memoria so nasce do
+       CAMINHO da pasta (hub.html), como antes de 31/08. Quem ja tinha a memoria
+       gravada por aqui continua com ela: nada e apagado. O hash serve so pro voltar. */
 
     var a = document.getElementById('voltarMenu');
     if(!a) return;

@@ -303,7 +303,7 @@ html{touch-action:manipulation}
    a margem negativa aumenta a area do toque sem mudar o desenho */
 #voltarMenu{padding:11px;margin:-11px}
 .fi-x,.fn-x{min-width:44px;min-height:44px}
-.btn-cfg{padding:10px;margin:-6px}
+.btn-cfg{padding:10px;margin:-6px;min-width:44px;min-height:44px;justify-content:center}
 </style>
 </head>
 <body>
@@ -547,15 +547,10 @@ const APPS=[
      Controle mostra no convite do botao "cobrar" */
   { id:'divulga', icone:ICO.divulga, url:'divulga.html', ...Lib.VITRINE.divulga,
     liberado:tem('divulga'), checkout:CHECKOUT.divulga },
-  { id:'preco', nome:'Catálogo na Mão', icone:ICO.preco, url:'precificacao.html',
-    desc:'aumente as vendas mandando o catálogo da lojinha no WhatsApp',
-    tags:['pronto em 1 toque','com a sua logo','direto do seu estoque'],
-    liberado:tem('preco'), preco:'R$ 67', checkout:CHECKOUT.preco, oferta:OFERTA.preco,
-    pitch:'Mandar foto solta e responder "quanto é?" o dia todo cansa, e faz a freguesa desistir no meio.',
-    beneficios:['seu catálogo sai pronto com os produtos que JÁ estão no seu estoque: você não cadastra nada duas vezes',
-      'com a sua logo, o nome da sua lojinha e o preço de cada peça, do jeito que loja grande manda',
-      'um toque e ele vai no WhatsApp: pro grupo, pro status ou pra freguesa que perguntou',
-      'e a calculadora de preço continua aqui dentro, pra quando você quiser conferir quanto sobra'] },
+  /* texto do card do Catalogo: Lib.VITRINE.preco (liberado.js, 03/11/2026), o mesmo
+     que a tela travada do proprio Catalogo mostra */
+  { id:'preco', icone:ICO.preco, url:'precificacao.html', ...Lib.VITRINE.preco,
+    liberado:tem('preco'), checkout:CHECKOUT.preco, oferta:OFERTA.preco },
   /* Clientes na Mao (03/11/2026): so libera pelo e-mail (nao tem pasta de link).
      Enquanto o produto nao existe na Cakto, o card nao tem botao de compra. */
   { id:'clientes', icone:ICO.clientes, url:'clientes.html', ...Lib.VITRINE.clientes,

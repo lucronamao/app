@@ -84,9 +84,12 @@
     return clientes().filter(function (c) { return String(c.id) === String(id); })[0] || null;
   }
   function nomesDe(c) { return [norm(c.nome)].concat((c.nomesAntigos || []).map(norm)); }
+  /* mapas sem prototipo: um nome digitado "__proto__" ou "constructor" vira uma
+     chave comum, e nao mexe no objeto do JavaScript (03/11/2026) */
+  function mapa() { return Object.create(null); }
   /* nome normalizado -> cliente cadastrada (so quando UMA cliente tem esse nome) */
   function indicePorNome(lista) {
-    var idx = {}, dup = {};
+    var idx = mapa(), dup = mapa();
     lista.forEach(function (c) {
       nomesDe(c).forEach(function (n) { if (!n) return; if (idx[n] && idx[n] !== c) dup[n] = 1; else idx[n] = c; });
     });
@@ -134,10 +137,12 @@
 
   /* ---------- quem te deve ---------- */
   function agrupar(lista, filtro) {
-    var idx = indicePorNome(lista), g = {};
+    var idx = indicePorNome(lista), g = mapa(), todas = mapa();
     vendas().forEach(function (v) {
-      if (!filtro(v)) return;
       var r = resolverCom(v, lista, idx); if (!r) return;
+      /* todas as vendas de cada cliente, pra grafia do nome (abaixo) */
+      (todas[r.chave] = todas[r.chave] || []).push(v);
+      if (!filtro(v)) return;
       if (!g[r.chave]) g[r.chave] = { chave: r.chave, cliente: r.cliente, nome: r.nome, vendas: [], chaves: [r.chave] };
       var gr = g[r.chave];
       gr.vendas.push(v);
@@ -147,8 +152,10 @@
     Object.keys(g).forEach(function (k) {
       var gr = g[k];
       if (gr.cliente) nomesDe(gr.cliente).forEach(function (n) { if (gr.chaves.indexOf('n:' + n) < 0) gr.chaves.push('n:' + n); });
-      /* sem cadastro, o nome que aparece e a grafia mais usada nas vendas dela */
-      if (!gr.cliente) gr.nome = melhorNome(gr.vendas);
+      /* sem cadastro, o nome que aparece e a grafia mais usada em TODAS as vendas
+         dela, nao so nas filtradas (03/11/2026): o Cobrar, que filtra o fiado em
+         aberto, mostrava "bia" enquanto ela e "Bia" em todo o resto */
+      if (!gr.cliente) gr.nome = melhorNome(todas[k] || gr.vendas);
     });
     return Object.keys(g).map(function (k) { return g[k]; });
   }
@@ -156,7 +163,7 @@
   /* a mesma cliente escrita de jeitos diferentes ("Bia", "bia "): fica a grafia
      mais usada; no empate, a que comeca com maiuscula, depois a mais recente */
   function melhorNome(vs) {
-    var cont = {}, ordem = [];
+    var cont = mapa(), ordem = [];
     vs.slice().sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); }).forEach(function (v) {
       var n = String(v.cliente || '').trim().replace(/\s+/g, ' '); if (!n) return;
       if (!cont[n]) { cont[n] = 0; ordem.push(n); }
@@ -167,7 +174,7 @@
   }
 
   function pecasDe(vs) {
-    var q = {}, ordem = [];
+    var q = mapa(), ordem = [];
     vs.forEach(function (v) {
       (v.itens || []).forEach(function (i) {
         var n = String(i.nome || '').trim(); if (!n) return;
@@ -188,15 +195,22 @@
       g.desde = g.vendas[0].data;
       g.dias = Math.max(0, dias(g.desde, h));
       g.pecas = pecasDe(g.vendas);
-      /* parcela do mes: soma da parcela de cada venda parcelada que ainda tem parcela a pagar */
-      g.parcelada = false; g.parcela = 0; g.parcelaAtrasada = false;
+      /* parcela do mes: soma da parcela de cada venda parcelada que ainda tem parcela a pagar.
+         VALE LEMBRAR, venda por venda (03/11/2026): a parcelada so quando a parcela
+         atrasou (a proxima ainda nao venceu = em dia, mesmo com mais de 7 dias da
+         compra); a sem parcelas, pela regra dos 7 dias. Antes os 7 dias valiam pra
+         todas e a cliente com a parcela em dia aparecia em "hoje vale lembrar". */
+      g.parcelada = false; g.parcela = 0; g.parcelaAtrasada = false; g.venceu = false;
       g.vendas.forEach(function (v) {
         var pp = parcelasPagas(v);
-        if (!pp || pp.pagas >= pp.n) return;
+        if (!pp || pp.pagas >= pp.n) {
+          if (dias(v.data, h) >= REGRAS.PRAZO_DIAS) g.venceu = true;
+          return;
+        }
         g.parcelada = true;
         g.parcela = r2(g.parcela + Math.min(pp.vp, saldo(v)));
         var devidas = Math.min(pp.n, Math.floor(Math.max(0, dias(v.data, h)) / REGRAS.PARCELA_DIAS));
-        if (devidas > pp.pagas) g.parcelaAtrasada = true;
+        if (devidas > pp.pagas) { g.parcelaAtrasada = true; g.venceu = true; }
       });
       var hist = historicoDe(g.chaves);
       g.historico = hist;
@@ -204,7 +218,7 @@
       g.cobradas = hist.filter(function (x) { return String(x.em).slice(0, 10) >= g.desde; }).length;
       g.ultima = hist.length ? hist[hist.length - 1] : null;
       g.diasUltima = g.ultima ? Math.max(0, dias(String(g.ultima.em).slice(0, 10), h)) : null;
-      var passou = g.dias >= REGRAS.PRAZO_DIAS || g.parcelaAtrasada;
+      var passou = g.venceu;
       var descansou = g.ultima === null || g.diasUltima >= REGRAS.INTERVALO_DIAS;
       g.hojeVale = passou && descansou;
       g.tom = tomSugerido(g);
@@ -251,6 +265,17 @@
     });
   }
 
+  /* o nome da cliente de uma venda, igual ao que o Cobrar mostra: a ficha, ou a
+     grafia mais usada em todas as vendas dela (pro "Receber de ..." do Controle) */
+  function nomeDaVenda(v) {
+    if (!v) return '';
+    var lista = clientes(), idx = indicePorNome(lista), r = resolverCom(v, lista, idx);
+    if (!r) return '';
+    if (r.cliente) return r.cliente.nome;
+    var vs = vendas().filter(function (x) { var rx = resolverCom(x, lista, idx); return rx && rx.chave === r.chave; });
+    return melhorNome(vs.length ? vs : [v]);
+  }
+
   function paraCobrarHoje() { return devedoras().filter(function (g) { return g.hojeVale; }); }
 
   /* ---------- ficha da cliente ---------- */
@@ -265,7 +290,7 @@
       var total = r2(vs.reduce(function (s, v) { return s + (Number(v.total) || 0); }, 0));
       var mes = r2(vs.filter(function (v) { return String(v.data).slice(0, 7) === ym; })
         .reduce(function (s, v) { return s + (Number(v.total) || 0); }, 0));
-      var qtd = {};
+      var qtd = mapa();
       vs.forEach(function (v) { (v.itens || []).forEach(function (i) { var n = String(i.nome || '').trim(); if (n) qtd[n] = (qtd[n] || 0) + (Number(i.qtd) || 1); }); });
       var top = Object.keys(qtd).sort(function (a, b) { return qtd[b] - qtd[a]; }).slice(0, 3).map(function (n) { return { nome: n, qtd: qtd[n] }; });
       var fiado = r2(vs.filter(function (v) { return v.pgto === 'fiado'; }).reduce(function (s, v) { return s + saldo(v); }, 0));
@@ -278,7 +303,7 @@
 
   /* nomes das vendas que ainda nao sao clientes cadastradas (pro "trazer os nomes") */
   function nomesSemCadastro() {
-    var lista = clientes(), idx = indicePorNome(lista), grupos = {}, ordem = [];
+    var lista = clientes(), idx = indicePorNome(lista), grupos = mapa(), ordem = [];
     vendas().forEach(function (v) {
       if (!v.cliente || (v.clienteId != null && clientePorId(v.clienteId))) return;
       var n = norm(v.cliente); if (!n || idx[n]) return;
@@ -308,7 +333,7 @@
     dados: dados, vendas: vendas, loja: loja,
     clientesObj: clientesObj, clientes: clientes, salvarClientes: salvarClientes,
     clientePorId: clientePorId, criarCliente: criarCliente, indicePorNome: indicePorNome,
-    chaveDaVenda: chaveDaVenda,
+    chaveDaVenda: chaveDaVenda, nomeDaVenda: nomeDaVenda, melhorNome: melhorNome,
     cobrancas: cobrancas, registrarCobranca: registrarCobranca, historicoDe: historicoDe,
     devedoras: devedoras, pagaramRecente: pagaramRecente, paraCobrarHoje: paraCobrarHoje,
     fichas: fichas, nomesSemCadastro: nomesSemCadastro, pecasDe: pecasDe,

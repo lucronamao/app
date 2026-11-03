@@ -86,7 +86,8 @@ label{font-size:14px;color:var(--cinza);font-weight:700;display:block;margin:14p
 .bloco h4{font-size:13px;color:var(--cinza);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 .fiado{background:var(--ambar-bg);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .fiado b{font-size:20px;color:var(--ambar)}
-.fiado a{background:var(--ambar);color:#fff;text-decoration:none;font-weight:800;border-radius:10px;padding:11px 15px;font-size:15px}
+.fiado a{background:var(--ambar);color:#fff;text-decoration:none;font-weight:800;border-radius:10px;padding:11px 15px;font-size:15px;
+  min-height:44px;display:inline-flex;align-items:center}
 .hist{border-top:1px solid var(--linha);padding:10px 0;font-size:14.5px;display:flex;justify-content:space-between;gap:10px}
 .hist:first-of-type{border-top:0}
 .hist .d{color:var(--cinza);font-size:13px}
@@ -133,7 +134,16 @@ const TEMAS={
 
 const $=id=>document.getElementById(id);
 const L=window.Lojinha;
-const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ===== O CLIENTES CONFERE O DIREITO AO ABRIR (03/11/2026) =====
+   Antes abria pra qualquer um pela URL. A regra e a do menu (liberado.js): o
+   Clientes so libera pelo e-mail da compra. Sem direito, a vitrine do card
+   travado. Sem o liberado.js, recarrega uma vez e, se ainda faltar, abre. */
+const TRAVADA=(function(){
+  if(window.Liberado) return Liberado.travar('clientes');
+  try{ if(!sessionStorage.getItem('lucronamao_recarregou')){ sessionStorage.setItem('lucronamao_recarregou','1'); location.reload(); } }catch(e){}
+  return false;
+})();
 const MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const dataBR=iso=>String(iso).split('-').reverse().join('/');
 const haDias=n=>n===0?'hoje':(n===1?'há 1 dia':'há '+n+' dias');
@@ -350,7 +360,7 @@ if(!L){ $('lista').innerHTML='<div class="vazio">Não deu pra abrir agora. Feche
 else{
   Lista.render();
   /* espera a tela de ativacao (se houver) sair do caminho antes de perguntar */
-  setTimeout(()=>{ if(document.documentElement.classList.contains('ativ-trava')||document.getElementById('ativ')) return;
+  setTimeout(()=>{ if(TRAVADA||document.documentElement.classList.contains('ativ-trava')||document.getElementById('ativ')) return;
     if(!L.clientesObj().perguntado && L.nomesSemCadastro().length) Importar.perguntar(false); }, 400);
 }
 
@@ -367,7 +377,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register(
   try{
     var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
     if(!m) return;
-    if(window.Liberado) Liberado.lembrar(Liberado.MAPA[m[1]] || []);
+    /* o #de= nao grava nem libera nada (03/11/2026): so diz pra onde o voltar leva */
     var a = document.getElementById('voltarMenu'); if(!a) return;
     var aqui = location.pathname.replace(/[^\/]*$/, '');
     var jaNaPasta = new RegExp('/' + m[1] + '/$').test(aqui);

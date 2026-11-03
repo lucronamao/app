@@ -241,7 +241,9 @@ html{touch-action:manipulation}
    a margem negativa aumenta a area do toque sem mudar o desenho */
 #voltarMenu{padding:11px;margin:-11px}
 .fi-x,.fn-x{min-width:44px;min-height:44px}
-.btn-cfg{padding:10px;margin:-6px}
+.btn-cfg{padding:10px;margin:-6px;min-width:44px;min-height:44px;justify-content:center}
+/* alvos de toque (03/11/2026): abas (43 px), "trocar" e "ver a mensagem" (35) */
+.abas button{min-height:44px}
 /* ===== QUEM TE DEVE (03/11/2026) ===== */
 .abas.sub{margin-bottom:12px}
 .abas.sub button{padding:10px 4px;font-size:13.5px}
@@ -263,7 +265,7 @@ html{touch-action:manipulation}
 .dv-selo{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:5px 10px;margin-top:9px;background:var(--rose);color:var(--vinho)}
 .dv-selo.nunca{background:#f1eef3;color:var(--cinza)}
 .dv-tomlinha{font-size:14px;margin-top:10px;color:var(--tinta)}
-.dv-tomlinha button{background:none;border:0;color:var(--vinho);font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-family:inherit;cursor:pointer;padding:8px 4px}
+.dv-tomlinha button{background:none;border:0;color:var(--vinho);font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-family:inherit;cursor:pointer;padding:8px 4px;min-height:44px}
 .dv-tons{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
 .dv-tons button{padding:11px 13px;background:var(--rose);color:var(--vinho);border:0;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 .dv-tons button.on{background:var(--vinho);color:#fff}
@@ -443,6 +445,16 @@ function aplicarTema(n){ const t=TEMAS[n]||TEMAS.vinho; const r=document.documen
   localStorage.setItem('lucronamao_tema',n); }
 aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
 function temaAtual(){ return TEMAS[localStorage.getItem('lucronamao_tema')||'vinho']; }
+/* ===== O COBRAR CONFERE O DIREITO AO ABRIR (03/11/2026) =====
+   Antes abria pra qualquer um pela URL. A regra e a do menu (liberado.js); sem
+   direito aparece a vitrine do card travado. Se o liberado.js nao carregou,
+   recarrega UMA vez (como o menu) e, se ainda faltar, abre: quem pagou nunca
+   fica trancado por falha de rede. */
+const TRAVADA=(function(){
+  if(window.Liberado) return Liberado.travar('divulga');
+  try{ if(!sessionStorage.getItem('lucronamao_recarregou')){ sessionStorage.setItem('lucronamao_recarregou','1'); location.reload(); } }catch(e){}
+  return false;
+})();
 
 const $=id=>document.getElementById(id);
 function semReais(v){ return String(v||'').replace(/^R\$\s*/,'').trim(); }
@@ -574,7 +586,7 @@ const TXT_DEVE = {
 
 const Cobrar = {
   grupos:[], pagaram:[], est:{}, pendente:null,
-  esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); },
+  esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
   /* "Ana Paula" vira "Ana"; "Dona Maria" fica "Dona Maria" */
   primeiroNome(n){ const p=String(n||'').trim().split(/\s+/);
     return /^(dona|dra?\.?|tia|sra?\.?|seu|irm[aã])$/i.test(p[0]||'') && p[1] ? p[0]+' '+p[1] : (p[0]||''); },
@@ -607,7 +619,7 @@ const Cobrar = {
   selo(g){
     if(!g.ultima) return `<span class="dv-selo nunca">${TXT_DEVE.nunca}</span>`;
     const t=(TONS[g.ultima.tom]||g.ultima.tom||'').toLowerCase();
-    return `<span class="dv-selo">${g.diasUltima===0?TXT_DEVE.cobradaHoje(t):TXT_DEVE.cobradaHa(g.diasUltima,t)}</span>`;
+    return `<span class="dv-selo">${this.esc(g.diasUltima===0?TXT_DEVE.cobradaHoje(t):TXT_DEVE.cobradaHa(g.diasUltima,t))}</span>`;
   },
   carregar(){
     if(!window.Lojinha){ this.grupos=[]; this.pagaram=[]; return; }
@@ -635,7 +647,7 @@ const Cobrar = {
     const e=this.estado(g), L=Lojinha, nome=this.esc(g.nome);
     const ref=`'${lista}',${i}`;
     if(lista==='p'){
-      return `<div class="dv-card" id="dv-${lista}-${i}">
+      return `<div class="dv-card" id="dv-${lista}-${i}" data-chave="${this.esc(g.chave)}">
         <div class="dv-linha"><b>${nome}</b> · ${this.esc(TXT_DEVE.pagouTudo(L.num(g.pago)))}</div>
         ${g.pecas.length?`<div class="dv-levou">levou ${this.esc(this.pecasTexto(g.pecas))}</div>`:''}
         ${g.ultima?this.selo(g):''}
@@ -653,7 +665,7 @@ const Cobrar = {
         <div class="dv-msg">${this.esc(this.mensagem(g))}</div>
         <button class="btn mini sec" onclick="Cobrar.outro(${ref})">${TXT_DEVE.outroJeito}</button>`
       : `<div class="dv-tomlinha">${TXT_DEVE.tomAtual} <b>${TONS[e.tom]}</b> <button type="button" onclick="Cobrar.abrir(${ref})">${TXT_DEVE.trocar}</button></div>`;
-    return `<div class="dv-card${g.hojeVale?' vale':''}" id="dv-${lista}-${i}">
+    return `<div class="dv-card${g.hojeVale?' vale':''}" id="dv-${lista}-${i}" data-chave="${this.esc(g.chave)}">
       <div class="dv-linha">${linha}</div>
       ${g.pecas.length?`<div class="dv-levou">levou ${this.esc(this.pecasTexto(g.pecas))}</div>`:''}
       ${this.selo(g)}
@@ -673,7 +685,7 @@ const Cobrar = {
   enviar(lista,i){
     const g=this.grupo(lista,i); if(!g) return;
     const e=this.estado(g), txt=this.mensagem(g);
-    window.open(Lojinha.linkWhats(g.whats, txt),'_blank');
+    window.open(Lojinha.linkWhats(g.whats, txt),'_blank','noopener,noreferrer');
     this.pendente={chave:g.chave, tom:e.tom, valor:e.tom==='parcela'?(g.parcela||g.falta):(e.tom==='recebido'?g.pago:g.falta)};
     this.perguntar();
   },
@@ -682,12 +694,13 @@ const Cobrar = {
       <div class="cfg-sub">${TXT_DEVE.perguntaSub}</div>
       <button class="cfg-btn" onclick="Cobrar.responder(true)">${TXT_DEVE.mandei}</button>
       <button class="cfg-btn sec" onclick="Cobrar.responder(false)">${TXT_DEVE.naoMandei}</button>`;
-    $('perguntaFundo').classList.add('aberto');
+    Dialogo.abrir('perguntaFundo');
   },
   responder(sim){
-    $('perguntaFundo').classList.remove('aberto');
     const p=this.pendente; this.pendente=null;
     if(sim && p){ Lojinha.registrarCobranca(p.chave, p.tom, p.valor); this.est={}; this.render(); }
+    /* fecha depois de redesenhar: o foco volta pro cartao DELA, que pode ter mudado de lugar */
+    Dialogo.fechar('perguntaFundo');
   },
   /* "Ela pagou": vai pro receber daquela venda no Controle */
   urlControle(id){
@@ -702,8 +715,8 @@ const Cobrar = {
       ${g.vendas.map(v=>`<button class="pg-venda" onclick="location.href=Cobrar.urlControle(${Number(v.id)})">
         <span>${String(v.data).split('-').reverse().join('/')} · ${this.esc(Lojinha.pecasDe([v]).join(', '))}</span>
         <b>R$&nbsp;${Lojinha.num(Lojinha.saldo(v))}</b></button>`).join('')}
-      <button class="cfg-btn sec" onclick="$('perguntaFundo').classList.remove('aberto')">Cancelar</button>`;
-    $('perguntaFundo').classList.add('aberto');
+      <button class="cfg-btn sec" onclick="Dialogo.fechar('perguntaFundo')">Cancelar</button>`;
+    Dialogo.abrir('perguntaFundo');
   },
   /* vindo do botao "cobrar" do Controle: #venda=<id> abre a cliente daquela venda */
   doLink(){
@@ -796,7 +809,7 @@ $('btnCopiar').addEventListener('click',()=>{ if(!atual || faltaPreencher()) ret
   navigator.clipboard.writeText($('saida').textContent).then(()=>{
     $('btnCopiar').textContent='Copiado!'; setTimeout(()=>$('btnCopiar').textContent='Copiar mensagem',1800); }); });
 $('btnZap').addEventListener('click',()=>{ if(!atual || faltaPreencher()) return;
-  window.open('https://wa.me/?text='+encodeURIComponent($('saida').textContent),'_blank'); });
+  window.open('https://wa.me/?text='+encodeURIComponent($('saida').textContent),'_blank','noopener,noreferrer'); });
 
 /* ============ ARTE (canvas 1080x1080) ============ */
 const PALETA_ARTE = ['#8e2757','#6b3fa0','#1c7a5c','#22677a','#3f3a45','#c2185b','#d84315','#00695c','#283593','#b28704'];
@@ -1007,7 +1020,8 @@ Perfil.carregar();
 Arte.carregar();
 montaSituacoes();
 Cobrar.render();
-Cobrar.doLink();
+/* travado, o pedido do link (#venda=) fica no endereco pra quando liberar */
+if(!TRAVADA) Cobrar.doLink();
 /* voltou do Controle (recebeu o fiado) ou de outra aba: a lista se refaz */
 window.addEventListener('pageshow', e=>{ if(e.persisted) Cobrar.render(); });
 document.querySelectorAll('#arteEstiloChips button').forEach(b=>
@@ -1019,10 +1033,57 @@ document.querySelectorAll('#arteTipoChips button').forEach(b=>b.addEventListener
 
 
 
+/* ===== AS FOLHAS SAO DIALOGOS (acessibilidade, 03/11/2026) =====
+   "Mandou a mensagem?" e os Ajustes nao prendiam o foco: o Tab saia pra tela de
+   tras e o leitor de tela seguia lendo o resto. Agora, como o modal do Controle:
+   foco no 1o botao ao abrir, o resto da pagina inerte, Tab circula dentro, Esc
+   fecha, e o foco volta pro botao de onde ela veio (se a lista foi redesenhada,
+   pro botao de mesmo texto no mesmo cartao). */
+const Dialogo = {
+  aberto:null, volta:null, voltaCard:null, voltaTxt:'',
+  el(f){ return typeof f==='string' ? document.getElementById(f) : f; },
+  focaveis(f){ return Array.prototype.filter.call(
+    f.querySelectorAll('button,a[href],input:not([type=hidden]),select,textarea,[tabindex]:not([tabindex="-1"])'),
+    x=>!x.disabled && x.getClientRects().length>0); },
+  abrir(f){ f=this.el(f); if(!f) return;
+    if(this.aberto!==f){
+      const a=document.activeElement, card=a&&a.closest?a.closest('.dv-card'):null;
+      this.volta=a; this.voltaCard=card?card.getAttribute('data-chave'):null; this.voltaTxt=a?a.textContent:''; }
+    this.aberto=f; f.classList.add('aberto');
+    Array.prototype.forEach.call(document.body.children, el=>{
+      if(el===f || el.id==='ativ' || el.id==='libTrava' || el.tagName==='SCRIPT' || el.hasAttribute('inert')) return;
+      el.setAttribute('inert',''); el.setAttribute('data-dlg-inert',''); });
+    setTimeout(()=>{ if(this.aberto!==f || f.contains(document.activeElement)) return;
+      const l=this.focaveis(f); if(l[0]) l[0].focus(); },30); },
+  fechar(f){ f=this.el(f); if(!f) return;
+    f.classList.remove('aberto');
+    if(this.aberto!==f) return;
+    this.aberto=null;
+    document.querySelectorAll('[data-dlg-inert]').forEach(el=>{ el.removeAttribute('inert'); el.removeAttribute('data-dlg-inert'); });
+    let v=this.volta;
+    if(!v || !document.body.contains(v)){
+      const card=this.voltaCard ? Array.prototype.find.call(document.querySelectorAll('.dv-card'), c=>c.getAttribute('data-chave')===this.voltaCard) : null;
+      v = card ? (Array.prototype.find.call(card.querySelectorAll('button'), b=>b.textContent===this.voltaTxt) || card.querySelector('button')) : null; }
+    this.volta=null;
+    if(v && v.focus) try{ v.focus({preventScroll:true}); }catch(e){} }
+};
+document.addEventListener('keydown', e=>{
+  const f=Dialogo.aberto; if(!f) return;
+  /* o passo a passo de instalar abre por cima dos Ajustes e tem o Esc dele */
+  const ps=document.getElementById('psFundo'); if(ps && ps.classList.contains('aberto')) return;
+  if(e.key==='Escape'){ e.preventDefault(); e.stopImmediatePropagation();
+    if(f.id==='perguntaFundo') Cobrar.responder(false); else Config.fechar(); return; }
+  if(e.key!=='Tab') return;
+  const l=Dialogo.focaveis(f); if(!l.length) return;
+  const i=l.indexOf(document.activeElement);
+  if(e.shiftKey && i<=0){ e.preventDefault(); l[l.length-1].focus(); }
+  else if(!e.shiftKey && (i<0 || i===l.length-1)){ e.preventDefault(); l[0].focus(); }
+});
+
 /* ============ AJUSTES (engrenagem): cor + instalar ============ */
 const Config = {
-  abrir(){ this.pintar(); document.getElementById('cfgFundo').classList.add('aberto'); },
-  fechar(){ document.getElementById('cfgFundo').classList.remove('aberto'); },
+  abrir(){ this.pintar(); Dialogo.abrir('cfgFundo'); },
+  fechar(){ Dialogo.fechar('cfgFundo'); },
   pintar(){
     const atual = localStorage.getItem('lucronamao_tema')||'vinho';
     document.getElementById('cfgCores').innerHTML = Object.keys(TEMAS).map(k=>
@@ -1276,24 +1337,10 @@ Instalar.init();
     var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
     if(!m) return;
 
-    /* GRAVA o nivel tambem daqui (31/08/2026). A compradora instala de DENTRO do
-       app, e o icone nasce apontando pro hub pelado (start_url do manifest de
-       /app/). Sem esta gravacao, quem instalou pelo app e nunca voltou ao menu
-       nao teria nada lembrado, e o hub travaria tudo. Uniao, nunca substituicao. */
-    try{
-      var MAPA_MEM = {c:['controle'],d:['divulga'],p:['preco'],
-                      cd:['controle','divulga'],cp:['controle','preco'],
-                      u:['preco'],tudo:['controle','divulga','preco']};
-      var itens = MAPA_MEM[m[1]] || [];
-      if(itens.length){
-        var K = 'lucronamao_liberado';
-        var antes = JSON.parse(localStorage.getItem(K) || '[]');
-        if(!Array.isArray(antes)) antes = [];
-        var uniao = antes.slice();
-        itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
-        if(uniao.length !== antes.length) localStorage.setItem(K, JSON.stringify(uniao));
-      }
-    }catch(e){}
+    /* O #de= NAO grava mais o nivel (03/11/2026, achado de seguranca): qualquer um
+       abria `divulga.html#de=tudo` e ganhava tudo pra sempre. A memoria so nasce do
+       CAMINHO da pasta (hub.html), como antes de 31/08. Quem ja tinha a memoria
+       gravada por aqui continua com ela: nada e apagado. O hash serve so pro voltar. */
 
     var a = document.getElementById('voltarMenu');
     if(!a) return;
