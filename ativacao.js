@@ -24,6 +24,12 @@
    quem ja usava nao cair na tela ao instalar o icone, o estado tambem e copiado
    no Cache Storage, que e por origem e atravessa os dois (ver sw.js).
 
+   O QUE O E-MAIL TEM (03/11/2026): no "ok" o painel manda tambem os produtos que
+   o e-mail comprou (`p`), e o menu libera cada parte por eles, somado ao que a
+   pasta do link ja libera (nunca tira). Assim a compra feita dentro do app
+   libera na volta, sem link nem icone novo: `Ativacao.conferirCompra()` (quem ja
+   ativou) e `Ativacao.liberar()` (quem nunca digitou o e-mail, com "Agora nao").
+
    O mesmo arquivo mora no app do Mexico (appganancia/app): so muda o bloco
    OFERTA e os textos T. Mexeu na regra aqui, leve pra la.
 
@@ -58,6 +64,7 @@
     naoAchei: 'Não achamos uma compra com este e-mail. Confira se é o mesmo e-mail da compra, letra por letra.',
     naoAcheiDepois: 'Não achamos uma compra com este e-mail. Confira e tente de novo.',
     lembrar: 'Não lembra qual e-mail usou? É o mesmo que recebeu a mensagem com o link do app.',
+    apple: '<b>Pagou com Apple Pay?</b> Use o e-mail da sua conta Apple, não outro.',
     encerradoTit: 'Acesso encerrado',
     encerrado: function (email) {
       return 'A compra feita com o e-mail <b>' + email + '</b> foi reembolsada, então o acesso a este app foi encerrado.';
@@ -67,7 +74,12 @@
     semRede: 'Sem internet agora. Conecte e toque em Ativar de novo.',
     paguei: 'Já paguei e não ativa',
     pagueiCorpo: 'Oi! Paguei o app e ele não ativa com o e-mail: ',
-    outro: 'Comprei com outro e-mail'
+    outro: 'Comprei com outro e-mail',
+    liberarTit: 'Libere o que você comprou',
+    liberarSub: 'Digite o e-mail que você usou na compra. O que ele comprou aparece liberado na hora.',
+    agoraNao: 'Agora não',
+    semEsse: 'Esse e-mail ainda não tem essa compra. Se acabou de pagar, espere um minuto e toque em Liberar de novo.',
+    botaoLiberar: 'Liberar'
   };
 
   var CHAVE = OFERTA.prefixo + 'ativacao';
@@ -83,9 +95,13 @@
   function ler() {
     try { return JSON.parse(localStorage.getItem(CHAVE) || 'null'); } catch (e) { return null; }
   }
+  function publicar() {
+    var a = window.Ativacao || (window.Ativacao = {});
+    a.estado = st.estado; a.email = st.email || null; a.produtos = st.p || null;
+  }
   function gravar(novo) {
     st = novo;
-    window.Ativacao = { estado: st.estado, email: st.email || null };
+    publicar();
     try { localStorage.setItem(CHAVE, JSON.stringify(st)); } catch (e) {}
     espelhar(st);
   }
@@ -119,7 +135,7 @@
 
   var st = ler();
   if (!st) gravar(jaUsava() ? { estado: 'legado', desde: Date.now() } : { estado: 'pendente' });
-  else window.Ativacao = { estado: st.estado, email: st.email || null };
+  else publicar();
 
   /* ---------- conferir no painel ---------- */
   function hash(email) {
@@ -129,14 +145,20 @@
       return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
     });
   }
-  /* devolve 'ok' | 'reembolsado' | 'nao_achei' | 'erro' (rede, painel fora, timeout) */
-  function conferir(h) {
+  /* devolve 'ok' | 'reembolsado' | 'nao_achei' | 'erro' (rede, painel fora, timeout).
+     No 'ok', os produtos do e-mail ficam em `ultimoP`. `novo`: acabou de comprar,
+     o painel olha a Cakto na hora */
+  var ultimoP = null;
+  function conferir(h, novo) {
     if (navigator.onLine === false) return Promise.resolve('erro');
     var ctl = window.AbortController ? new AbortController() : null;
     var t = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
-    return fetch(PAINEL + h, { cache: 'no-store', credentials: 'omit', signal: ctl ? ctl.signal : undefined })
+    return fetch(PAINEL + h + (novo ? '&novo=1' : ''), { cache: 'no-store', credentials: 'omit', signal: ctl ? ctl.signal : undefined })
       .then(function (r) { return r.json(); })
-      .then(function (j) { return (j && /^(ok|reembolsado|nao_achei)$/.test(j.s)) ? j.s : 'erro'; })
+      .then(function (j) {
+        ultimoP = (j && Array.isArray(j.p)) ? j.p.map(String) : null;
+        return (j && /^(ok|reembolsado|nao_achei)$/.test(j.s)) ? j.s : 'erro';
+      })
       .catch(function () { return 'erro'; })
       .then(function (s) { clearTimeout(t); return s; });
   }
@@ -168,6 +190,8 @@
     '#ativ .av-msg.erro{color:#b3261e;font-weight:600}' +
     '#ativ .av-msg.ok{color:#1e7d4f;font-weight:700}' +
     '#ativ .av-nota{font-size:13.5px;line-height:1.5;color:#5d5263;margin-top:18px;text-align:center}' +
+    '#ativ .av-apple{background:#fff4e0;border:2px solid #e8a33a;border-radius:12px;padding:12px 14px;margin:0 0 16px;font-size:14.5px;line-height:1.45;color:#5a3a00}' +
+    '#ativ .av-apple b{color:#7a4500}' +
     '#ativ .av-link{color:#6d1d43;font-weight:700;word-break:break-all}' +
     '#ativ .av-spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;vertical-align:-3px;margin-right:8px;animation:avGira .8s linear infinite}' +
     '@keyframes avGira{to{transform:rotate(360deg)}}' +
@@ -180,19 +204,22 @@
     return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
   }
 
-  /* msg: um aviso de erro ja na abertura (texto puro) */
+  /* msg: um aviso de erro ja na abertura (texto puro). `voluntario`: a tela de
+     liberar, aberta pelo menu, que fecha com "Agora nao" */
   function telaEmail(msg) {
     return '<div class="av-corpo">' +
-      '<h1 id="avTit">' + T.titulo + '</h1>' +
-      '<p class="av-sub">' + T.sub + '</p>' +
-      '<div class="av-info">' + ICO_CEL + '<div><p>' + T.info1 + '</p><p>' + T.info2 + '</p></div></div>' +
+      '<h1 id="avTit">' + (voluntario ? T.liberarTit : T.titulo) + '</h1>' +
+      '<p class="av-sub">' + (voluntario ? T.liberarSub : T.sub) + '</p>' +
+      (voluntario ? '' : '<div class="av-info">' + ICO_CEL + '<div><p>' + T.info1 + '</p><p>' + T.info2 + '</p></div></div>') +
+      (T.apple ? '<p class="av-apple">' + T.apple + '</p>' : '') +
       '<form id="avForm" novalidate>' +
         '<label for="avEmail">' + T.rotulo + '</label>' +
         '<input id="avEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"' +
         ' placeholder="' + T.exemplo + '" aria-describedby="avMsg" required>' +
-        '<button class="av-btn" id="avBtn" type="submit">' + T.botao + '</button>' +
+        '<button class="av-btn" id="avBtn" type="submit">' + (voluntario ? T.botaoLiberar : T.botao) + '</button>' +
         '<div class="av-msg' + (msg ? ' erro' : '') + '" id="avMsg" role="status" aria-live="polite">' + esc(msg || '') + '</div>' +
       '</form>' +
+      (voluntario ? '<button class="av-btn sec" id="avFechar" type="button">' + T.agoraNao + '</button>' : '') +
       '<p class="av-nota">' + T.lembrar + '</p>' +
     '</div>';
   }
@@ -254,7 +281,7 @@
     if (form) {
       var inp = document.getElementById('avEmail');
       /* volta com o e-mail que nao foi achado; quem veio do "comprei com outro" comeca vazio */
-      if (st.email && st.estado === 'pendente') inp.value = st.email;
+      if (st.email && (st.estado === 'pendente' || voluntario)) inp.value = st.email;
       setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 60);
       inp.addEventListener('input', function () {
         inp.removeAttribute('aria-invalid');
@@ -267,6 +294,10 @@
       var tit = document.getElementById('avTit');
       if (tit) { tit.tabIndex = -1; setTimeout(function () { try { tit.focus({ preventScroll: true }); } catch (e) {} }, 60); }
     }
+    var fechar = document.getElementById('avFechar');
+    if (fechar) fechar.addEventListener('click', function () {
+      tentativa++; enviando = false; voluntario = false; procura = null; desmontar();
+    });
     var outro = document.getElementById('avOutro');
     if (outro) outro.addEventListener('click', function () { montar(telaEmail()); });
   }
@@ -279,7 +310,7 @@
     var b = document.getElementById('avBtn');
     if (!b) return;
     b.disabled = estado !== 'livre';
-    if (estado === 'livre') b.textContent = T.botao;
+    if (estado === 'livre') b.textContent = voluntario ? T.botaoLiberar : T.botao;
     else if (estado === 'pronto') b.textContent = T.pronto;
     else b.innerHTML = '<span class="av-spin" aria-hidden="true"></span>' + T.conferindo;
   }
@@ -303,7 +334,7 @@
     hash(email).then(function (h) {
       var tentar = function () {
         if (minha !== tentativa) return Promise.resolve(null);
-        return conferir(h).then(function (s) {
+        return conferir(h, voluntario).then(function (s) {
           if (minha !== tentativa) return null;
           if (s === 'nao_achei' && Date.now() - inicio < ESPERA_VENDA_MS) {
             aviso(T.esperando);
@@ -318,6 +349,21 @@
 
   function concluir(s, email, h, antes) {
     enviando = false;
+    if (voluntario) {
+      /* so o "ok" muda algo: vira ativo com os produtos. Reembolsado, nao achei ou
+         sem rede so avisam, e o estado de antes (legado, provisorio) fica */
+      if (s === 'ok' && !(procura && !temProduto(ultimoP, procura))) {
+        voluntario = false; procura = null;
+        gravar({ estado: 'ativo', email: email, h: h, em: Date.now(), p: ultimoP || [] });
+        botao('pronto');
+        aviso(T.ativado, 'ok');
+        setTimeout(function () { desmontar(); avisarProdutos(); }, 900);
+        return;
+      }
+      botao('livre');
+      aviso(s === 'erro' ? T.semRede : s === 'ok' ? T.semEsse : T.naoAcheiDepois, 'erro');
+      return;
+    }
     /* quem ja foi barrado nao entra pelo "sem internet": sem resposta, sem acesso */
     if (s === 'erro' && antes === 'bloqueado') {
       botao('livre');
@@ -346,11 +392,55 @@
       return;
     }
     /* ok, ou erro nosso / sem internet: libera. No erro fica provisorio e confere depois. */
-    gravar({ estado: s === 'ok' ? 'ativo' : 'provisorio', email: email, h: h, em: Date.now() });
+    gravar(s === 'ok'
+      ? { estado: 'ativo', email: email, h: h, em: Date.now(), p: ultimoP || [] }
+      : { estado: 'provisorio', email: email, h: h, em: Date.now() });
     botao('pronto');
     aviso(T.ativado, 'ok');
-    setTimeout(desmontar, 900);
+    setTimeout(function () { desmontar(); avisarProdutos(); }, 900);
   }
+
+  /* ---------- o que o e-mail tem ---------- */
+  var voluntario = false, procura = null, comprando = false;
+  function temProduto(lista, re) {
+    return (lista || []).some(function (n) { return re.test(n); });
+  }
+  function chaveDosProdutos(lista) { return (lista || []).slice().sort().join('|'); }
+  /* o menu escuta e se redesenha com o que entrou */
+  function avisarProdutos() {
+    try { document.dispatchEvent(new CustomEvent('ativacao-produtos', { detail: st.p || [] })); } catch (e) {}
+  }
+
+  /* A tela de liberar, aberta pelo menu ("Ja comprei") ou na volta de uma compra
+     feita no app por quem nunca ativou. `procura`: o produto que ela foi comprar
+     (RegExp), para dizer "ainda nao chegou" em vez de fechar sem mudar nada. */
+  window.Ativacao.liberar = function (opc) {
+    if (st.estado === 'bloqueado') return;
+    voluntario = true;
+    procura = (opc && opc.procura) || null;
+    montar(telaEmail());
+  };
+
+  /* Quem ja ativou e acabou de comprar dentro do app: confere de 10 em 10 s, por
+     ate 3 min, ate o produto novo aparecer. Sem tela: o menu so se redesenha. */
+  window.Ativacao.conferirCompra = function () {
+    if (st.estado !== 'ativo' || !st.h || comprando) return false;
+    comprando = true;
+    var antes = chaveDosProdutos(st.p), inicio = Date.now();
+    (function vez() {
+      conferir(st.h, true).then(function (s) {
+        if (s === 'reembolsado') { comprando = false; reconferir(); return; }
+        if (s === 'ok' && ultimoP) {
+          var mudou = chaveDosProdutos(ultimoP) !== antes;
+          gravar({ estado: 'ativo', email: st.email, h: st.h, em: Date.now(), p: ultimoP });
+          if (mudou) { comprando = false; avisarProdutos(); return; }
+        }
+        if (Date.now() - inicio < ESPERA_VENDA_MS && document.visibilityState !== 'hidden') setTimeout(vez, 10000);
+        else comprando = false;
+      });
+    })();
+    return true;
+  };
 
   /* confere em silencio quem ja ativou; so muda algo se a compra foi reembolsada */
   function reconferir() {
@@ -364,8 +454,10 @@
         gravar({ estado: 'bloqueado', email: st.email, h: st.h, em: Date.now() });
       } else if (s === 'ok') {
         var eraTrava = st.estado === 'bloqueado';
-        gravar({ estado: 'ativo', email: st.email, h: st.h, em: Date.now() });
+        var mudou = !!ultimoP && chaveDosProdutos(ultimoP) !== chaveDosProdutos(st.p);
+        gravar({ estado: 'ativo', email: st.email, h: st.h, em: Date.now(), p: ultimoP || st.p || [] });
         if (eraTrava) desmontar();
+        if (mudou) avisarProdutos();
       } else if (s === 'nao_achei' && st.estado === 'provisorio') {
         gravar({ estado: 'pendente', email: st.email });
         montar(telaEmail(T.naoAcheiDepois));
@@ -380,7 +472,8 @@
       reconferir();
     } else if (st.estado === 'pendente') {
       montar(telaEmail());
-    } else if (st.estado === 'provisorio' || (st.estado === 'ativo' && Date.now() - (st.em || 0) > RECONFERIR_MS)) {
+    } else if (st.estado === 'provisorio' ||
+               (st.estado === 'ativo' && (!Array.isArray(st.p) || Date.now() - (st.em || 0) > RECONFERIR_MS))) {
       reconferir();
     }
   }
@@ -397,7 +490,7 @@
       decidido = true;
       if (esp && /^(legado|ativo|bloqueado)$/.test(esp.estado) && !st.email) {
         st = esp;
-        window.Ativacao = { estado: st.estado, email: st.email || null };
+        publicar();
         try { localStorage.setItem(CHAVE, JSON.stringify(st)); } catch (e) {}
       }
       document.documentElement.classList.remove('ativ-trava');

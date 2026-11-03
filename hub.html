@@ -46,6 +46,9 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .preco-linha .p{font-size:20px;font-weight:800;color:var(--vinho)}
 .preco-linha .p small{font-size:12px;color:var(--cinza);font-weight:600;display:block}
 .preco-linha a{background:var(--ambar-bg);color:var(--ambar);padding:12px 18px;border-radius:12px;font-weight:800;text-decoration:none;font-size:14.5px}
+/* "Ja comprei": libera pelo e-mail da compra (03/11/2026) */
+.ja-comprei{display:block;width:100%;margin-top:10px;padding:10px 8px;background:none;border:0;color:var(--vinho);
+  font:inherit;font-size:13.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .mini-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .mini-tags span{font-size:12px;font-weight:600;color:var(--vinho);background:var(--rose);border-radius:99px;padding:4px 10px}
 .beneficios{margin-top:10px}
@@ -441,7 +444,22 @@ const LIBERADOS = (function(){
   }
   return mem;
 })();
-const tem = x => LIBERADOS.includes(x);
+/* ===== O QUE O E-MAIL TEM (03/11/2026) =====
+   A pasta do link libera o que sempre liberou. Por cima, a ativacao (ativacao.js)
+   traz os produtos que o e-mail comprou, e cada um libera a sua parte: a compra
+   feita aqui dentro libera na volta, sem link nem icone novo. So SOMA: o e-mail
+   nunca tira o que a pasta ou a memoria do aparelho ja liberam, e o que vem dele
+   nao e gravado na memoria do nivel (reembolsado o bump, a parte volta a travar). */
+const PRODUTO_DE = { controle:/controle/i, divulga:/cobrar|divulga/i, preco:/cat[aá]logo|precifica/i };
+function doEmail(){
+  var a = window.Ativacao;
+  if(!a || a.estado !== 'ativo' || !Array.isArray(a.produtos)) return [];
+  return Object.keys(PRODUTO_DE).filter(function(k){
+    return a.produtos.some(function(n){ return PRODUTO_DE[k].test(n); });
+  });
+}
+const DO_EMAIL = doEmail();
+const tem = x => LIBERADOS.includes(x) || DO_EMAIL.includes(x);
 
 /* Dentro de /app/<chave>/, os apps moram um nivel acima. Fora dela (hub aberto
    direto), o caminho e o mesmo de sempre.
@@ -527,7 +545,8 @@ function card(app){
     <div class="pitch">${app.pitch}</div>
     ${bens}
     <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
-      <a href="${comOrigem(app.oferta || app.checkout, app.id)}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div></div>`;
+      <a href="${comOrigem(app.oferta || app.checkout, app.id)}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div>
+    ${window.Ativacao && window.Ativacao.liberar ? `<button class="ja-comprei" type="button" data-liberar="${app.id}">Já comprei: liberar com meu e-mail</button>` : ''}</div>`;
 }
 
 const APPS=[
@@ -556,6 +575,51 @@ const APPS=[
 ];
 
 document.getElementById('lista').innerHTML = APPS.map(card).join('');
+
+/* ===== A COMPRA FEITA AQUI DENTRO LIBERA NA VOLTA (03/11/2026) =====
+   Antes: ela comprava o Cobrar ou o Catalogo aqui, recebia OUTRO link e tinha de
+   instalar outro icone. Agora: o toque em comprar fica marcado; quando ela volta
+   ao app (meia hora no maximo), quem ja ativou confere sozinho por ate 3 min
+   (Ativacao.conferirCompra), e quem nunca digitou o e-mail ve a tela de liberar,
+   com "Agora nao". Entrou o produto, o menu recarrega ja liberado. */
+(function(){
+  var A = window.Ativacao;
+  if(!A || !A.liberar) return;
+  var COMPRA = 'lucronamao_compra_app', VALE = 30 * 60 * 1000;
+  function lerCompra(){ try{ return JSON.parse(localStorage.getItem(COMPRA) || 'null'); }catch(e){ return null; } }
+  function esquecer(){ try{ localStorage.removeItem(COMPRA); }catch(e){} }
+
+  document.addEventListener('click', function(e){
+    var alvo = e.target && e.target.closest ? e.target : null;
+    if(!alvo) return;
+    var b = alvo.closest('[data-liberar]');
+    if(b){ e.preventDefault(); A.liberar({ procura: PRODUTO_DE[b.getAttribute('data-liberar')] || null }); return; }
+    var a = alvo.closest('a[href]');
+    var m = a && /[?&]utm_source=app&utm_medium=([a-z]+)/.exec(a.href);
+    if(m && PRODUTO_DE[m[1]]){
+      try{ localStorage.setItem(COMPRA, JSON.stringify({ em: Date.now(), id: m[1] })); }catch(e2){}
+    }
+  });
+
+  function voltou(){
+    if(document.visibilityState === 'hidden') return;
+    var c = lerCompra();
+    if(!c || !PRODUTO_DE[c.id] || Date.now() - (c.em || 0) > VALE){ if(c) esquecer(); return; }
+    if(tem(c.id)){ esquecer(); return; }
+    if(A.estado === 'ativo'){ A.conferirCompra(); return; }
+    if(A.estado === 'bloqueado'){ esquecer(); return; }
+    esquecer();
+    A.liberar({ procura: PRODUTO_DE[c.id] });
+  }
+  document.addEventListener('visibilitychange', voltou);
+  window.addEventListener('pageshow', voltou);
+
+  /* o e-mail trouxe produto que este menu ainda nao mostra: redesenha ja liberado */
+  document.addEventListener('ativacao-produtos', function(){
+    var agora = doEmail();
+    if(agora.some(function(k){ return DO_EMAIL.indexOf(k) < 0; })){ esquecer(); location.reload(); }
+  });
+})();
 if(!tem('controle') && !tem('preco') && !tem('divulga'))
   document.getElementById('lista').innerHTML =
     `<div class="app-card"><div class="pitch">Este é o espaço da compradora do Lucro na Mão.
