@@ -19,6 +19,11 @@
    mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
 try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
 <script src="ativacao.js"></script>
+<!-- o que esta liberado (regra unica, tambem usada pelo Controle e pelo Clientes) e os dados do selo do Cobrar -->
+<script src="liberado.js"></script>
+<script src="lojinha.js"></script>
+<script>/* o menu inteiro depende da regra: se so este arquivo falhou na rede, recarrega UMA vez */
+if(!window.Liberado){ try{ if(!sessionStorage.getItem('lucronamao_recarregou')){ sessionStorage.setItem('lucronamao_recarregou','1'); location.reload(); } }catch(e){} }</script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
@@ -49,6 +54,9 @@ main{padding:16px;max-width:560px;margin:0 auto}
 /* "Ja comprei": libera pelo e-mail da compra (03/11/2026) */
 .ja-comprei{display:block;width:100%;margin-top:10px;padding:10px 8px;background:none;border:0;color:var(--vinho);
   font:inherit;font-size:13.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* selo "N pra cobrar hoje" no card do Cobrar (03/11/2026) */
+.selo-cobrar{display:inline-block;margin-top:10px;background:var(--ambar-bg);color:var(--ambar);font-weight:800;
+  font-size:14px;border-radius:99px;padding:6px 12px}
 .mini-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .mini-tags span{font-size:12px;font-weight:600;color:var(--vinho);background:var(--rose);border-radius:99px;padding:4px 10px}
 .beneficios{margin-top:10px}
@@ -365,16 +373,12 @@ aplicarTema(localStorage.getItem('lucronamao_tema')||'vinho');
 
    O manifest tem `start_url: hub.html`, mas navegador nenhum ignora a URL corrente
    na hora de instalar: ele instala o que esta na tela, com query e tudo. */
-const MAPA = {
-  c:      ['controle'],
-  d:      ['divulga'],
-  p:      ['preco'],
-  cd:     ['controle','divulga'],
-  cp:     ['controle','preco'],          // compatibilidade
-  u:      ['preco'],                     // compatibilidade
-  tudo:   ['controle','divulga','preco']
-};
-const CHAVE_MEM = 'lucronamao_liberado';
+/* A tabela, a memoria e o e-mail moram no liberado.js desde 03/11/2026 (o Controle e
+   o Clientes precisam da mesma resposta). Aqui fica so o que tem efeito: gravar a
+   memoria quando a pasta libera, e mandar o hub pelado pra pasta certa. */
+const Lib = window.Liberado;
+const MAPA = Lib.MAPA;
+const CHAVE_MEM = Lib.CHAVE_MEM;
 
 /* ===== O APARELHO LEMBRA O QUE JA FOI LIBERADO =====
    Revisao da regra de 29/08/2026 ("so o link libera, nada de storage"), feita em
@@ -393,30 +397,13 @@ const CHAVE_MEM = 'lucronamao_liberado';
    O link continua sendo a unica coisa que CONCEDE acesso. O storage e so memoria do
    que um link ja concedeu, e apenas SOMA. Nada aqui remove acesso, entao o pior caso
    e liberar o que ela ja comprou, nunca travar. */
-function lembrar(itens){
-  try{
-    var antes = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
-    if(!Array.isArray(antes)) antes = [];
-    var uniao = antes.slice();
-    itens.forEach(function(i){ if(uniao.indexOf(i) < 0) uniao.push(i); });
-    if(uniao.length !== antes.length) localStorage.setItem(CHAVE_MEM, JSON.stringify(uniao));
-    return uniao;
-  }catch(e){ return itens; }   /* Safari privado nega storage: segue pelo link */
-}
-
-function lembrado(){
-  try{
-    var v = JSON.parse(localStorage.getItem(CHAVE_MEM) || '[]');
-    if(!Array.isArray(v)) return [];
-    var validos = ['controle','divulga','preco'];
-    return v.filter(function(x){ return validos.indexOf(x) >= 0; });
-  }catch(e){ return []; }
-}
+const lembrar = Lib.lembrar;   /* so SOMA; Safari privado nega storage e segue pelo link */
+const lembrado = Lib.lembrado;
 
 const LIBERADOS = (function(){
-  /* (?:\/|$) aceita /app/tudo e /app/tudo/index.html igualmente. */
-  var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
-  var k = m ? m[1] : (new URLSearchParams(location.search).get('libera') || '').replace(/^so-/, '');
+  /* caminho da pasta ou ?libera= antigo; (?:\/|$) aceita /app/tudo e /app/tudo/index.html.
+     O hub nao le o #de= (ele nunca recebe um), igual a antes. */
+  var k = Lib.chaveDoLink(false);
   var doLink = MAPA[k] || [];
   if(doLink.length) return lembrar(doLink);
 
@@ -450,14 +437,8 @@ const LIBERADOS = (function(){
    feita aqui dentro libera na volta, sem link nem icone novo. So SOMA: o e-mail
    nunca tira o que a pasta ou a memoria do aparelho ja liberam, e o que vem dele
    nao e gravado na memoria do nivel (reembolsado o bump, a parte volta a travar). */
-const PRODUTO_DE = { controle:/controle/i, divulga:/cobrar|divulga/i, preco:/cat[aá]logo|precifica/i };
-function doEmail(){
-  var a = window.Ativacao;
-  if(!a || a.estado !== 'ativo' || !Array.isArray(a.produtos)) return [];
-  return Object.keys(PRODUTO_DE).filter(function(k){
-    return a.produtos.some(function(n){ return PRODUTO_DE[k].test(n); });
-  });
-}
+const PRODUTO_DE = Lib.PRODUTO_DE;   /* ganhou clientes:/cliente/i em 03/11/2026 */
+const doEmail = Lib.doEmail;
 const DO_EMAIL = doEmail();
 const tem = x => LIBERADOS.includes(x) || DO_EMAIL.includes(x);
 
@@ -490,11 +471,7 @@ const comChave = (url) => {
    (o upsell passou de 97 para 67 em 01/09/2026, teste de preco).
    Se mudar produto ou oferta na Cakto, reconfira com GET /public_api/offers/ (o campo `id` da
    oferta E o short_id do link). */
-const CHECKOUT = {
-  controle:'https://pay.cakto.com.br/3ko7pit',   /* Controle da Lojinha, R$ 47 */
-  divulga: 'https://pay.cakto.com.br/47dvagf',   /* Cobrar na Mao (era Divulga), R$ 27 */
-  preco:   'https://pay.cakto.com.br/qd7cbqf'    /* Catalogo na Mao (era Precificacao), R$ 67 */
-};
+const CHECKOUT = Lib.CHECKOUT;   /* links e precos no liberado.js (03/11/2026) */
 
 /* ===== PAGINA DE OFERTA (21/09/2026) =====
    Antes o botao do app caia DIRETO no checkout, entao quem estava aqui dentro
@@ -515,9 +492,7 @@ const OFERTA = {
    resolve e o painel, pelo e-mail da cliente; isto so marca o canal.
    NAO usar utm_content nem utm_campaign: o coletor do painel le os dois como
    anuncio e campanha, e um valor aqui viraria criativo fantasma. */
-function comOrigem(url, degrau){
-  return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'utm_source=app&utm_medium=' + degrau;
-}
+const comOrigem = Lib.comOrigem;
 
 const ICO = {
   controle:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
@@ -525,8 +500,20 @@ const ICO = {
      em que o app era Precificacao na Mao (trocado em 21/09/2026) */
   preco:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><path d="M20.6 17.1l-3.5-3.5-3.6.1-.1 3.6 3.5 3.5a1.3 1.3 0 001.8 0l1.9-1.9a1.3 1.3 0 000-1.8z"/><path d="M16.2 16.2h.01"/></svg>',
   divulga:'<svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9.3 8.4 8.6 8.6 0 01-3.9-1L3 20l1.2-4.6a8.4 8.4 0 1116.8-3.9z"/></svg>',
+  clientes:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14.5a6.5 6.5 0 013.5 5.5"/></svg>',
   cadeado:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>'
 };
+
+/* ===== SELO "N PRA COBRAR HOJE" (03/11/2026) =====
+   So no card do Cobrar liberado. A conta e a mesma da aba "Quem te deve"
+   (lojinha.js); sem o arquivo ou sem fiado, nao aparece nada. */
+function seloCobrar(){
+  try{
+    const n = window.Lojinha ? Lojinha.paraCobrarHoje().length : 0;
+    /* TEXTO: selo do card do Cobrar */
+    return n ? `<span class="selo-cobrar">${n} pra cobrar hoje</span>` : '';
+  }catch(e){ return ''; }
+}
 
 function card(app){
   if(app.liberado){
@@ -534,6 +521,7 @@ function card(app){
     return `<a class="app-card" href="${comChave(app.url)}">
       <div class="topo"><div class="icone">${app.icone}</div>
         <div><h2>${app.nome}</h2><div class="desc">${app.desc}</div></div></div>
+      ${app.id==='divulga' ? seloCobrar() : ''}
       ${tags}
       <div class="abrir">Abrir</div></a>`;
   }
@@ -544,8 +532,8 @@ function card(app){
       <div><h2>${app.nome}</h2><div class="desc">${app.desc}</div></div></div>
     <div class="pitch">${app.pitch}</div>
     ${bens}
-    <div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
-      <a href="${comOrigem(app.oferta || app.checkout, app.id)}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div>
+    ${(app.oferta || Lib.checkoutPronto(app.id)) ? `<div class="preco-linha"><div class="p">${app.preco}<small>pagamento único</small></div>
+      <a href="${comOrigem(app.oferta || app.checkout, app.id)}" target="_blank" rel="noopener">${app.oferta ? 'Ver como funciona' : 'Liberar agora'}</a></div>` : ''}
     ${window.Ativacao && window.Ativacao.liberar ? `<button class="ja-comprei" type="button" data-liberar="${app.id}">Já comprei: liberar com meu e-mail</button>` : ''}</div>`;
 }
 
@@ -555,14 +543,10 @@ const APPS=[
     tags:['registrar venda em 3 toques','lista de vendas','estoque automático','fiado anotado','resumo do mês com lucro'],
     liberado:tem('controle'), preco:'R$ 47', checkout:CHECKOUT.controle,
     pitch:'Vendas, estoque com baixa automática, fiado, despesas e o resumo do mês. Sem planilha, sem mensalidade.' },
-  { id:'divulga', nome:'Cobrar na Mão', icone:ICO.divulga, url:'divulga.html',
-    desc:'receba o que anotaram no fiado, sem clima ruim',
-    tags:['a mensagem já vem escrita','sem ficar chato','e pra vender pro resto'],
-    liberado:tem('divulga'), preco:'R$ 27', checkout:CHECKOUT.divulga,
-    pitch:'O Controle mostra quem ficou de pagar. O difícil é mandar a mensagem sem parecer chata, e por isso muita gente deixa pra lá.',
-    beneficios:['a cobrança já vem escrita em 3 tons: o lembrete leve, o direto (educado) e o de confirmar quando ela paga',
-      'você escolhe o tom, ele põe o nome dela e o valor, e é só mandar no WhatsApp',
-      'e ainda vem com 9 mensagens pra vender: novidade, oferta, últimas peças e pra chamar de volta quem sumiu'] },
+  /* texto do card do Cobrar e do Clientes: Lib.VITRINE (liberado.js), o mesmo que o
+     Controle mostra no convite do botao "cobrar" */
+  { id:'divulga', icone:ICO.divulga, url:'divulga.html', ...Lib.VITRINE.divulga,
+    liberado:tem('divulga'), checkout:CHECKOUT.divulga },
   { id:'preco', nome:'Catálogo na Mão', icone:ICO.preco, url:'precificacao.html',
     desc:'aumente as vendas mandando o catálogo da lojinha no WhatsApp',
     tags:['pronto em 1 toque','com a sua logo','direto do seu estoque'],
@@ -571,7 +555,11 @@ const APPS=[
     beneficios:['seu catálogo sai pronto com os produtos que JÁ estão no seu estoque: você não cadastra nada duas vezes',
       'com a sua logo, o nome da sua lojinha e o preço de cada peça, do jeito que loja grande manda',
       'um toque e ele vai no WhatsApp: pro grupo, pro status ou pra freguesa que perguntou',
-      'e a calculadora de preço continua aqui dentro, pra quando você quiser conferir quanto sobra'] }
+      'e a calculadora de preço continua aqui dentro, pra quando você quiser conferir quanto sobra'] },
+  /* Clientes na Mao (03/11/2026): so libera pelo e-mail (nao tem pasta de link).
+     Enquanto o produto nao existe na Cakto, o card nao tem botao de compra. */
+  { id:'clientes', icone:ICO.clientes, url:'clientes.html', ...Lib.VITRINE.clientes,
+    liberado:tem('clientes'), checkout:CHECKOUT.clientes }
 ];
 
 document.getElementById('lista').innerHTML = APPS.map(card).join('');
@@ -620,7 +608,7 @@ document.getElementById('lista').innerHTML = APPS.map(card).join('');
     if(agora.some(function(k){ return DO_EMAIL.indexOf(k) < 0; })){ esquecer(); location.reload(); }
   });
 })();
-if(!tem('controle') && !tem('preco') && !tem('divulga'))
+if(!['controle','preco','divulga','clientes'].some(tem))
   document.getElementById('lista').innerHTML =
     `<div class="app-card"><div class="pitch">Este é o espaço da compradora do Lucro na Mão.
      Se você comprou, use o link de acesso que chegou no seu e-mail. Qualquer coisa, fala com a gente no suporte.</div></div>`

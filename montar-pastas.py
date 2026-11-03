@@ -27,7 +27,8 @@ RAIZ = os.path.dirname(os.path.abspath(__file__))
 APPS = {'index.html': 'controle.html',
         'divulga.html': 'divulga.html',
         'precificacao.html': 'precificacao.html',
-        'diagnostico.html': 'diagnostico.html'}
+        'diagnostico.html': 'diagnostico.html',
+        'clientes.html': 'clientes.html'}   # Clientes na Mao, 03/11/2026
 MENU = 'hub.html'          # o menu, que vira o index.html de cada pasta
 BASE = 'https://lucronamao.github.io/app/'
 
@@ -70,7 +71,7 @@ def ajustar(html, dentro_da_pasta):
     for a in ['favicon-16.png','favicon-32.png','favicon-48.png','favicon-96.png',
               'favicon-180.png','icone-192.png','icone-512.png',
               'logo-branca.png','logo-vinho.png','catalogo-faixa.jpg',
-              'ativacao.js']:
+              'ativacao.js', 'liberado.js', 'lojinha.js']:
         html = html.replace('"' + a + '"', '"../' + a + '"')
         html = html.replace("'" + a + "'", "'../" + a + "'")
     return html

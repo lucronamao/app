@@ -4,9 +4,11 @@
    (3) carregar o NÍVEL DE ACESSO num lugar que atravessa o isolamento do iOS.
    ESTRATÉGIA: rede primeiro, cache como reserva. Assim a compradora sempre
    recebe a versão nova quando tem internet, e continua funcionando sem ela. */
-const CACHE = 'lucronamao-v48';
+const CACHE = 'lucronamao-v49';
 const ARQS = [
   'hub.html', 'index.html', 'precificacao.html', 'divulga.html', 'diagnostico.html', 'ativacao.js',
+  /* 03/11/2026: Clientes na Mao, a regra unica do que esta liberado e os dados das clientes */
+  'clientes.html', 'liberado.js', 'lojinha.js',
   'manifest.webmanifest', 'icone-192.png', 'icone-512.png',
   'favicon-32.png', 'favicon-96.png', 'favicon-180.png', 'logo-branca.png', 'catalogo-faixa.jpg',
   /* Cada pasta serve o menu E os apps: é isso que mantém a chave no caminho de

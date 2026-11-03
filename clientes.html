@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#8e2757">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Clientes na Mão · Lucro na Mão</title>
+<!-- ativacao pelo e-mail da compra: roda ANTES de tudo (ver ativacao.js) -->
+<script>/* rede de seguranca da ativacao: decide "legado" ou "pendente" ANTES de a pagina gravar o tema */
+try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
+<script src="ativacao.js"></script>
+<script src="liberado.js"></script>
+<script src="lojinha.js"></script>
+<!-- ===== CLIENTES NA MAO (03/11/2026) =====
+     A ficha de cada cliente, montada a partir das vendas do Controle (lucronamao_v1,
+     so leitura) e do cadastro dela (lucronamao_clientes). A venda liga a cliente pelo
+     `clienteId` (escolhida na hora da venda) ou pelo nome, nas vendas antigas.
+     Publico com muita dificuldade com app: uma coisa por tela, botoes grandes. -->
+<style>
+:root{
+  --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
+  --tinta:#2b2230; --cinza:#675c6d; --linha:#eadfe6; --branco:#fff;
+  --verde:#1e7d4f; --verde-bg:#e6f4ec; --ambar:#a05e03; --ambar-bg:#fdf2df;
+  --verm:#b3261e; --verm-bg:#fbeae9;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--rose-2);color:var(--tinta);font-size:16px;min-height:100vh;padding-bottom:30px}
+header{background:var(--vinho);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+header a{color:#fff;text-decoration:none;display:flex;align-items:center}
+header h1{font-size:17px;font-weight:700}
+header .sub{font-size:12px;opacity:.85}
+header svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#voltarMenu{padding:11px;margin:-11px}
+main{padding:14px;max-width:560px;margin:0 auto}
+.tit{font-size:21px;font-weight:800;margin:2px 0 10px}
+input,select{width:100%;padding:14px;border:1.5px solid #8f8496;border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--tinta)}
+input:focus{outline:none;border-color:var(--vinho);box-shadow:0 0 0 3px rgba(142,39,87,.15)}
+::placeholder{color:#7a6f80;opacity:1}
+label{font-size:14px;color:var(--cinza);font-weight:700;display:block;margin:14px 0 5px}
+.btn{display:block;width:100%;background:var(--vinho);color:#fff;border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:800;
+  font-family:inherit;cursor:pointer;margin-top:10px;text-align:center;text-decoration:none}
+.btn.sec{background:var(--rose);color:var(--vinho);font-size:15.5px;padding:14px}
+.btn.perigo{background:var(--verm-bg);color:var(--verm);font-size:15.5px;padding:14px}
+.btn.discreto{background:none;color:var(--cinza);font-weight:600;font-size:15px;padding:12px}
+.btn.zap{background:#1e7d4f}
+.btn[disabled]{opacity:.5}
+.chips{display:flex;gap:7px;overflow-x:auto;margin:14px 0 4px;padding-bottom:4px}
+.chips button{flex-shrink:0;padding:11px 14px;background:#fff;border:1.5px solid var(--linha);color:var(--tinta);border-radius:99px;
+  font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;min-height:44px}
+.chips button.on{background:var(--vinho);color:#fff;border-color:var(--vinho)}
+.seg{display:flex;background:#fff;border:1.5px solid var(--linha);border-radius:12px;overflow:hidden;margin:10px 0}
+.seg button{flex:1;padding:11px 4px;background:none;border:0;font-size:14.5px;font-weight:700;color:var(--cinza);font-family:inherit;cursor:pointer}
+.seg button.on{background:var(--vinho);color:#fff}
+.lista-tit{font-size:15px;font-weight:800;margin:14px 0 8px;line-height:1.35}
+.cli{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;
+  border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:9px;font-family:inherit;cursor:pointer;color:var(--tinta)}
+.cli .n{font-size:17px;font-weight:800;line-height:1.25}
+.cli .s{font-size:13.5px;color:var(--cinza);margin-top:3px}
+.cli .v{font-weight:800;color:var(--vinho);white-space:nowrap;text-align:right;font-size:15px}
+.cli .v small{display:block;font-size:12px;color:var(--cinza);font-weight:600}
+.badge{display:inline-block;font-size:12px;font-weight:800;border-radius:99px;padding:4px 9px;background:var(--ambar-bg);color:var(--ambar);margin-top:5px}
+.vazio{text-align:center;color:var(--cinza);font-size:15px;line-height:1.55;padding:28px 14px;background:#fff;border:1px solid var(--linha);border-radius:16px}
+.importar{background:#fff;border:1.5px dashed var(--vinho);color:var(--vinho);border-radius:12px;padding:12px;width:100%;font-weight:700;
+  font-size:14.5px;font-family:inherit;cursor:pointer;margin-top:4px}
+/* folha de baixo (ficha, cadastro, confirmacoes) */
+.fundo{position:fixed;left:0;right:0;top:0;height:100%;background:rgba(43,34,48,.5);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.fundo.aberto{display:flex}
+.folha{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92%;overflow-y:auto;padding:18px 16px 26px}
+.folha h3{font-size:21px;font-weight:800;line-height:1.2}
+.folha .sub{font-size:14px;color:var(--cinza);margin-top:4px;line-height:1.45}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.kpi{background:var(--rose);border-radius:12px;padding:12px}
+.kpi .v{font-size:20px;font-weight:800;color:var(--vinho);white-space:nowrap}
+.kpi .l{font-size:12.5px;color:var(--cinza);margin-top:2px;line-height:1.3}
+.bloco{margin-top:16px}
+.bloco h4{font-size:13px;color:var(--cinza);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.fiado{background:var(--ambar-bg);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fiado b{font-size:20px;color:var(--ambar)}
+.fiado a{background:var(--ambar);color:#fff;text-decoration:none;font-weight:800;border-radius:10px;padding:11px 15px;font-size:15px}
+.hist{border-top:1px solid var(--linha);padding:10px 0;font-size:14.5px;display:flex;justify-content:space-between;gap:10px}
+.hist:first-of-type{border-top:0}
+.hist .d{color:var(--cinza);font-size:13px}
+.hist b{white-space:nowrap}
+.obs{background:var(--rose-2);border-radius:10px;padding:10px 12px;font-size:14.5px;margin-top:10px;line-height:1.45}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;
+  font-size:14.5px;z-index:60;opacity:0;transition:opacity .25s;max-width:92vw;text-align:center;pointer-events:none}
+.toast.mostra{opacity:1}
+.oculto{display:none!important}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="./" id="voltarMenu" aria-label="voltar ao menu"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <div><h1>Clientes na Mão</h1><div class="sub">quem compra, o quê, e quem sumiu</div></div><!-- TEXTO: subtitulo do topo (provisorio) -->
+</header>
+
+<main>
+  <!-- TEXTO: microtextos (copy de 03/11/2026) -->
+  <h2 class="tit">Minhas clientes</h2>
+  <input id="busca" type="search" placeholder="Buscar pelo nome" autocomplete="off" aria-label="Buscar pelo nome">
+  <button class="btn" onclick="Ficha.form()">+ Nova cliente</button>
+  <div class="chips" id="chips" role="tablist"></div>
+  <div id="lista"></div>
+</main>
+
+<div class="fundo" id="fundo" onclick="if(event.target===this)Folha.fechar()">
+  <div class="folha" id="folha" role="dialog" aria-modal="true" tabindex="-1"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const TEMAS={
+  vinho:   {a:'#8e2757',b:'#6d1d43',c:'#f6e7ee',d:'#fdf4f8'},
+  violeta: {a:'#6b3fa0',b:'#532e80',c:'#efe8f7',d:'#f9f5fd'},
+  esmeralda:{a:'#176b50',b:'#145c45',c:'#e4f2ec',d:'#f3faf7'},
+  petroleo:{a:'#22677a',b:'#194f5e',c:'#e3eff3',d:'#f2f8fa'},
+  grafite: {a:'#3f3a45',b:'#2b2730',c:'#ece9ef',d:'#f7f5f9'}
+};
+(function(){ const t=TEMAS[localStorage.getItem('lucronamao_tema')||'vinho']||TEMAS.vinho, r=document.documentElement.style;
+  r.setProperty('--vinho',t.a); r.setProperty('--vinho-escuro',t.b); r.setProperty('--rose',t.c); r.setProperty('--rose-2',t.d);
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t.a); })();
+
+const $=id=>document.getElementById(id);
+const L=window.Lojinha;
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const dataBR=iso=>String(iso).split('-').reverse().join('/');
+const haDias=n=>n===0?'hoje':(n===1?'há 1 dia':'há '+n+' dias');
+let toastT=null;
+function toast(m){ const t=$('toast'); t.textContent=m; t.className='toast mostra'; clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast',4000); }
+
+/* TEXTO: microtextos (copy de 03/11/2026, os marcados PROVISORIO nao vieram dela) */
+const T={
+  chips:{todas:'Todas', mais:'Quem mais compra', sumiu:'Quem sumiu', niver:'Aniversário'},   /* PROVISORIO: "Todas" e "Aniversário" */
+  maisMes:'no mês', maisTotal:'no total',                                                    /* PROVISORIO */
+  sumiuTit:d=>`Quem sumiu (não compra há mais de ${d} dias)`,
+  niverTit:m=>`Aniversariantes de ${m}`,
+  maisTit:'Quem mais compra',
+  vazio:'Nenhuma cliente ainda. Toque em + Nova cliente pra cadastrar a primeira.',
+  vazioSumiu:d=>`Ninguém sumiu: todas compraram nos últimos ${d} dias.`,
+  vazioNiver:m=>`Nenhuma aniversariante em ${m}.`,
+  vazioMais:'Ninguém comprou ainda.',                                                         /* PROVISORIO */
+  vazioBusca:'Nenhuma cliente com esse nome.',                                                 /* PROVISORIO */
+  importar:n=>`Achamos ${n} nomes nas suas vendas. Quer trazer pra cá? Depois é só completar o WhatsApp de cada uma.`,
+  importarTit:'Trazer os nomes das vendas',                                                    /* PROVISORIO */
+  importarSim:'Trazer os nomes', importarNao:'Agora não',
+  importarLink:n=>`Trazer ${n} ${n===1?'nome':'nomes'} das suas vendas`,                       /* PROVISORIO */
+  importou:n=>`${n} ${n===1?'cliente trazida':'clientes trazidas'}`,                            /* PROVISORIO */
+  campos:{nome:'Nome', nomeEx:'ex: Ana Paula', whats:'WhatsApp', whatsEx:'ex: 11 99999-9999',
+    niver:'Aniversário (dia e mês)', niverEx:'ex: 15/03', obs:'Observação', obsEx:'ex: veste M, gosta de perfume doce'},
+  nova:'Nova cliente', editar:'Editar cliente',                                                /* PROVISORIO */
+  salvar:'Salvar', cancelar:'Cancelar', fechar:'Fechar',                                       /* PROVISORIO */
+  kTotal:'Total comprado', kN:'Compras', kMedia:'Gasta em média por compra',
+  kUltima:d=>d==null?'Ainda não comprou':`Última compra: ${haDias(d)}`,
+  maisLeva:'O que mais leva', fiado:'Fiado em aberto', historico:'O que ela já comprou',
+  cobrar:'Cobrar',                                                                             /* PROVISORIO */
+  semCompra:'Nenhuma compra com o nome dela ainda.',                                           /* PROVISORIO */
+  zap:'Chamar no WhatsApp', semZap:'Colocar o WhatsApp dela',                /* PROVISORIO */
+  editarBtn:'Editar', apagarBtn:'Apagar cliente',                                              /* PROVISORIO */
+  apagarTit:n=>`Apagar ${n}?`, apagarSub:'A ficha sai daqui. As vendas dela continuam no Controle.', /* PROVISORIO */
+  apagarSim:'Sim, apagar',                                                                      /* PROVISORIO */
+  semNome:'Escreva o nome dela', niverErr:'Aniversário assim: dia/mês, ex: 15/03', jaExiste:'Já tem uma cliente com esse nome', /* PROVISORIO */
+  salvo:'Cliente salva', apagado:'Cliente apagada',                                            /* PROVISORIO */
+  sumiuSub:d=>`última compra ${haDias(d)}`, nuncaComprou:'nenhuma compra ainda',               /* PROVISORIO */
+  deve:v=>`deve R$ ${L.num(v)}`, dia:d=>`dia ${d}`                                              /* PROVISORIO */
+};
+
+/* ============ FOLHA DE BAIXO ============ */
+const Folha={
+  _volta:null,
+  abrir(html){ const f=$('fundo'), c=$('folha');
+    if(!f.classList.contains('aberto')) this._volta=document.activeElement;
+    c.innerHTML=html; f.classList.add('aberto'); c.scrollTop=0;
+    const h=c.querySelector('h3'); if(h){ h.id='folhaTit'; c.setAttribute('aria-labelledby','folhaTit'); }
+    document.querySelectorAll('header, main').forEach(el=>el.setAttribute('inert',''));
+    setTimeout(()=>{ if(!c.contains(document.activeElement)) c.focus({preventScroll:true}); },60); },
+  fechar(){ $('fundo').classList.remove('aberto');
+    document.querySelectorAll('header, main').forEach(el=>el.removeAttribute('inert'));
+    const v=this._volta; this._volta=null; if(v&&document.body.contains(v)&&v.focus) v.focus({preventScroll:true}); }
+};
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('fundo').classList.contains('aberto')) Folha.fechar(); });
+
+/* ============ LISTAS ============ */
+const Lista={
+  vista:'todas', mais:'mes', sumiu:30, fichas:[],
+  carregar(){ this.fichas = L ? L.fichas() : []; },
+  chips(){ $('chips').innerHTML=Object.keys(T.chips).map(k=>
+    `<button role="tab" aria-selected="${this.vista===k}" class="${this.vista===k?'on':''}" onclick="Lista.ir('${k}')">${T.chips[k]}</button>`).join(''); },
+  ir(v){ this.vista=v; this.render(); },
+  linha(f, direita, sub){
+    return `<button class="cli" onclick="Ficha.abrir(${Number(f.cliente.id)})">
+      <span style="min-width:0"><span class="n">${esc(f.cliente.nome)}</span>
+        <span class="s" style="display:block">${sub}</span>
+        ${f.fiado>0?`<span class="badge">${esc(T.deve(f.fiado))}</span>`:''}</span>
+      <span class="v">${direita||''}</span></button>`;
+  },
+  render(){
+    this.carregar(); this.chips();
+    const busca=L?L.norm($('busca').value):'', mesAtual=new Date().getMonth()+1, nomeMes=MESES[mesAtual-1];
+    let fs=this.fichas.slice();
+    if(busca) fs=fs.filter(f=>L.norm(f.cliente.nome).includes(busca));
+    let html='';
+    const nSem = L ? L.nomesSemCadastro().length : 0;
+    if(this.vista==='todas'){
+      fs.sort((a,b)=>a.cliente.nome.localeCompare(b.cliente.nome,'pt-BR'));
+      html = fs.length ? fs.map(f=>this.linha(f,'',f.ultima?'última compra '+haDias(f.diasSemComprar):T.nuncaComprou)).join('')
+        : `<div class="vazio">${busca?T.vazioBusca:T.vazio}</div>`;
+      if(nSem && !busca) html += `<button class="importar" onclick="Importar.perguntar(true)">${T.importarLink(nSem)}</button>`;
+    }
+    if(this.vista==='mais'){
+      const campo=this.mais==='mes'?'mes':'total';
+      const lista=fs.filter(f=>f[campo]>0).sort((a,b)=>b[campo]-a[campo]);
+      html=`<div class="lista-tit">${T.maisTit}</div>
+        <div class="seg"><button class="${this.mais==='mes'?'on':''}" onclick="Lista.mais='mes';Lista.render()">${T.maisMes}</button>
+          <button class="${this.mais==='total'?'on':''}" onclick="Lista.mais='total';Lista.render()">${T.maisTotal}</button></div>`
+        + (lista.length ? lista.map(f=>this.linha(f, L.rs(f[campo])+`<small>${f.n} ${f.n===1?'compra':'compras'}</small>`,
+            f.ultima?'última compra '+haDias(f.diasSemComprar):'')).join('') : `<div class="vazio">${T.vazioMais}</div>`);
+    }
+    if(this.vista==='sumiu'){
+      const d=this.sumiu, R=L.REGRAS.SUMIU;
+      const lista=fs.filter(f=>f.ultima && f.diasSemComprar>=d).sort((a,b)=>b.diasSemComprar-a.diasSemComprar);
+      html=`<div class="seg">${R.map(x=>`<button class="${d===x?'on':''}" onclick="Lista.sumiu=${x};Lista.render()">${x} dias</button>`).join('')}</div>
+        <div class="lista-tit">${T.sumiuTit(d)}</div>`
+        + (lista.length ? lista.map(f=>this.linha(f,'',T.sumiuSub(f.diasSemComprar))).join('') : `<div class="vazio">${T.vazioSumiu(d)}</div>`);
+    }
+    if(this.vista==='niver'){
+      const lista=fs.filter(f=>f.cliente.niver && Number(f.cliente.niver.m)===mesAtual).sort((a,b)=>a.cliente.niver.d-b.cliente.niver.d);
+      html=`<div class="lista-tit">${T.niverTit(nomeMes)}</div>`
+        + (lista.length ? lista.map(f=>this.linha(f,esc(T.dia(f.cliente.niver.d)),'')).join('') : `<div class="vazio">${T.vazioNiver(nomeMes)}</div>`);
+    }
+    $('lista').innerHTML=html;
+  }
+};
+$('busca').addEventListener('input',()=>Lista.render());
+
+/* ============ FICHA ============ */
+const Ficha={
+  /* o Cobrar mora na mesma pasta; o #de= leva o menu certo junto */
+  de(){ const m=(location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)(?:&|$)/); return m?m[1]:null; },
+  abrir(id){
+    const f=L.fichas().find(x=>String(x.cliente.id)===String(id)); if(!f) return;
+    const c=f.cliente, tem=!!(window.Liberado&&Liberado.tem('divulga'));
+    const aberta=f.vendas.filter(v=>v.pgto==='fiado'&&L.saldo(v)>0).sort((a,b)=>String(a.data).localeCompare(String(b.data)))[0];
+    const de=this.de();
+    const zap = L.foneWa(c.whats)
+      ? `<a class="btn zap" href="${esc(L.linkWhats(c.whats,''))}" target="_blank" rel="noopener">${T.zap}</a>`
+      : `<button class="btn sec" onclick="Ficha.form(${Number(c.id)},true)">${T.semZap}</button>`;
+    Folha.abrir(`<h3>${esc(c.nome)}</h3>
+      ${c.whats?`<div class="sub">${esc(c.whats)}</div>`:''}
+      ${c.niver?`<div class="sub">aniversário: ${String(c.niver.d).padStart(2,'0')}/${String(c.niver.m).padStart(2,'0')}</div>`:''}
+      ${c.obs?`<div class="obs">${esc(c.obs)}</div>`:''}
+      ${zap}
+      <div class="kpis">
+        <div class="kpi"><div class="v">${L.rs(f.total)}</div><div class="l">${T.kTotal}</div></div>
+        <div class="kpi"><div class="v">${f.n}</div><div class="l">${T.kN}</div></div>
+        <div class="kpi"><div class="v">${L.rs(f.media)}</div><div class="l">${T.kMedia}</div></div>
+        <div class="kpi"><div class="v" style="font-size:16px;white-space:normal">${esc(T.kUltima(f.diasSemComprar))}</div><div class="l">${f.ultima?dataBR(f.ultima):''}</div></div>
+      </div>
+      ${f.fiado>0?`<div class="bloco"><h4>${T.fiado}</h4><div class="fiado"><b>${L.rs(f.fiado)}</b>
+        ${tem&&aberta?`<a href="divulga.html#venda=${Number(aberta.id)}${de?'&de='+de:''}">${T.cobrar}</a>`:''}</div></div>`:''}
+      ${f.top.length?`<div class="bloco"><h4>${T.maisLeva}</h4>${f.top.map(t=>`<div class="hist"><span>${esc(t.nome)}</span><b>${t.qtd} ${t.qtd===1?'peça':'peças'}</b></div>`).join('')}</div>`:''}
+      <div class="bloco"><h4>${T.historico}</h4>
+        ${f.vendas.length?f.vendas.map(v=>`<div class="hist"><span><span class="d">${dataBR(v.data)} · ${esc(v.pgto)}${v.pgto==='fiado'&&L.saldo(v)>0?' (em aberto)':''}</span><br>${esc(L.pecasDe([v]).join(', '))}</span><b>${L.rs(v.total)}</b></div>`).join('')
+          :`<div class="sub">${T.semCompra}</div>`}
+      </div>
+      <button class="btn sec" onclick="Ficha.form(${Number(c.id)})">${T.editarBtn}</button>
+      <button class="btn perigo" onclick="Ficha.apagar(${Number(c.id)})">${T.apagarBtn}</button>
+      <button class="btn discreto" onclick="Folha.fechar()">${T.fechar}</button>`);
+  },
+  form(id, focoWhats){
+    const c=id!=null?L.clientePorId(id):null, C=T.campos;
+    const nv=c&&c.niver?String(c.niver.d).padStart(2,'0')+'/'+String(c.niver.m).padStart(2,'0'):'';
+    Folha.abrir(`<h3>${c?T.editar:T.nova}</h3>
+      <label for="cNome">${C.nome}</label><input id="cNome" value="${esc(c?c.nome:'')}" placeholder="${C.nomeEx}" autocomplete="off" autocapitalize="words">
+      <label for="cWhats">${C.whats}</label><input id="cWhats" type="tel" inputmode="tel" value="${esc(c?c.whats:'')}" placeholder="${C.whatsEx}" autocomplete="off">
+      <label for="cNiver">${C.niver}</label><input id="cNiver" inputmode="numeric" value="${nv}" placeholder="${C.niverEx}" autocomplete="off" maxlength="5">
+      <label for="cObs">${C.obs}</label><input id="cObs" value="${esc(c?c.obs:'')}" placeholder="${C.obsEx}" autocomplete="off">
+      <button class="btn" onclick="Ficha.salvar(${c?Number(c.id):'null'})">${T.salvar}</button>
+      <button class="btn discreto" onclick="${c?`Ficha.abrir(${Number(c.id)})`:'Folha.fechar()'}">${T.cancelar}</button>`);
+    /* dia/mes: a barra entra sozinha */
+    $('cNiver').addEventListener('input',e=>{ const d=e.target.value.replace(/\D/g,'').slice(0,4);
+      e.target.value = d.length>2 ? d.slice(0,2)+'/'+d.slice(2) : d; });
+    /* a folha pode ter mudado nesse meio tempo: so foca se o campo ainda existe */
+    setTimeout(()=>{ const el=$(!c?'cNome':(focoWhats?'cWhats':'')); if(el) el.focus(); },80);
+  },
+  salvar(id){
+    const nome=$('cNome').value.trim(), whats=$('cWhats').value.trim(), obs=$('cObs').value.trim().replace(/[\r\n]+/g,' ');
+    const nvTxt=$('cNiver').value.trim();
+    if(!nome){ toast(T.semNome); $('cNome').focus(); return; }
+    let niver=null;
+    if(nvTxt){ const m=nvTxt.match(/^(\d{1,2})\/(\d{1,2})$/); const d=m?+m[1]:0, me=m?+m[2]:0;
+      if(!m||d<1||d>31||me<1||me>12){ toast(T.niverErr); $('cNiver').focus(); return; }
+      niver={d,m:me}; }
+    const obj=L.clientesObj();
+    const outra=obj.lista.find(x=>L.norm(x.nome)===L.norm(nome) && String(x.id)!==String(id));
+    if(outra){ toast(T.jaExiste); $('cNome').focus(); return; }
+    let c;
+    if(id!=null){ c=obj.lista.find(x=>String(x.id)===String(id)); if(!c) return;
+      /* trocou o nome: o antigo continua ligando as vendas antigas, que so tem o nome */
+      if(L.norm(c.nome)!==L.norm(nome)){ c.nomesAntigos=(c.nomesAntigos||[]); if(c.nomesAntigos.indexOf(c.nome)<0) c.nomesAntigos.push(c.nome); }
+      Object.assign(c,{nome,whats,niver,obs});
+    } else {
+      c={id:obj.seq++, nome, whats, niver, obs, criadoEm:new Date().toISOString()};
+      obj.lista.push(c);
+    }
+    if(!L.salvarClientes(obj)){ toast('Não deu pra salvar: o celular ficou sem espaço.'); return; }
+    toast(T.salvo); Lista.render(); this.abrir(c.id);
+  },
+  apagar(id){ const c=L.clientePorId(id); if(!c) return;
+    Folha.abrir(`<h3>${esc(T.apagarTit(c.nome))}</h3><p class="sub">${T.apagarSub}</p>
+      <button class="btn perigo" onclick="Ficha.confirmaApagar(${Number(id)})">${T.apagarSim}</button>
+      <button class="btn sec" onclick="Ficha.abrir(${Number(id)})">${T.cancelar}</button>`); },
+  confirmaApagar(id){ const obj=L.clientesObj(); obj.lista=obj.lista.filter(x=>String(x.id)!==String(id));
+    L.salvarClientes(obj); Folha.fechar(); Lista.render(); toast(T.apagado); }
+};
+
+/* ============ TRAZER OS NOMES DAS VENDAS ============
+   Na primeira abertura, se as vendas ja tem nomes que nao estao aqui, oferece
+   trazer. So cria a ficha; as vendas nao sao tocadas (elas ligam pelo nome). */
+const Importar={
+  perguntar(manual){
+    const nomes=L.nomesSemCadastro(); if(!nomes.length) return;
+    Folha.abrir(`<h3>${T.importarTit}</h3><p class="sub">${esc(T.importar(nomes.length))}</p>
+      <button class="btn" onclick="Importar.trazer()">${T.importarSim}</button>
+      <button class="btn discreto" onclick="Importar.depois()">${T.importarNao}</button>`);
+  },
+  marcar(){ const obj=L.clientesObj(); obj.perguntado=true; L.salvarClientes(obj); },
+  trazer(){
+    const nomes=L.nomesSemCadastro(), obj=L.clientesObj(), agora=new Date().toISOString();
+    nomes.forEach(n=>obj.lista.push({id:obj.seq++, nome:n, whats:'', niver:null, obs:'', criadoEm:agora}));
+    obj.perguntado=true; L.salvarClientes(obj);
+    Folha.fechar(); Lista.render(); toast(T.importou(nomes.length));
+  },
+  depois(){ this.marcar(); Folha.fechar(); }
+};
+
+/* ============ INICIO ============ */
+if(!L){ $('lista').innerHTML='<div class="vazio">Não deu pra abrir agora. Feche e abra o app de novo.</div>'; }
+else{
+  Lista.render();
+  /* espera a tela de ativacao (se houver) sair do caminho antes de perguntar */
+  setTimeout(()=>{ if(document.documentElement.classList.contains('ativ-trava')||document.getElementById('ativ')) return;
+    if(!L.clientesObj().perguntado && L.nomesSemCadastro().length) Importar.perguntar(false); }, 400);
+}
+
+/* service worker: o mesmo de sempre, sempre em /app/ (ver sw.js) */
+if('serviceWorker' in navigator) navigator.serviceWorker.register(
+  location.pathname.replace(/\/app\/.*$/, '/app/') + 'sw.js',
+  {scope: location.pathname.replace(/\/app\/.*$/, '/app/')}).catch(()=>{});
+</script>
+
+<script>
+/* O botao de voltar leva ao MENU DA COMPRADORA (mesma regra do Controle e do Cobrar):
+   o hub manda #de=<chave>, que vira a pasta <chave>/ irma desta pagina */
+(function(){
+  try{
+    var m = (location.hash || '').match(/de=(tudo|cd|cp|c|d|p|u)$/);
+    if(!m) return;
+    if(window.Liberado) Liberado.lembrar(Liberado.MAPA[m[1]] || []);
+    var a = document.getElementById('voltarMenu'); if(!a) return;
+    var aqui = location.pathname.replace(/[^\/]*$/, '');
+    var jaNaPasta = new RegExp('/' + m[1] + '/$').test(aqui);
+    a.setAttribute('href', jaNaPasta ? aqui : aqui + m[1] + '/');
+  }catch(e){}
+})();
+/* a pagina da raiz aponta pro manifest da pasta (ver o mesmo bloco no Controle) */
+(function(){
+  var MAPA_K = {c:1,d:1,p:1,cd:1,cp:1,u:1,tudo:1};
+  function aplicar(chave){
+    if(!chave || !MAPA_K[chave]) return;
+    var base = location.pathname.replace(/\/app\/.*$/, '/app/');
+    if(base.indexOf('/app/') < 0) base = '/app/';
+    var href = base + chave + '/manifest.webmanifest';
+    var el = document.querySelector('link[rel="manifest"]');
+    if(el && el.getAttribute('href') !== href) el.setAttribute('href', href);
+  }
+  try{
+    var m = location.pathname.match(/\/(c|d|p|cd|cp|u|tudo)(?:\/|$)/);
+    if(m){ aplicar(m[1]); return; }
+    var h = (location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)$/);
+    if(h) aplicar(h[1]);
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

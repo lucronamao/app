@@ -19,6 +19,9 @@
    mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
 try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
 <script src="../ativacao.js"></script>
+<!-- "Quem te deve" (03/11/2026): le o fiado do Controle; o que esta liberado vem da mesma regra do menu -->
+<script src="../liberado.js"></script>
+<script src="../lojinha.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
@@ -239,13 +242,49 @@ html{touch-action:manipulation}
 #voltarMenu{padding:11px;margin:-11px}
 .fi-x,.fn-x{min-width:44px;min-height:44px}
 .btn-cfg{padding:10px;margin:-6px}
+/* ===== QUEM TE DEVE (03/11/2026) ===== */
+.abas.sub{margin-bottom:12px}
+.abas.sub button{padding:10px 4px;font-size:13.5px}
+.dv-tit{font-size:20px;font-weight:800;line-height:1.2}
+.dv-subtit{font-size:14px;color:var(--cinza);margin:2px 0 12px}
+.dv-aviso{border-radius:14px;padding:13px 14px;font-size:15px;line-height:1.45;margin-bottom:12px;font-weight:600}
+.dv-aviso.vale{background:var(--ambar-bg);color:#7a4500;border:1.5px solid #e8b04a}
+.dv-aviso.calmo{background:var(--verde-bg);color:var(--verde)}
+.dv-pix{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px dashed var(--vinho);
+  border-radius:12px;padding:11px 12px;margin-bottom:12px;font-size:14px;line-height:1.4}
+.dv-pix button{flex-shrink:0;background:var(--vinho);color:#fff;border:0;border-radius:10px;padding:10px 13px;font-weight:700;font-size:14px;font-family:inherit;cursor:pointer}
+.dv-card{background:#fff;border:1px solid var(--linha);border-radius:16px;padding:15px 14px;margin-bottom:12px}
+.dv-card.vale{border:2px solid #e8b04a}
+.dv-card.destaque{box-shadow:0 0 0 3px var(--vinho)}
+.dv-linha{font-size:15.5px;line-height:1.45}
+.dv-linha b{font-size:18px}
+.dv-linha .dv-deve{font-weight:800;color:var(--vinho)}
+.dv-levou{font-size:14px;color:var(--cinza);margin-top:4px;line-height:1.45}
+.dv-selo{display:inline-block;font-size:12.5px;font-weight:700;border-radius:99px;padding:5px 10px;margin-top:9px;background:var(--rose);color:var(--vinho)}
+.dv-selo.nunca{background:#f1eef3;color:var(--cinza)}
+.dv-tomlinha{font-size:14px;margin-top:10px;color:var(--tinta)}
+.dv-tomlinha button{background:none;border:0;color:var(--vinho);font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-family:inherit;cursor:pointer;padding:8px 4px}
+.dv-tons{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.dv-tons button{padding:11px 13px;background:var(--rose);color:var(--vinho);border:0;border-radius:99px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.dv-tons button.on{background:var(--vinho);color:#fff}
+.dv-rot{font-size:13px;color:var(--cinza);font-weight:700;margin-top:12px}
+.dv-msg{background:var(--rose-2);border-radius:12px;padding:12px;font-size:15px;line-height:1.5;white-space:pre-wrap;margin-top:10px}
+.dv-card .btn{padding:16px;font-size:17px}
+.dv-card .btn.sec{padding:13px;font-size:15.5px}
+.dv-card .btn.mini{min-height:44px;font-size:14.5px}
+.dv-tons button{min-height:44px}
+.dv-vazio{text-align:center;color:var(--cinza);font-size:15px;line-height:1.55;padding:28px 14px;background:#fff;border:1px solid var(--linha);border-radius:16px}
+.dv-pagaram{font-size:13px;color:var(--cinza);font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px}
+.pg-venda{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--rose);
+  color:var(--tinta);border:0;border-radius:12px;padding:13px;margin-top:8px;font-family:inherit;font-size:15px;cursor:pointer}
+.pg-venda b{color:var(--vinho);white-space:nowrap}
 </style>
 </head>
 <body>
 
 <header>
   <a href="./" id="voltarMenu" aria-label="voltar ao menu"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
-  <div><h1>Cobrar na Mão</h1><div class="sub">receba o que anotaram, sem clima ruim</div></div>
+  <div><h1>Cobrar na Mão</h1><div class="sub">veja quem te deve e mande a cobrança pronta</div></div>
   <div style="margin-left:auto"><button class="btn-cfg" onclick="Config.abrir()" aria-label="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.09A1.7 1.7 0 008.94 19.3a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.09A1.7 1.7 0 004.7 8.94a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.03z"/></svg></button></div>
 </header>
 
@@ -260,10 +299,30 @@ html{touch-action:manipulation}
 
 
 <main>
+  <!-- TEXTO: abas (copy de 03/11/2026) -->
   <div class="abas">
-    <button id="aba-msg" class="on" onclick="aba('msg')">Mensagens</button>
-    <button id="aba-arte" onclick="aba('arte')">Arte pro status</button>
-    <button id="aba-perfil" onclick="aba('perfil')">Minha lojinha</button>
+    <button id="aba-deve" class="on" onclick="aba('deve')">Quem te deve</button>
+    <button id="aba-vender" onclick="aba('vender')">Pra vender</button>
+  </div>
+
+  <!-- ================= QUEM TE DEVE (03/11/2026) =================
+       Le o fiado do Controle (lucronamao_v1) pela mesma conta de saldo dele,
+       agrupa por cliente e monta a cobranca. Historico em lucronamao_cobrancas. -->
+  <section id="sec-deve">
+    <!-- TEXTO: titulo e subtitulo (copy de 03/11/2026) -->
+    <div class="dv-tit">Quem te deve</div>
+    <div class="dv-subtit">quem levou no fiado e quanto ainda falta</div>
+    <div id="dvAviso"></div>
+    <div id="dvPix"></div>
+    <div id="dvLista"></div>
+    <div id="dvPagaram"></div>
+  </section>
+
+  <!-- ================= PRA VENDER: as mensagens e a arte de antes ================= -->
+  <section id="sec-vender" class="oculto">
+  <div class="abas sub">
+    <button id="sub-msg" class="on" onclick="sub('msg')">Mensagens</button>
+    <button id="sub-arte" onclick="sub('arte')">Arte pro status</button>
   </div>
 
   <!-- ================= MENSAGENS ================= -->
@@ -328,28 +387,46 @@ html{touch-action:manipulation}
       <div class="dica">A arte sai com a sua logo (ou a inicial da lojinha), o seu @ e a cor do seu tema. Formato quadrado, perfeito pro status, feed e grupos.</div>
     </div>
   </section>
-
-  <!-- ================= PERFIL ================= -->
-  <section id="sec-perfil" class="oculto">
-    <div class="card">
-      <h2>minha lojinha</h2>
-      <p class="dica" style="margin-top:0">Preencha uma vez: as mensagens e as artes usam tudo isso automaticamente.</p>
-      <div class="logo-row">
-        <div class="logo-prev" id="logoPrev">?</div>
-        <div style="flex:1">
-          <button class="btn mini sec" style="margin-top:0" onclick="document.getElementById('logoArq').click()">Enviar minha logo</button>
-          <button class="btn mini sec oculto" id="btnTirarLogo" style="margin-top:6px" onclick="Perfil.tirarLogo()">Tirar logo</button>
-          <input type="file" id="logoArq" accept="image/*" class="oculto">
-          <div class="dica">Sem logo? Sem problema: usamos a inicial da lojinha, fica lindo igual.</div>
-        </div>
-      </div>
-      <label for="pfNome">nome da lojinha</label><input id="pfNome" placeholder="ex: Closet da Ju">
-      <label for="pfInsta">seu @ do Instagram (opcional)</label><input id="pfInsta" placeholder="ex: @closetdaju">
-      <label for="pfPix">sua chave Pix (entra na mensagem de cobrança)</label><input id="pfPix" placeholder="ex: 11 99999-9999">
-      <button class="btn" onclick="Perfil.salvar()">Salvar</button>
-    </div>
   </section>
 </main>
+
+<!-- ajustes: antes do script, porque a "Minha lojinha" mora aqui desde 03/11/2026 e o Perfil le os campos na carga -->
+<div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
+  <div class="cfg-box" role="dialog" aria-modal="true" aria-label="ajustes">
+    <h3>Ajustes</h3>
+    <div class="cfg-sub">Deixe o app com a sua cara.</div>
+    <!-- MINHA LOJINHA: era a 3a aba ate 03/11/2026. Mesmos campos e a mesma chave
+         (lucronamao_divulga): o Pix entra na cobranca, a logo e o @ entram na arte -->
+    <h4 id="pfTitulo">minha lojinha</h4>
+    <p class="dica" style="margin-top:0">Preencha uma vez: as mensagens e as artes usam tudo isso automaticamente.</p>
+    <div class="logo-row">
+      <div class="logo-prev" id="logoPrev">?</div>
+      <div style="flex:1">
+        <button class="btn mini sec" style="margin-top:0" onclick="document.getElementById('logoArq').click()">Enviar minha logo</button>
+        <button class="btn mini sec oculto" id="btnTirarLogo" style="margin-top:6px" onclick="Perfil.tirarLogo()">Tirar logo</button>
+        <input type="file" id="logoArq" accept="image/*" class="oculto">
+        <div class="dica">Sem logo? Sem problema: usamos a inicial da lojinha, fica lindo igual.</div>
+      </div>
+    </div>
+    <label for="pfNome">nome da lojinha</label><input id="pfNome" placeholder="ex: Closet da Ju">
+    <label for="pfInsta">seu @ do Instagram (opcional)</label><input id="pfInsta" placeholder="ex: @closetdaju">
+    <label for="pfPix">sua chave Pix (entra na mensagem de cobrança)</label><input id="pfPix" placeholder="ex: 11 99999-9999">
+    <button class="cfg-btn" onclick="Perfil.salvar()">Salvar</button>
+    <h4>cor do aplicativo</h4>
+    <div class="cfg-cores" id="cfgCores"></div>
+    <div id="cfgInstalarBloco">
+      <h4>aplicativo no celular</h4>
+      <p style="font-size:14px;line-height:1.5;color:var(--cinza)">Ícone próprio na tela, abre sem navegador e funciona sem internet.</p>
+      <button class="cfg-btn" onclick="Config.instalar()">Adicionar à tela inicial</button>
+    </div>
+    <button class="cfg-btn sec" onclick="Config.fechar()">Fechar</button>
+  </div>
+</div>
+
+<!-- "Mandou a mensagem?": o historico so grava quando ela confirma (copy de 03/11/2026) -->
+<div class="cfg-fundo" id="perguntaFundo">
+  <div class="cfg-box" role="dialog" aria-modal="true" aria-labelledby="perguntaTit" id="perguntaBox"></div>
+</div>
 
 <script>
 const TEMAS={
@@ -390,7 +467,8 @@ const Perfil={
   salvar(){ this.dados.nome=$('pfNome').value.trim(); this.dados.insta=$('pfInsta').value.trim();
     this.dados.pix=$('pfPix').value.trim();
     localStorage.setItem(this.chave, JSON.stringify(this.dados));
-    toastSimples('Salvo! Suas mensagens e artes já estão personalizadas.'); },
+    toastSimples('Salvo! Suas mensagens e artes já estão personalizadas.');
+    if(typeof Cobrar!=='undefined') Cobrar.render(); },
   mostraLogo(){ const el=$('logoPrev');
     if(this.dados.logo){ el.innerHTML='<img src="'+this.dados.logo+'">'; $('btnTirarLogo').classList.remove('oculto'); }
     else { el.textContent=(this.dados.nome||'?').trim().charAt(0).toUpperCase()||'?'; $('btnTirarLogo').classList.add('oculto'); } },
@@ -414,10 +492,230 @@ function toastSimples(m){ const t=document.createElement('div'); t.setAttribute(
   t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:30px;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14.5px;z-index:60;max-width:92vw;text-align:center';
   t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4500); }
 
-/* ============ ABAS ============ */
-function aba(x){ ['msg','arte','perfil'].forEach(a=>{
+/* ============ ABAS ============
+   Desde 03/11/2026: "Quem te deve" abre primeiro; as mensagens e a arte de venda
+   viraram a 2a aba ("Pra vender"), sem perder nada; "Minha lojinha" foi pra
+   engrenagem (mesma chave). */
+function aba(x){ ['deve','vender'].forEach(a=>{
   $('sec-'+a).classList.toggle('oculto',a!==x);
   $('aba-'+a).classList.toggle('on',a===x); }); }
+function sub(x){ ['msg','arte'].forEach(a=>{
+  $('sec-'+a).classList.toggle('oculto',a!==x);
+  $('sub-'+a).classList.toggle('on',a===x); }); }
+
+/* ============ QUEM TE DEVE (03/11/2026) ============
+   As regras (prazo de 7 dias, intervalo de 5 entre cobrancas) moram em
+   Lojinha.REGRAS (lojinha.js). Os textos vieram da copy em 03/11/2026. */
+/* TEXTO: nomes dos tons */
+const TONS = {
+  leve:'Lembrete leve', direto:'Direto e educado', dividir:'Dividir o que falta',
+  parte:'Pagou uma parte', parcela:'Parcela do mês', pausar:'Pausar o fiado', recebido:'Recebido, obrigada'
+};
+/* TEXTO: mensagens de cobranca, 3 versoes de cada tom (copy de 03/11/2026).
+   Marcadores: {nome} {falta} {pago} {pecas} {dias} {parcela} {loja}. O Pix entra no
+   fim de todas, menos no "Recebido", quando estiver preenchido. */
+const MSG_COBRAR = {
+  leve:[
+    'Oi {nome}, tudo bem? 😊 Passando só pra lembrar do valor de {pecas}: *R$ {falta}*. Pode acertar quando der, tá?',
+    '{nome}, oi! Só lembrando com carinho: ficou *R$ {falta}* da sua compra aqui na {loja}. Sem pressa, combinado? 💛',
+    'Oi {nome}, tudo certo por aí? Lembrei de você aqui: ficou *R$ {falta}* de {pecas}. Quando der, me avisa 😊'],
+  direto:[
+    'Oi {nome}! Tô fechando as contas da {loja} e ficou em aberto *R$ {falta}* de {pecas}, que você levou há {dias} dias. Consegue acertar essa semana?',
+    '{nome}, tudo bem? Tô organizando os pagamentos e o seu ficou em aberto: *R$ {falta}*. Qual dia fica bom pra você acertar?',
+    'Oi {nome}, vou ser direta pra não esquecer: ficou *R$ {falta}* de {pecas}. Me fala um dia que dá pra você pagar? Obrigada!'],
+  dividir:[
+    'Oi {nome}! Se ficar pesado pagar os *R$ {falta}* de uma vez, a gente divide. Me fala quanto você consegue por mês e a gente combina.',
+    '{nome}, tudo bem? Pensei numa coisa: em vez de pagar os *R$ {falta}* de uma vez, que tal dividir? Você me diz quanto fica bom 😊',
+    'Oi {nome}! Se for mais fácil pra você, dá pra dividir os *R$ {falta}* que ficaram. Me diz quanto dá por vez e a gente acerta.'],
+  parte:[
+    'Oi {nome}! Recebi os *R$ {pago}*, obrigada! 💛 Ficou faltando *R$ {falta}* de {pecas}. Quando puder, me manda o resto?',
+    '{nome}, tudo bem? Pelas minhas contas você já pagou *R$ {pago}* e faltam *R$ {falta}*. Consegue acertar essa semana?',
+    'Oi {nome}! Passando pra atualizar: já foram *R$ {pago}* e falta só *R$ {falta}* pra fechar. Quando der, me avisa 😊'],
+  parcela:[
+    'Oi {nome}, tudo bem? Passando pra lembrar da parcela deste mês: *R$ {parcela}*. No total, ainda faltam *R$ {falta}*.',
+    '{nome}, oi! Lembrete da parcelinha do mês de {pecas}: *R$ {parcela}*. Quando cair, te aviso que recebi 💛',
+    'Oi {nome}! Me manda a parcela deste mês quando puder? São *R$ {parcela}*. Obrigada! 😊'],
+  pausar:[
+    'Oi {nome}! Tô organizando a {loja} e, por enquanto, só anoto compra nova depois de acertar o que ficou: *R$ {falta}*. Não é nada com você, tá? 💛',
+    '{nome}, tudo bem? Decidi não deixar duas contas abertas pra mesma cliente. Assim que você acertar os *R$ {falta}*, volto a anotar no fiado normal 😊',
+    'Oi {nome}! Pra não embolar as contas, vou dar uma pausa no fiado até a gente fechar os *R$ {falta}*. À vista ou no Pix, continua tudo igual, tá?'],
+  recebido:[
+    'Recebido, {nome}! Muito obrigada 💛 Tá tudo certo, sua conta tá zerada aqui na {loja}.',
+    'Caiu certinho, {nome}, obrigada! 😊 Chegando novidade com a sua cara, te aviso.',
+    'Recebi, {nome}! Tudo acertado por aqui. Obrigada por comprar na {loja} 💛']
+};
+/* TEXTO: aviso do topo, vazios, selo, botoes (copy de 03/11/2026) */
+const TXT_DEVE = {
+  aviso1: g=>`Hoje vale lembrar a ${g.nome}: faz ${g.dias} dias e ainda falta R$ ${Lojinha.num(g.falta)}.`,
+  avisoN: n=>`Hoje vale lembrar ${n} clientes. Elas estão no topo da lista.`,
+  avisoNinguem: 'Hoje ninguém precisa de lembrete.',
+  vazio: 'Ninguém te deve agora. Quando você anotar uma venda no fiado no Controle, ela aparece aqui.',
+  vazioSemControle: 'Pra aparecer aqui, a venda precisa estar anotada no fiado do Controle da Lojinha.',
+  cobradaHoje: t=>`cobrada hoje, no tom ${t}`,
+  cobradaHa: (d,t)=>`cobrada há ${d} ${d===1?'dia':'dias'}, no tom ${t}`,
+  nunca: 'ainda não cobrada',
+  escolha: 'Escolha o tom',
+  botao: 'Cobrar no WhatsApp',
+  /* provisorios (nao vieram da copy) */
+  semPix: 'Coloque sua chave Pix pra ela ir junto na mensagem.',   /* TEXTO PROVISORIO */
+  semPixBtn: 'Colocar Pix',                                         /* TEXTO PROVISORIO */
+  tomAtual: 'tom:', trocar: 'trocar', outroJeito: 'Escrever de outro jeito',  /* TEXTO PROVISORIO */
+  pagou: 'Ela pagou',                                               /* TEXTO PROVISORIO */
+  qualVenda: 'Qual compra ela pagou?',                              /* TEXTO PROVISORIO */
+  pagaram: 'Pagaram há pouco',                                      /* TEXTO PROVISORIO */
+  pagouTudo: v=>`pagou tudo: R$ ${v}`,                              /* TEXTO PROVISORIO */
+  agradecer: 'Mandar o obrigada no WhatsApp',                       /* TEXTO PROVISORIO */
+  verMsg: 'ver a mensagem',                                         /* TEXTO PROVISORIO */
+  jaPagou: 'Esse fiado já foi pago.',                               /* TEXTO PROVISORIO */
+  perguntaTit: 'Mandou a mensagem?',
+  perguntaSub: 'Assim eu anoto que você cobrou hoje.',
+  mandei: 'Mandei', naoMandei: 'Não mandei'
+};
+
+const Cobrar = {
+  grupos:[], pagaram:[], est:{}, pendente:null,
+  esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); },
+  /* "Ana Paula" vira "Ana"; "Dona Maria" fica "Dona Maria" */
+  primeiroNome(n){ const p=String(n||'').trim().split(/\s+/);
+    return /^(dona|dra?\.?|tia|sra?\.?|seu|irm[aã])$/i.test(p[0]||'') && p[1] ? p[0]+' '+p[1] : (p[0]||''); },
+  lojaNome(){ return (Perfil.dados.nome||'').trim() || (window.Lojinha ? Lojinha.loja() : ''); },
+  pecasTexto(lista){ if(!lista.length) return ''; if(lista.length===1) return lista[0];
+    return lista.slice(0,-1).join(', ')+' e '+lista[lista.length-1]; },
+  tonsDe(g){
+    if(g.tom==='recebido') return ['recebido'];
+    const t=['leve','direto','dividir'];
+    if(g.pago>0) t.push('parte');
+    if(g.parcelada) t.push('parcela');
+    t.push('pausar');
+    return t;
+  },
+  estado(g){ if(!this.est[g.chave]) this.est[g.chave]={tom:g.tom, v:0, aberto:false}; return this.est[g.chave]; },
+  mensagem(g){
+    const e=this.estado(g), L=Lojinha;
+    let t=MSG_COBRAR[e.tom][e.v % MSG_COBRAR[e.tom].length];
+    const loja=this.lojaNome(), pecas=this.pecasTexto(g.pecas);
+    /* sem nome de loja: "aqui na {loja}", "da {loja}", "na {loja}" viram "aqui" (copy) */
+    if(!loja) t=t.replace(/aqui na \{loja\}/g,'aqui').replace(/\b(da|na|a) \{loja\}/g,'aqui');
+    /* sem pecas: "da sua compra" */
+    if(!pecas) t=t.replace(/de \{pecas\}/g,'da sua compra').replace(/\{pecas\}/g,'sua compra');
+    t=t.replace(/\{nome\}/g,this.primeiroNome(g.nome)).replace(/\{falta\}/g,L.num(g.falta))
+       .replace(/\{pago\}/g,L.num(g.pago)).replace(/\{pecas\}/g,pecas).replace(/\{dias\}/g,String(g.dias))
+       .replace(/\{parcela\}/g,L.num(g.parcela||g.falta)).replace(/\{loja\}/g,loja);
+    if(e.tom!=='recebido' && Perfil.dados.pix) t+='\n\nMeu Pix: '+Perfil.dados.pix;
+    return t;
+  },
+  selo(g){
+    if(!g.ultima) return `<span class="dv-selo nunca">${TXT_DEVE.nunca}</span>`;
+    const t=(TONS[g.ultima.tom]||g.ultima.tom||'').toLowerCase();
+    return `<span class="dv-selo">${g.diasUltima===0?TXT_DEVE.cobradaHoje(t):TXT_DEVE.cobradaHa(g.diasUltima,t)}</span>`;
+  },
+  carregar(){
+    if(!window.Lojinha){ this.grupos=[]; this.pagaram=[]; return; }
+    try{ this.grupos=Lojinha.devedoras(); this.pagaram=Lojinha.pagaramRecente(); }
+    catch(e){ this.grupos=[]; this.pagaram=[]; }
+  },
+  render(){
+    this.carregar();
+    const G=this.grupos, vale=G.filter(g=>g.hojeVale);
+    const temControle = !!(window.Liberado && Liberado.tem('controle'));
+    /* aviso do topo */
+    $('dvAviso').innerHTML = !G.length ? ''
+      : vale.length===1 ? `<div class="dv-aviso vale" role="status">${this.esc(TXT_DEVE.aviso1(vale[0]))}</div>`
+      : vale.length>1 ? `<div class="dv-aviso vale" role="status">${this.esc(TXT_DEVE.avisoN(vale.length))}</div>`
+      : `<div class="dv-aviso calmo" role="status">${TXT_DEVE.avisoNinguem}</div>`;
+    $('dvPix').innerHTML = (G.length && !Perfil.dados.pix)
+      ? `<div class="dv-pix"><span>${TXT_DEVE.semPix}</span><button type="button" onclick="Cobrar.abrirPix()">${TXT_DEVE.semPixBtn}</button></div>` : '';
+    $('dvLista').innerHTML = G.length ? G.map((g,i)=>this.cartao(g,i,'g')).join('')
+      : `<div class="dv-vazio">${(!temControle && !(window.Lojinha && Lojinha.vendas().length)) ? TXT_DEVE.vazioSemControle : TXT_DEVE.vazio}</div>`;
+    $('dvPagaram').innerHTML = this.pagaram.length
+      ? `<div class="dv-pagaram">${TXT_DEVE.pagaram}</div>`+this.pagaram.map((g,i)=>this.cartao(g,i,'p')).join('') : '';
+  },
+  grupo(lista,i){ return (lista==='p'?this.pagaram:this.grupos)[i]; },
+  cartao(g,i,lista){
+    const e=this.estado(g), L=Lojinha, nome=this.esc(g.nome);
+    const ref=`'${lista}',${i}`;
+    if(lista==='p'){
+      return `<div class="dv-card" id="dv-${lista}-${i}">
+        <div class="dv-linha"><b>${nome}</b> · ${this.esc(TXT_DEVE.pagouTudo(L.num(g.pago)))}</div>
+        ${g.pecas.length?`<div class="dv-levou">levou ${this.esc(this.pecasTexto(g.pecas))}</div>`:''}
+        ${g.ultima?this.selo(g):''}
+        ${e.aberto?`<div class="dv-msg">${this.esc(this.mensagem(g))}</div>
+          <button class="btn mini sec" onclick="Cobrar.outro(${ref})">${TXT_DEVE.outroJeito}</button>`:''}
+        <button class="btn" onclick="Cobrar.enviar(${ref})">${TXT_DEVE.agradecer}</button>
+        ${e.aberto?'':`<div class="dv-tomlinha"><button type="button" onclick="Cobrar.abrir(${ref})">${TXT_DEVE.verMsg}</button></div>`}
+      </div>`;
+    }
+    const linha = `<b>${nome}</b> · <span class="dv-deve">deve R$&nbsp;${L.num(g.falta)}</span> · há ${g.dias} ${g.dias===1?'dia':'dias'}`
+      + (g.pago>0 ? ` · já pagou R$&nbsp;${L.num(g.pago)}` : '');
+    const tons = e.aberto ? `<div class="dv-rot">${TXT_DEVE.escolha}</div>
+        <div class="dv-tons" role="group" aria-label="${TXT_DEVE.escolha}">${this.tonsDe(g).map(t=>
+          `<button type="button" class="${e.tom===t?'on':''}" aria-pressed="${e.tom===t}" onclick="Cobrar.tom(${ref},'${t}')">${TONS[t]}</button>`).join('')}</div>
+        <div class="dv-msg">${this.esc(this.mensagem(g))}</div>
+        <button class="btn mini sec" onclick="Cobrar.outro(${ref})">${TXT_DEVE.outroJeito}</button>`
+      : `<div class="dv-tomlinha">${TXT_DEVE.tomAtual} <b>${TONS[e.tom]}</b> <button type="button" onclick="Cobrar.abrir(${ref})">${TXT_DEVE.trocar}</button></div>`;
+    return `<div class="dv-card${g.hojeVale?' vale':''}" id="dv-${lista}-${i}">
+      <div class="dv-linha">${linha}</div>
+      ${g.pecas.length?`<div class="dv-levou">levou ${this.esc(this.pecasTexto(g.pecas))}</div>`:''}
+      ${this.selo(g)}
+      ${tons}
+      <button class="btn" onclick="Cobrar.enviar(${ref})">${TXT_DEVE.botao}</button>
+      <button class="btn sec" onclick="Cobrar.pagou(${i})">${TXT_DEVE.pagou}</button>
+    </div>`;
+  },
+  abrir(lista,i){ const g=this.grupo(lista,i); if(!g) return; this.estado(g).aberto=true; this.repintar(lista,i); },
+  tom(lista,i,t){ const g=this.grupo(lista,i); if(!g) return; const e=this.estado(g); e.tom=t; e.v=0; this.repintar(lista,i); },
+  outro(lista,i){ const g=this.grupo(lista,i); if(!g) return; this.estado(g).v++; this.repintar(lista,i); },
+  repintar(lista,i){ const el=$('dv-'+lista+'-'+i), g=this.grupo(lista,i); if(!el||!g) return;
+    const tmp=document.createElement('div'); tmp.innerHTML=this.cartao(g,i,lista); el.replaceWith(tmp.firstElementChild); },
+  abrirPix(){ Config.abrir(); setTimeout(()=>{ const p=$('pfPix'); if(p){ p.scrollIntoView({block:'center'}); p.focus(); } },80); },
+  /* um toque: monta, abre o WhatsApp (com o numero dela se o Clientes tiver) e,
+     na volta, pergunta se mandou antes de anotar no historico */
+  enviar(lista,i){
+    const g=this.grupo(lista,i); if(!g) return;
+    const e=this.estado(g), txt=this.mensagem(g);
+    window.open(Lojinha.linkWhats(g.whats, txt),'_blank');
+    this.pendente={chave:g.chave, tom:e.tom, valor:e.tom==='parcela'?(g.parcela||g.falta):(e.tom==='recebido'?g.pago:g.falta)};
+    this.perguntar();
+  },
+  perguntar(){
+    $('perguntaBox').innerHTML=`<h3 id="perguntaTit">${TXT_DEVE.perguntaTit}</h3>
+      <div class="cfg-sub">${TXT_DEVE.perguntaSub}</div>
+      <button class="cfg-btn" onclick="Cobrar.responder(true)">${TXT_DEVE.mandei}</button>
+      <button class="cfg-btn sec" onclick="Cobrar.responder(false)">${TXT_DEVE.naoMandei}</button>`;
+    $('perguntaFundo').classList.add('aberto');
+  },
+  responder(sim){
+    $('perguntaFundo').classList.remove('aberto');
+    const p=this.pendente; this.pendente=null;
+    if(sim && p){ Lojinha.registrarCobranca(p.chave, p.tom, p.valor); this.est={}; this.render(); }
+  },
+  /* "Ela pagou": vai pro receber daquela venda no Controle */
+  urlControle(id){
+    const naPasta=/\/(c|d|p|cd|cp|u|tudo)\/[^\/]*$/.test(location.pathname);
+    const m=(location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)(?:&|$)/);
+    return (naPasta?'controle.html':'index.html')+'#receber='+id+(m?'&de='+m[1]:'');
+  },
+  pagou(i){
+    const g=this.grupos[i]; if(!g) return;
+    if(g.vendas.length===1){ location.href=this.urlControle(g.vendas[0].id); return; }
+    $('perguntaBox').innerHTML=`<h3 id="perguntaTit">${TXT_DEVE.qualVenda}</h3>
+      ${g.vendas.map(v=>`<button class="pg-venda" onclick="location.href=Cobrar.urlControle(${Number(v.id)})">
+        <span>${String(v.data).split('-').reverse().join('/')} · ${this.esc(Lojinha.pecasDe([v]).join(', '))}</span>
+        <b>R$&nbsp;${Lojinha.num(Lojinha.saldo(v))}</b></button>`).join('')}
+      <button class="cfg-btn sec" onclick="$('perguntaFundo').classList.remove('aberto')">Cancelar</button>`;
+    $('perguntaFundo').classList.add('aberto');
+  },
+  /* vindo do botao "cobrar" do Controle: #venda=<id> abre a cliente daquela venda */
+  doLink(){
+    const m=(location.hash||'').match(/(?:^#|&)venda=(\d+)/); if(!m) return;
+    const id=parseInt(m[1],10), de=(location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)(?:&|$)/);
+    try{ history.replaceState(null,'',location.pathname+location.search+(de?'#de='+de[1]:'')); }catch(e){}
+    const i=this.grupos.findIndex(g=>g.vendaIds.indexOf(id)>=0);
+    if(i<0){ toastSimples(TXT_DEVE.jaPagou); return; }
+    this.estado(this.grupos[i]).aberto=true; this.repintar('g',i);
+    const el=$('dv-g-'+i); if(el){ el.classList.add('destaque'); setTimeout(()=>el.scrollIntoView({block:'start',behavior:'smooth'}),50); }
+  }
+};
 
 /* ============ MENSAGENS (grupos, situações e variações) ============ */
 function loja(){ return Perfil.dados.nome||'minha lojinha'; }
@@ -708,6 +1006,10 @@ function compartilharArte(){ $('tela').toBlob(async b=>{
 Perfil.carregar();
 Arte.carregar();
 montaSituacoes();
+Cobrar.render();
+Cobrar.doLink();
+/* voltou do Controle (recebeu o fiado) ou de outra aba: a lista se refaz */
+window.addEventListener('pageshow', e=>{ if(e.persisted) Cobrar.render(); });
 document.querySelectorAll('#arteEstiloChips button').forEach(b=>
   b.addEventListener('click',()=>Arte.setEstilo(b.dataset.v)));
 document.querySelectorAll('#arteTipoChips button').forEach(b=>b.addEventListener('click',()=>{
@@ -887,20 +1189,7 @@ Instalar.init();
 
 </script>
 
-<div class="cfg-fundo" id="cfgFundo" onclick="if(event.target===this)Config.fechar()">
-  <div class="cfg-box" role="dialog" aria-modal="true" aria-label="ajustes">
-    <h3>Ajustes</h3>
-    <div class="cfg-sub">Deixe o app com a sua cara.</div>
-    <h4>cor do aplicativo</h4>
-    <div class="cfg-cores" id="cfgCores"></div>
-    <div id="cfgInstalarBloco">
-      <h4>aplicativo no celular</h4>
-      <p style="font-size:14px;line-height:1.5;color:var(--cinza)">Ícone próprio na tela, abre sem navegador e funciona sem internet.</p>
-      <button class="cfg-btn" onclick="Config.instalar()">Adicionar à tela inicial</button>
-    </div>
-    <button class="cfg-btn sec" onclick="Config.fechar()">Fechar</button>
-  </div>
-</div>
+
 
 
 <div class="ps-fundo" id="psFundo" onclick="if(event.target===this)Instalar.fecharPassos()">

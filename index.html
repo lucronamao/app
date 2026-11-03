@@ -19,6 +19,11 @@
    mesmo que o ativacao.js nao carregue (sem isto, a primeira abertura com rede ruim virava legado) */
 try{var K='lucronamao_ativacao';if(!localStorage.getItem(K)){var u=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('lucronamao_')===0){u=1;break}}localStorage.setItem(K,JSON.stringify(u?{estado:'legado',desde:Date.now()}:{estado:'pendente'}))}}catch(e){}</script>
 <script src="ativacao.js"></script>
+<!-- partes novas (03/11/2026): o que esta liberado e os dados das clientes. O Controle
+     NAO depende deles: se nao carregarem, ele funciona igual, so sem o atalho do Cobrar
+     e sem a lista de clientes na venda -->
+<script src="liberado.js"></script>
+<script src="lojinha.js"></script>
 <style>
 :root{
   --vinho:#8e2757; --vinho-escuro:#6d1d43; --rose:#f6e7ee; --rose-2:#fdf4f8;
@@ -428,6 +433,26 @@ html{touch-action:manipulation}
 /* lembrete de backup (26/10/2026) */
 .lembrete-ico{width:54px;height:54px;border-radius:16px;background:var(--rose);display:flex;align-items:center;justify-content:center;margin:4px auto 10px}
 .lembrete-ico svg{width:28px;height:28px;fill:none;stroke:var(--vinho);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* fiado em aberto: receber e cobrar numa linha so deles, o resto embaixo (03/11/2026).
+   Seis botoes numa linha so nao cabiam em 360 px. */
+.venda-acoes + .venda-acoes{margin-top:6px}
+.venda-acoes .va.cobrar{background:var(--ambar-bg);color:var(--ambar)}
+.venda-acoes .va.grande{padding:11px 4px;font-size:14px;min-height:44px}
+/* cliente na hora da venda: lista propria, botoes grandes (datalist fica ruim no iPhone) */
+.cli-sug{margin-top:6px}
+.cli-op{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;
+  background:var(--rose);color:var(--tinta);padding:13px 14px;margin-top:6px;font-size:16px;font-weight:700;border-radius:12px}
+.cli-op small{font-size:12.5px;color:var(--cinza);font-weight:600}
+.cli-op.novo{background:#fff;border:1.5px dashed var(--vinho);color:var(--vinho)}
+.cli-ok{margin-top:6px;font-size:13.5px;color:var(--verde);font-weight:700}
+/* convite do Cobrar (quem toca "cobrar" sem ter o Cobrar) */
+.conv-ben{margin:10px 0 4px}
+.conv-ben div{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.45;padding:5px 0}
+.conv-ben svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;fill:none;stroke:var(--verde);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.conv-preco{font-size:22px;font-weight:800;color:var(--vinho);text-align:center;margin-top:10px}
+.conv-preco small{display:block;font-size:12px;color:var(--cinza);font-weight:600}
+a.btn{display:block;text-align:center;text-decoration:none}
+.btn.link{background:none;color:var(--vinho);text-decoration:underline;text-underline-offset:3px;font-size:14.5px;padding:10px}
 </style>
 </head>
 <body>
@@ -744,11 +769,14 @@ const Backup = {
        disso simplesmente nao tem a coluna, e a leitura assume 1 */
     /* desconto e desconto_pct entraram em 30/09/2026, tambem no fim: se repetem em
        toda linha da mesma venda, e backup antigo sem elas le desconto zero */
-    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido;parcelas;base_parcela;desconto;desconto_pct');
+    /* cliente_id entrou em 03/11/2026, no fim: a venda escolhida pelo Clientes na Mao.
+       Backup antigo nao tem a coluna, e a venda liga a cliente pelo nome, como sempre */
+    L.push('venda;data;produto_id;produto;qtd;preco_unit;custo_unit;pagamento;cliente;pago;recebido;parcelas;base_parcela;desconto;desconto_pct;cliente_id');
     D.dados.vendas.forEach(v=>v.itens.forEach(i=>
       L.push([v.id,v.data,i.produtoId,s(i.nome),i.qtd,n(i.preco),n(i.custo),v.pgto,s(v.cliente||''),v.pago?'sim':'nao',n(Venda.jaPago(v)),v.parcelas||1,
         (typeof v.parcelasBase==='number'?n(v.parcelasBase):''),
-        (descontoDe(v)?n(v.desconto):''),(v.descPct?n(v.descPct):'')].join(';'))));
+        (descontoDe(v)?n(v.desconto):''),(v.descPct?n(v.descPct):''),
+        (v.clienteId!=null?v.clienteId:'')].join(';'))));
     L.push('');
     /* Historico de recebimento do fiado: uma linha por pagamento parcial.
        Sem esta secao, restaurar um backup perderia as datas dos parciais. */
@@ -760,6 +788,28 @@ const Backup = {
     L.push('#DESPESAS');
     L.push('id;data;descricao;valor');
     D.dados.despesas.forEach(d2=>L.push([d2.id,d2.data,s(d2.desc),n(d2.valor)].join(';')));
+    /* ===== CLIENTES E COBRANCAS (03/11/2026) =====
+       Moram em outras chaves (lucronamao_clientes, lucronamao_cobrancas), mas vao no
+       MESMO arquivo: trocou de celular, a ficha das clientes e o historico de cobranca
+       vao junto. Ficam depois das despesas e antes do #FIM: versao antiga do app le o
+       arquivo e so ignora estas secoes. Sem dado, a secao nem sai. */
+    const cli=Backup.lerChave('lucronamao_clientes');
+    if(cli && Array.isArray(cli.lista) && cli.lista.length){
+      L.push('');
+      L.push('#CLIENTES');
+      L.push('id;nome;whatsapp;aniversario;obs;nomes_antigos;criado_em');
+      cli.lista.forEach(c=>L.push([c.id,s(c.nome),s(c.whats||''),
+        (c.niver&&c.niver.d&&c.niver.m?String(c.niver.d).padStart(2,'0')+'/'+String(c.niver.m).padStart(2,'0'):''),
+        s(String(c.obs||'').replace(/[\r\n]+/g,' ')),s((c.nomesAntigos||[]).join('|')),s(c.criadoEm||'')].join(';')));
+    }
+    const cob=Backup.lerChave('lucronamao_cobrancas');
+    if(cob && typeof cob==='object' && Object.keys(cob).length){
+      L.push('');
+      L.push('#COBRANCAS');
+      L.push('cliente;em;tom;valor');
+      Object.keys(cob).forEach(k=>{ if(Array.isArray(cob[k])) cob[k].forEach(x=>
+        L.push([s(k),s(x.em||''),s(x.tom||''),n(Number(x.valor)||0)].join(';'))); });
+    }
     L.push('#FIM');
     return '\ufeff'+L.join('\r\n');
   },
@@ -785,9 +835,13 @@ const Backup = {
         else d=this.deCSV(txt);
       }catch(e){ d=null; }
       if(!d){ toast('Esse arquivo não é um backup válido'); return; }
+      /* clientes e cobrancas viajam no arquivo mas NAO entram no lucronamao_v1 */
+      Backup._pendExtra={clientes:d._clientes||null, cobrancas:d._cobrancas||null};
+      delete d._clientes; delete d._cobrancas;
       Backup._pend=d;
+      const nCli=Backup._pendExtra.clientes?Backup._pendExtra.clientes.lista.length:0;
       Modal.abrir(`<h3>Restaurar backup?</h3>
-        <p class="sub">Esse arquivo tem <b>${d.produtos.length} produtos</b> e <b>${d.vendas.length} vendas</b>
+        <p class="sub">Esse arquivo tem <b>${d.produtos.length} produtos</b> e <b>${d.vendas.length} vendas</b>${nCli?` e <b>${nCli} clientes</b>`:''}
         (loja: ${d.config.loja||'sem nome'}). Isso vai <b>substituir</b> o que está no app agora.</p>
         <button class="btn" onclick='Backup.confirmaRestaurar()'>Sim, restaurar esse backup</button>
         <button class="btn sec" onclick="Modal.fechar()">Cancelar</button>`);
@@ -827,6 +881,8 @@ const Backup = {
           /* colunas 13 e 14 (desconto) so existem do backup de 30/09/2026 em diante */
           desconto:(c2.length>13&&String(c2[13]).trim()!=='')?num2(c2[13]):0,
           descPct:(c2.length>14&&String(c2[14]).trim()!=='')?num2(c2[14]):0,
+          /* coluna 15 (cliente_id) so existe do backup de 03/11/2026 em diante */
+          clienteId:(c2.length>15&&String(c2[15]).replace(/"/g,'').trim()!=='')?(parseInt(String(c2[15]).replace(/"/g,''))||null):null,
           pagamentos:null};
         vendasMap[id].itens.push({produtoId:parseInt(c2[2])||0,nome:uns(c2[3]),
           qtd:parseInt(c2[4])||1,preco:num2(c2[5]),custo:num2(c2[6])});
@@ -838,6 +894,19 @@ const Backup = {
       }
       if(sec==='#DESPESAS' && c2[0]!=='id')
         d.despesas.push({id:parseInt(c2[0])||0,data:c2[1],desc:uns(c2[2]),valor:num2(c2[3])});
+      if(sec==='#CLIENTES' && c2[0]!=='id'){
+        if(!d._clientes) d._clientes={v:1,seq:1,lista:[],perguntado:true};
+        const nv=String(uns(c2[3])||'').split('/');
+        const c={id:parseInt(c2[0])||0,nome:uns(c2[1]),whats:uns(c2[2]),
+          niver:(nv.length===2&&parseInt(nv[0])&&parseInt(nv[1]))?{d:parseInt(nv[0]),m:parseInt(nv[1])}:null,
+          obs:uns(c2[4]),criadoEm:uns(c2[6])||''};
+        const ant=uns(c2[5]); if(ant) c.nomesAntigos=ant.split('|').filter(Boolean);
+        if(c.id && c.nome){ d._clientes.lista.push(c); d._clientes.seq=Math.max(d._clientes.seq,c.id+1); }
+      }
+      if(sec==='#COBRANCAS' && c2[0]!=='cliente'){
+        if(!d._cobrancas) d._cobrancas={};
+        const k=uns(c2[0]); if(k){ (d._cobrancas[k]=d._cobrancas[k]||[]).push({em:uns(c2[1]),tom:uns(c2[2]),valor:num2(c2[3])}); }
+      }
     }
     d.vendas=Object.values(vendasMap).map(v=>{
       v.total=Math.round((somaItens(v.itens)-descontoDe(v))*100)/100;
@@ -859,6 +928,7 @@ const Backup = {
       } else { v.pagamentos=null; v.pago=true; }
       delete v._recebido;
       if(v.parcelasBase===null) delete v.parcelasBase;
+      if(v.clienteId==null) delete v.clienteId;   /* venda sem cliente escolhida fica do formato de sempre */
       return v; })
       .sort((a,b)=>String(b.data).localeCompare(String(a.data)));
     const ids=[...d.produtos.map(p=>p.id),...d.vendas.map(v=>v.id),...d.despesas.map(x=>x.id),0];
@@ -866,8 +936,18 @@ const Backup = {
     if(!d.produtos.length && !d.vendas.length) throw 0;
     return d;
   },
-  confirmaRestaurar(){ D.dados=this._pend; D.salvar(); Modal.fechar(); Tela.render();
+  confirmaRestaurar(){ D.dados=this._pend; D.salvar();
+    /* backup com clientes/cobrancas substitui as duas chaves; backup antigo (sem as
+       secoes) nao mexe nelas, pra nao apagar o que ela ja cadastrou */
+    const ex=this._pendExtra||{};
+    try{
+      if(ex.clientes) localStorage.setItem('lucronamao_clientes', JSON.stringify(ex.clientes));
+      if(ex.cobrancas) localStorage.setItem('lucronamao_cobrancas', JSON.stringify(ex.cobrancas));
+    }catch(e){}
+    this._pendExtra=null;
+    Modal.fechar(); Tela.render();
     toast('Backup restaurado! Tudo de volta no lugar'); },
+  lerChave(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } },
   exportarCSV(ym){
     const vs=Calc.vendasDoMes(ym);
     let csv='data;produtos;quantidade;forma de pagamento;parcelas;cliente;desconto;total;custo;lucro;status\n';
@@ -1062,12 +1142,72 @@ const Venda = {
         <div class="parc-info" id="parcInfo"></div>
       </div>
 
-      <label for="fiadoNome">nome da cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
-      <input id="fiadoNome" placeholder="ex: Ana do 302" value="${escA(c.cliente||'')}" autocomplete="off">
+      ${Partes.temClientes()
+        ? `<label for="fiadoNome">Cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
+      <input id="fiadoNome" placeholder="escolha ou digite o nome" value="${escA(c.cliente||'')}" autocomplete="off" autocapitalize="words">
+      <div class="cli-sug" id="cliSug"></div>`
+        : `<label for="fiadoNome">nome da cliente <span id="nomeOpc" class="opcional">(opcional)</span></label>
+      <input id="fiadoNome" placeholder="ex: Ana do 302" value="${escA(c.cliente||'')}" autocomplete="off">`}
 
       <button class="btn" onclick="Venda.confirmar()">Registrar venda &#10003;</button>
       <button class="btn sec" onclick="Venda.telaCarrinho()">voltar pro carrinho</button>`);
-    this.descMontar(); this.pgtoPintar(); },
+    this.descMontar(); this.pgtoPintar(); this.cliMontar(); },
+  /* ===== CLIENTE NA HORA DA VENDA (03/11/2026) =====
+     So pra quem tem o Clientes na Mao. Enquanto ela digita, aparecem as clientes
+     cadastradas em botoes grandes (lista propria: o datalist do iPhone e pequeno e
+     some atras do teclado). Escolher grava `clienteId` junto do nome; um nome novo
+     pode virar cliente ali mesmo, mas o cadastro so acontece quando a venda e
+     registrada (desistiu da venda, nao sobra cliente fantasma).
+     O nome continua opcional, menos no fiado, como sempre. */
+  cliMontar(){
+    if(!Partes.temClientes()) return;
+    const i=document.getElementById('fiadoNome'); if(!i) return;
+    i.addEventListener('input',()=>{ const c=this.carrinho; if(!c) return;
+      c.cliente=i.value; c.clienteId=null; c.clienteNovo=false; this.cliPintar(); });
+    this.cliPintar();
+  },
+  cliPintar(){
+    const box=document.getElementById('cliSug'), i=document.getElementById('fiadoNome'), c=this.carrinho;
+    if(!box||!i||!c) return;
+    const L=window.Lojinha, txt=i.value.trim(), n=L.norm(txt);
+    const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    if(c.clienteId!=null){
+      /* TEXTO: confirmacao da cliente escolhida */
+      box.innerHTML=`<div class="cli-ok">&#10003; cliente cadastrada</div>`; return; }
+    if(c.clienteNovo){
+      /* TEXTO: confirmacao de cliente nova */
+      box.innerHTML=`<div class="cli-ok">&#10003; ${esc(txt)} entra nas suas clientes quando registrar a venda</div>`; return; }
+    if(!n){ box.innerHTML=''; return; }
+    const todas=L.clientes();
+    const achou=todas.filter(x=>L.norm(x.nome).includes(n))
+      .sort((a,b)=>(L.norm(b.nome).startsWith(n)?1:0)-(L.norm(a.nome).startsWith(n)?1:0) || a.nome.localeCompare(b.nome))
+      .slice(0,5);
+    const exata=todas.some(x=>L.norm(x.nome)===n);
+    box.innerHTML=achou.map(x=>`<button type="button" class="cli-op" onclick="Venda.cliEscolher(${Number(x.id)})">
+        <span>${esc(x.nome)}</span>${x.whats?`<small>${esc(x.whats)}</small>`:''}</button>`).join('')
+      /* TEXTO: botao de cadastrar cliente nova na venda */
+      +(exata?'':`<button type="button" class="cli-op novo" onclick="Venda.cliNova()">+ ${esc(txt)} é cliente nova</button>`);
+  },
+  cliEscolher(id){
+    const x=window.Lojinha&&Lojinha.clientePorId(id), c=this.carrinho, i=document.getElementById('fiadoNome');
+    if(!x||!c||!i) return;
+    c.clienteId=x.id; c.clienteNovo=false; c.cliente=x.nome; i.value=x.nome; this.cliPintar();
+  },
+  cliNova(){ const c=this.carrinho, i=document.getElementById('fiadoNome'); if(!c||!i||!i.value.trim()) return;
+    c.clienteId=null; c.clienteNovo=true; c.cliente=i.value.trim(); this.cliPintar(); },
+  /* a cliente da venda: a escolhida, a de nome identico ja cadastrada, ou a nova */
+  cliResolver(nome){
+    if(!nome || !Partes.temClientes()) return null;
+    try{
+      const L=Lojinha, c=this.carrinho||{};
+      const esc=c.clienteId!=null ? L.clientePorId(c.clienteId) : null;
+      if(esc && L.norm(esc.nome)===L.norm(nome)) return esc.id;
+      const ex=L.indicePorNome(L.clientes())[L.norm(nome)];
+      if(ex) return ex.id;
+      if(c.clienteNovo){ const nv=L.criarCliente({nome}); return nv?nv.id:null; }
+    }catch(e){}
+    return null;
+  },
   /* os numeros do carrinho com o desconto que esta digitado agora */
   contaCarrinho(){
     const c=this.carrinho, sub=somaItens(c.itens);
@@ -1165,6 +1305,9 @@ const Venda = {
       /* fiado nasce com historico de recebimento vazio; o parcial vira linha aqui */
       pagamentos:c.pgto==='fiado'?[]:null};
     if(desc>0){ v.desconto=desc; if(d.tipo==='pct') v.descPct=d.valor; }
+    /* so quem tem o Clientes ganha o campo; a venda de quem nao tem fica igual a sempre */
+    const cliId=this.cliResolver(c.cliente);
+    if(cliId!=null) v.clienteId=cliId;
     D.dados.vendas.unshift(v);
     c.itens.forEach(i=>{ const p=D.dados.produtos.find(x=>x.id===i.produtoId); if(p) p.qtd=Math.max(0,p.qtd-i.qtd); });
     D.dados.config.vendasDesdeBackup++;
@@ -1829,6 +1972,70 @@ const Wizard = {
     toast('Prontinho! Agora toca em Vender quando sair a primeira venda'); }
 };
 
+/* ============ PARTES NOVAS: COBRAR E CLIENTES (03/11/2026) ============
+   O Controle pergunta ao liberado.js (a mesma regra do menu) o que esta liberado.
+   Se o arquivo nao carregou, tudo aqui responde "nao tem", e o Controle segue como
+   sempre: nunca e motivo pra uma venda nao ser registrada. */
+const Partes = {
+  tem(x){ try{ return !!(window.Liberado && Liberado.tem(x)); }catch(e){ return false; } },
+  temClientes(){ return this.tem('clientes') && !!window.Lojinha; },
+  /* o menu de onde ela veio (#de=), que vai junto pra o outro app voltar ao menu certo */
+  de(){ const m=(location.hash||'').match(/de=(tudo|cd|cp|c|d|p|u)(?:&|$)/); return m?m[1]:null; },
+  /* o Cobrar mora na mesma pasta que o Controle (raiz ou /app/<chave>/) */
+  url(arq, extra){ const de=this.de(); const p=[extra, de?'de='+de:''].filter(Boolean);
+    return arq+(p.length?'#'+p.join('&'):''); },
+  /* ===== BOTAO "COBRAR" NO FIADO =====
+     Quem tem o Cobrar vai direto pra cobranca daquela cliente (o Cobrar acha a
+     cliente pela venda). Quem nao tem ve o convite, com o mesmo texto do card do
+     menu, nunca a cobranca de graca. */
+  cobrar(id){
+    const v=D.dados.vendas.find(x=>x.id===id); if(!v) return;
+    if(this.tem('divulga')){ location.href=this.url('divulga.html','venda='+id); return; }
+    this.convite();
+  },
+  convite(){
+    const L=window.Liberado, V=L&&L.VITRINE&&L.VITRINE.divulga;
+    if(!V){ toast('Abra o menu pra conhecer o Cobrar na Mão'); return; }
+    const ok='<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+    const link=L.comOrigem(L.CHECKOUT.divulga,'divulga');
+    Modal.abrir(`<h3>${V.nome}</h3>
+      <p class="sub">${V.pitch}</p>
+      <div class="conv-ben">${V.beneficios.map(b=>`<div>${ok}<span>${b}</span></div>`).join('')}</div>
+      <div class="conv-preco">${V.preco}<small>pagamento único</small></div>
+      <a class="btn" href="${link}" target="_blank" rel="noopener" onclick="Liberado.marcarCompra('divulga');Partes.compra=true">Liberar agora</a>
+      ${window.Ativacao&&Ativacao.liberar?`<button class="btn link" onclick="Partes.jaComprei()">Já comprei: liberar com meu e-mail</button>`:''}
+      <button class="btn discreto" onclick="Modal.fechar()">Agora não</button>`);
+  },
+  jaComprei(){ Modal.fechar(); Ativacao.liberar({procura: Liberado.PRODUTO_DE.divulga}); },
+  /* ===== "ELA PAGOU", VINDO DO COBRAR: #receber=<id da venda> =====
+     Abre direto a tela de receber daquela venda e tira o pedido do endereco (o #de=
+     fica, porque o botao de voltar le ele mais abaixo). */
+  receberDoLink(){
+    const m=(location.hash||'').match(/(?:^#|&)receber=(\d+)/); if(!m) return;
+    const de=this.de();
+    try{ history.replaceState(null,'',location.pathname+location.search+(de?'#de='+de:'')); }catch(e){}
+    if(!D.dados.config.wizardOk) return;
+    const id=parseInt(m[1],10), v=D.dados.vendas.find(x=>x.id===id);
+    if(!v){ toast('Não achei essa venda'); return; }
+    if(Venda.saldo(v)<=0){ toast('Esse fiado já está quitado'); return; }
+    Tela.filtroVendas='fiado'; Tela.ir('vendas'); Venda.telaReceber(id);
+  },
+  compra:false
+};
+/* comprou o Cobrar pelo convite e voltou: quem ja ativou confere sozinho (como no menu);
+   chegou o produto, avisa e a proxima vez que tocar em "cobrar" ja vai direto */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible' || !Partes.compra) return;
+  Partes.compra=false;
+  if(window.Ativacao && Ativacao.estado==='ativo' && Ativacao.conferirCompra) Ativacao.conferirCompra();
+});
+Partes.tinhaCobrar=Partes.tem('divulga');
+document.addEventListener('ativacao-produtos',()=>{
+  if(!Partes.tinhaCobrar && Partes.tem('divulga')){ Partes.tinhaCobrar=true;
+    toast('Cobrar na Mão liberado. Toque em cobrar de novo.'); }  /* TEXTO */
+  if(Tela && Tela.render) Tela.render();
+});
+
 /* ============ TELAS ============ */
 const Tela = {
   atual:'vender', mesResumo:mesDe(hoje()), filtroVendas:'todas',
@@ -1918,8 +2125,11 @@ const Tela = {
         </div>
         <div class="venda-valor"><div class="vv">${rs(v.total)}</div>${badge}</div>
       </div>
+      ${falta>0?`<div class="venda-acoes">
+        <button class="va principal grande" onclick="Venda.telaReceber(${v.id})">receber</button>
+        <button class="va cobrar grande" onclick="Partes.cobrar(${v.id})">cobrar</button>
+      </div>`:''}
       <div class="venda-acoes">
-        ${falta>0?`<button class="va principal" onclick="Venda.telaReceber(${v.id})">receber</button>`:''}
         ${ehFiado?`<button class="va" onclick="Venda.addNaConta(${v.id})">adicionar</button>`:''}
         <button class="va" onclick="Venda.editar(${v.id})">editar</button>
         <button class="va" onclick="Venda.recibo(${v.id})">recibo</button>
@@ -2025,6 +2235,7 @@ D.carregar();
 document.querySelectorAll('#navBar button').forEach(b=>b.addEventListener('click',()=>Tela.ir(b.dataset.tela)));
 Tela.render();
 if(!D.dados.config.wizardOk) Wizard.passo1();
+Partes.receberDoLink();
 
 /* ===== LEMBRETE DE BACKUP (26/10/2026) =====
    A faixa do topo (Backup.precisa) e facil de ignorar, e quem perde o celular sem
