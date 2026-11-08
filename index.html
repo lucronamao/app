@@ -878,7 +878,7 @@ const Backup = {
       const nCli=Backup._pendExtra.clientes?Backup._pendExtra.clientes.lista.length:0;
       /* TEXTO: aviso de linha com defeito deixada de fora */
       Modal.abrir(`<h3>Restaurar backup?</h3>
-        <p class="sub">Esse arquivo tem <b>${d.produtos.length} produtos</b> e <b>${d.vendas.length} vendas</b>${nCli?` e <b>${nCli} clientes</b>`:''}
+        <p class="sub">Esse arquivo tem <b>${d.produtos.length} ${d.produtos.length===1?'produto':'produtos'}</b> e <b>${d.vendas.length} ${d.vendas.length===1?'venda':'vendas'}</b>${nCli?` e <b>${nCli} clientes</b>`:''}
         (loja: ${esc(d.config.loja||'sem nome')}). Isso vai <b>substituir</b> o que está no app agora.</p>
         ${fora?`<div class="aviso backup">${fora} ${fora===1?'linha do arquivo veio com defeito e ficou':'linhas do arquivo vieram com defeito e ficaram'} de fora.</div>`:''}
         <button class="btn" onclick="Backup.confirmaRestaurar()">Sim, restaurar esse backup</button>
@@ -1072,6 +1072,10 @@ const Backup = {
     return d;
   },
   confirmaRestaurar(){ const antes=D.dados; D.dados=this._pend;
+    /* tudo o que veio do arquivo ja esta num backup: sem isto, o aviso "N vendas sem
+       backup" aparecia logo depois de restaurar (QA 07/11/2026) */
+    D.dados.config.vendasDesdeBackup=0;
+    if(!D.dados.config.ultimoBackup) D.dados.config.ultimoBackup=agora();
     /* sem espaco: o que estava no aparelho fica como estava, e a tela nao diz que restaurou */
     if(!D.salvar()){ D.dados=antes; return; }
     /* backup com clientes/cobrancas substitui as duas chaves; backup antigo (sem as
@@ -2103,7 +2107,9 @@ const Wizard = {
       <div class="m2">Controle da Lojinha · seu app, pra sempre</div></div>
     <p class="sub" style="text-align:center">Em 3 passinhos você registra sua primeira venda<br>e vê seu lucro na tela. Bora?</p>
     <label for="wLoja">como chama a sua lojinha?</label><input id="wLoja" placeholder="ex: Closet da Ju">
-    <button class="btn" onclick="Wizard.passo2()">Começar</button>`); },
+    <button class="btn" onclick="Wizard.passo2()">Começar</button>
+    <button class="btn link" onclick="document.getElementById('wArq').click()">Trocou de celular? Restaurar meu backup</button>
+    <input type="file" id="wArq" accept=".csv,.json" class="oculto" onchange="if(this.files[0])Backup.restaurar(this.files[0]);this.value=''">`); },
   passo2(){ const loja=document.getElementById('wLoja').value.trim();
     D.dados.config.loja=loja||'Minha lojinha'; if(!D.gravar()) return;
     document.getElementById('hdrLoja').textContent=D.dados.config.loja;

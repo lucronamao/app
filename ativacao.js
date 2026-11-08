@@ -60,6 +60,7 @@
     pronto: 'Pronto!',
     ativado: 'App ativado. Bom proveito!',
     invalido: 'Confira o e-mail: parece que falta alguma coisa.',
+    conferindoEmail: 'Procurando a compra de ',
     esperando: 'Se você acabou de comprar, a compra leva até 3 minutos pra chegar. Já estamos conferindo de novo.',
     naoAchei: 'Não achamos uma compra com este e-mail. Confira se é o mesmo e-mail da compra, letra por letra.',
     naoAcheiDepois: 'Não achamos uma compra com este e-mail. Confira e tente de novo.',
@@ -315,6 +316,55 @@
     else b.innerHTML = '<span class="av-spin" aria-hidden="true"></span>' + T.conferindo;
   }
 
+  /* ===== DOMINIO DIGITADO ERRADO (QA 07/11/2026) =====
+     "gmial.com" passava no formato e caia no "nao achei" so depois de 3 min de
+     "Conferindo", porque a espera da venda recente vale pra todo e-mail. Antes de
+     consultar, o erro comum de dominio vira uma pergunta. "Nao, esta certo" segue
+     com o que ela digitou: a sugestao nunca troca o e-mail sozinha. */
+  var DOMINIO_CERTO = {
+    'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gamil.com': 'gmail.com',
+    'gmil.com': 'gmail.com', 'gnail.com': 'gmail.com', 'gmaill.com': 'gmail.com', 'gmail.co': 'gmail.com',
+    'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmail.om': 'gmail.com', 'gmail.com.br': 'gmail.com',
+    'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'homail.com': 'hotmail.com',
+    'hotmil.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmail.co': 'hotmail.com',
+    'outlok.com': 'outlook.com', 'outllok.com': 'outlook.com', 'outlook.con': 'outlook.com',
+    'icloud.con': 'icloud.com', 'iclod.com': 'icloud.com', 'icoud.com': 'icloud.com', 'icloud.co': 'icloud.com'
+  };
+  var dominioAceito = null;
+  function sugerirDominio(email) {
+    var m = email.toLowerCase().match(/^([^@]+)@(.+)$/);
+    if (!m || !DOMINIO_CERTO[m[2]] || dominioAceito === email.toLowerCase()) return null;
+    return m[1] + '@' + DOMINIO_CERTO[m[2]];
+  }
+  function perguntarDominio(email, certo) {
+    var m = document.getElementById('avMsg');
+    if (!m) return;
+    m.className = 'av-msg erro';
+    m.textContent = 'Você quis dizer ' + certo + '?';
+    var sim = document.createElement('button');
+    sim.type = 'button'; sim.className = 'av-btn'; sim.textContent = 'Sim, usar ' + certo;
+    sim.addEventListener('click', function () {
+      var inp = document.getElementById('avEmail');
+      if (inp) inp.value = certo;
+      ativar(certo);
+    });
+    var nao = document.createElement('button');
+    nao.type = 'button'; nao.className = 'av-btn sec'; nao.textContent = 'Não, está certo';
+    nao.addEventListener('click', function () { dominioAceito = email.toLowerCase(); ativar(email); });
+    m.appendChild(sim); m.appendChild(nao);
+  }
+  /* "Ja paguei e nao ativa": no fim do "nao achei" e, enquanto confere, depois de 1 min */
+  function botaoSuporte(email) {
+    var m = document.getElementById('avMsg');
+    if (!m || !OFERTA.suporte || m.querySelector('.av-suporte')) return;
+    var a = document.createElement('a');
+    a.className = 'av-btn sec av-suporte';
+    a.href = 'mailto:' + OFERTA.suporte + '?subject=' + encodeURIComponent('Meu app não ativa') +
+      '&body=' + encodeURIComponent(T.pagueiCorpo + email);
+    a.textContent = T.paguei;
+    m.appendChild(a);
+  }
+
   var enviando = false, tentativa = 0;
   function ativar(valor) {
     if (enviando) return;
@@ -325,6 +375,8 @@
       aviso(T.invalido, 'erro');
       return;
     }
+    var certo = sugerirDominio(email);
+    if (certo) { perguntarDominio(email, certo); return; }
     enviando = true;
     var minha = ++tentativa;
     var antes = st.estado;
@@ -337,7 +389,9 @@
         return conferir(h, voluntario).then(function (s) {
           if (minha !== tentativa) return null;
           if (s === 'nao_achei' && Date.now() - inicio < ESPERA_VENDA_MS) {
-            aviso(T.esperando);
+            /* o e-mail na tela: quem digitou errado ve o erro sem esperar os 3 min */
+            aviso(T.conferindoEmail + email + '. ' + T.esperando);
+            if (Date.now() - inicio > 60 * 1000) botaoSuporte(email);
             return new Promise(function (ok) { setTimeout(ok, 10000); }).then(tentar);
           }
           return s;
@@ -380,15 +434,7 @@
       var inp = document.getElementById('avEmail');
       if (inp) inp.setAttribute('aria-invalid', 'true');
       aviso(T.naoAchei, 'erro');
-      var m = document.getElementById('avMsg');
-      if (m && OFERTA.suporte) {
-        var a = document.createElement('a');
-        a.className = 'av-btn sec';
-        a.href = 'mailto:' + OFERTA.suporte + '?subject=' + encodeURIComponent('Meu app não ativa') +
-          '&body=' + encodeURIComponent(T.pagueiCorpo + email);
-        a.textContent = T.paguei;
-        m.appendChild(a);
-      }
+      botaoSuporte(email);
       return;
     }
     /* ok, ou erro nosso / sem internet: libera. No erro fica provisorio e confere depois. */
