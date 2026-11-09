@@ -88,6 +88,10 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 /* teclado aberto: o modal ocupa a area visivel inteira, entao o campo fica parado no topo
    enquanto a lista encolhe embaixo dele */
 .modal-fundo.teclado .modal{height:100%;max-height:none;border-radius:0}
+/* modal com busca (escolher produto da venda): altura FIXA. Preso no fundo, ele encolhia
+   quando a busca deixava poucos produtos e o campo descia ate 275 px; ao apagar, subia
+   de novo (cliente, 08/11/2026: "fica descendo e pulando") */
+.modal.com-busca{height:88%}
 .modal h3{font-size:17px;margin-bottom:4px}
 .modal .sub{font-size:13px;color:var(--cinza);margin-bottom:10px}
 .aviso{border-radius:12px;padding:11px 12px;font-size:13.5px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
@@ -655,7 +659,7 @@ const Modal = {
   _volta:null,
   abrir(html){ const c=document.getElementById('modalCorpo'), f=document.getElementById('modalFundo');
     if(!f.classList.contains('aberto')) this._volta=document.activeElement;
-    c.innerHTML=html; f.classList.add('aberto'); this.ajustarArea();
+    c.innerHTML=html; c.classList.toggle('com-busca', !!c.querySelector('#buscaProd')); f.classList.add('aberto'); this.ajustarArea();
     const tit=c.querySelector('h3, .passo, .wizard-logo .m1');
     if(tit){ tit.id='modalTit'; c.setAttribute('aria-labelledby','modalTit'); } else c.removeAttribute('aria-labelledby');
     Array.prototype.forEach.call(document.body.children, el=>{
@@ -2205,7 +2209,7 @@ const Tela = {
   ir(t){ this.atual=t; this.pagVendas=1; this.pagEstoque=1; document.querySelectorAll('#navBar button').forEach(b=>b.classList.toggle('on',b.dataset.tela===t)); this.render(); },
   backupRapido(){ Backup.compartilhar(); },
   irPagVendas(p){ this.pagVendas=p; this.render(); window.scrollTo({top:0,behavior:'smooth'}); },
-  irPagEstoque(p){ this.pagEstoque=p; this.render(); window.scrollTo({top:0,behavior:'smooth'}); },
+  irPagEstoque(p){ this.pagEstoque=p; this.pintarEstoque(); window.scrollTo({top:0,behavior:'smooth'}); },
   avisoBackup(){ return Backup.precisa()
     ? `<div class="aviso backup"><svg style="width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.3 8.3L12 13l8.7-4.7M12 13v8"/></svg> <span><b>${(n=>n+(n===1?' venda':' vendas'))(D.dados.config.vendasDesdeBackup||D.dados.vendas.length)} sem backup.</b>
        Toca em "backup" lá em cima e manda o arquivo pro seu WhatsApp. Leva 5 segundos.</span></div>` : ''; },
@@ -2308,28 +2312,26 @@ const Tela = {
       <div class="card">${pg.itens.length?pg.itens.map(v=>this.itemVenda(v)).join(''):'<div class="vazio">Nada por aqui ainda.</div>'}</div>
       ${barraPag(pg,'Tela.irPagVendas')}`;
   },
-  telaEstoque(){
+  /* ===== A BUSCA DO ESTOQUE NAO RECRIA O CAMPO (08/11/2026) =====
+     Bug relatado por cliente: "quando vou pesquisar um produto, o menu fica descendo e
+     pulando". Cada letra redesenhava a tela inteira (Tela.render) e criava um campo
+     NOVO, refocado num setTimeout: no celular o teclado fechava e abria a cada letra,
+     a barra de baixo subia e descia junto, e digitando rapido sumia letra. Agora a
+     letra repinta so a lista e os numeros (pintarEstoque); o campo fica o mesmo,
+     como na busca do "Registrar venda" desde 19/10/2026. */
+  estoqueFiltrado(){
     let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
     const investido=ps.reduce((s,p)=>s+p.custo*p.qtd,0);
     const total=ps.length;
     if(this.buscaEstoque) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.buscaEstoque.toLowerCase()));
     if(this.filtroEstoque==='acabando') ps=ps.filter(p=>p.qtd>0&&p.qtd<=2);
     if(this.filtroEstoque==='acabou') ps=ps.filter(p=>p.qtd<=0);
+    return {ps, investido, total};
+  },
+  estoqueListaHTML(){
+    const {ps,total}=this.estoqueFiltrado();
     const pg=paginar(ps, this.pagEstoque);
-    return `<div class="card"><div class="kpis">
-        <div class="kpi"><div class="v">${ps.reduce((s,p)=>s+p.qtd,0)}</div><div class="l">peças em estoque</div></div>
-        <div class="kpi"><div class="v ${investido>=10000?'grande':''}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
-      </div></div>
-      <button class="btn" onclick="Produto.form()">+ Cadastrar produto</button>
-      ${total>8?`<input placeholder="buscar produto..." value="${escA(this.buscaEstoque||'')}"
-        oninput="Tela.buscaEstoque=this.value;Tela.pagEstoque=1;Tela.render();setTimeout(()=>{const b=document.querySelector('#app input');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)"
-        style="margin-top:12px">
-      <div class="filtros" style="margin-top:10px">
-        <button class="${!this.filtroEstoque?'on':''}" onclick="Tela.filtroEstoque='';Tela.pagEstoque=1;Tela.render()">todos (${total})</button>
-        <button class="${this.filtroEstoque==='acabando'?'on':''}" onclick="Tela.filtroEstoque='acabando';Tela.pagEstoque=1;Tela.render()">acabando</button>
-        <button class="${this.filtroEstoque==='acabou'?'on':''}" onclick="Tela.filtroEstoque='acabou';Tela.pagEstoque=1;Tela.render()">acabou</button>
-      </div>`:''}
-      <div class="card" style="margin-top:12px">
+    return `<div class="card" style="margin-top:12px">
         ${pg.itens.length?pg.itens.map(p=>{
           const b = p.qtd<=0?'<span class="badge zero">acabou</span>':p.qtd<=2?'<span class="badge baixo">acabando</span>':'<span class="badge ok">'+esc(p.qtd)+' un</span>';
           return `<div class="lista-item" onclick="Produto.form(${idn(p.id)})" style="cursor:pointer">
@@ -2338,6 +2340,28 @@ const Tela = {
         }).join(''):`<div class="vazio">${total?'Nenhum produto encontrado.':'Cadastra seus produtos pra vender em 3 toques.'}</div>`}
       </div>
       ${barraPag(pg,'Tela.irPagEstoque')}`;
+  },
+  buscarEstoque(v){ this.buscaEstoque=v; this.pagEstoque=1; this.pintarEstoque(); },
+  pintarEstoque(){ const el=document.getElementById('estoqueLista'), k=document.getElementById('estoquePecas');
+    if(!el){ this.render(); return; }
+    el.innerHTML=this.estoqueListaHTML();
+    if(k) k.textContent=this.estoqueFiltrado().ps.reduce((s,p)=>s+p.qtd,0); },
+  telaEstoque(){
+    const {ps,investido,total}=this.estoqueFiltrado();
+    return `<div class="card"><div class="kpis">
+        <div class="kpi"><div class="v" id="estoquePecas">${ps.reduce((s,p)=>s+p.qtd,0)}</div><div class="l">peças em estoque</div></div>
+        <div class="kpi"><div class="v ${investido>=10000?'grande':''}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
+      </div></div>
+      <button class="btn" onclick="Produto.form()">+ Cadastrar produto</button>
+      ${total>8?`<input id="buscaEstoque" enterkeyhint="search" placeholder="buscar produto..." aria-label="buscar produto" value="${escA(this.buscaEstoque||'')}" autocomplete="off"
+        oninput="Tela.buscarEstoque(this.value)"
+        style="margin-top:12px">
+      <div class="filtros" style="margin-top:10px">
+        <button class="${!this.filtroEstoque?'on':''}" onclick="Tela.filtroEstoque='';Tela.pagEstoque=1;Tela.render()">todos (${total})</button>
+        <button class="${this.filtroEstoque==='acabando'?'on':''}" onclick="Tela.filtroEstoque='acabando';Tela.pagEstoque=1;Tela.render()">acabando</button>
+        <button class="${this.filtroEstoque==='acabou'?'on':''}" onclick="Tela.filtroEstoque='acabou';Tela.pagEstoque=1;Tela.render()">acabou</button>
+      </div>`:''}
+      <div id="estoqueLista">${this.estoqueListaHTML()}</div>`;
   },
   telaResumo(){
     const ym=this.mesResumo, tt=Calc.totais(ym), top=Calc.topProdutos(ym);
