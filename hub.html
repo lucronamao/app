@@ -168,37 +168,37 @@ main{padding:16px;max-width:560px;margin:0 auto}
 /* ===== BLACK FRIDAY DA BASE (12/11/2026) =====
    Ocupa o lugar da faixa da novidade (#faixaNovidade) ate 30/11/2026 23:59:59 no
    horario de Brasilia. Fica no fluxo da pagina, acima do menu: nao cobre nenhum
-   botao. Sem X: e fixa durante a promocao. Fundo preto com amarelo, contraste alto. */
-.faixa-nov.faixa-bf{background:#0d0a0c;color:#fff;border:2px solid #ffd60a;padding:14px 14px 16px;
-  box-shadow:0 16px 34px -18px rgba(0,0,0,.85);overflow:hidden}
+   botao. Sem X: e fixa durante a promocao. Visual grafite e verde, alinhado ao checkout. */
+.faixa-nov.faixa-bf{background:linear-gradient(165deg,#4A4550 0%,#3F3A45 55%,#35313A 100%);color:#fff;border:1px solid #5C5663;padding:14px 14px 16px;
+  box-shadow:0 16px 34px -18px rgba(63,58,69,.5);overflow:hidden}
 .faixa-bf .fn-x{display:none}
 .faixa-bf::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(120% 80% at 100% 0,rgba(142,39,87,.55),transparent 60%)}
+  background:radial-gradient(120% 80% at 100% 0,rgba(255,255,255,.10),transparent 60%)}
 .faixa-bf > *{position:relative}
 .bf-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.bf-selo{display:inline-block;background:#ffd60a;color:#0d0a0c;font-size:13px;font-weight:900;
+.bf-selo{display:inline-block;background:#1E7D4F;color:#fff;font-size:13px;font-weight:900;
   letter-spacing:.12em;text-transform:uppercase;padding:6px 11px;border-radius:6px;transform:rotate(-2deg)}
-.bf-prazo{font-size:12.5px;font-weight:800;color:#ffd60a;text-transform:uppercase;letter-spacing:.06em}
-.bf-grande{display:block;font-size:27px;font-weight:900;line-height:1.05;letter-spacing:-.6px;margin:0 0 7px}
-.bf-grande em{font-style:normal;color:#ffd60a}
-.bf-txt{display:block;font-size:13.5px;line-height:1.45;color:#f3e9ee;margin-bottom:12px}
+.bf-prazo{font-size:12.5px;font-weight:800;color:#F4F4F5;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.12);padding:5px 10px;border-radius:999px;border:1px solid rgba(212,212,216,.45)}
+.bf-grande{display:inline-block;background:#fff;color:#1E7D4F;font-size:27px;font-weight:900;line-height:1.05;letter-spacing:-.6px;margin:0 0 7px;padding:6px 12px;border-radius:10px;border:1px solid #D4D4D8}
+.bf-grande em{font-style:normal;color:#1F1F23}
+.bf-txt{display:block;font-size:13.5px;line-height:1.45;color:#F4F4F5;margin-bottom:12px}
 .bf-txt b{color:#fff}
 .bf-cont-leg{display:block;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-  color:#ffb3d1;margin-bottom:6px}
+  color:#D4D4D8;margin-bottom:6px}
 .bf-cont{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:13px}
-.bf-cont div{background:#fff;color:#0d0a0c;border-radius:9px;padding:7px 2px 6px;text-align:center}
+.bf-cont div{background:#fff;color:#1F1F23;border-radius:9px;padding:7px 2px 6px;text-align:center;border:1px solid #D4D4D8}
 .bf-cont b{display:block;font-size:22px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
-.bf-cont small{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;color:#5a4a52}
-.bf-btn{display:block;background:#ffd60a;color:#0d0a0c;text-align:center;text-decoration:none;
+.bf-cont small{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;color:#52525B}
+.bf-btn{display:block;background:#1E7D4F;color:#fff;text-align:center;text-decoration:none;
   font-weight:900;font-size:16px;padding:14px 10px;border-radius:12px;position:relative;overflow:hidden;
   animation:bfPulsa 1.6s ease-in-out infinite}
 .bf-btn::after{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-18deg);
   animation:fnBrilho 2.6s ease-in-out infinite}
 .bf-btn:active{animation:none;transform:scale(.98)}
-.bf-nota{display:block;text-align:center;font-size:12px;color:#d9cbd2;margin-top:8px}
-@keyframes bfPulsa{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,214,10,.6)}
-  50%{transform:scale(1.03);box-shadow:0 0 0 8px rgba(255,214,10,0)}}
+.bf-nota{display:block;text-align:center;font-size:12px;color:#D4D4D8;margin-top:8px}
+@keyframes bfPulsa{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(30,125,79,.6)}
+  50%{transform:scale(1.03);box-shadow:0 0 0 8px rgba(30,125,79,0)}}
 @media (prefers-reduced-motion:reduce){.bf-btn,.bf-btn::after{animation:none}}
 
 
