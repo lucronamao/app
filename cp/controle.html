@@ -47,7 +47,7 @@ main{padding:14px;max-width:560px;margin:0 auto}
 .kpi .v{font-size:22px;font-weight:800;color:var(--vinho);white-space:nowrap;letter-spacing:-.3px}
 .kpi .v.grande{font-size:18px}
 .kpi .v.pos{color:var(--verde)} .kpi .v.neg{color:var(--verm)}
-.kpi .l{font-size:12px;color:var(--cinza);margin-top:2px}
+.kpi .l{font-size:12.5px;color:var(--tinta);font-weight:700;margin-top:3px;line-height:1.3}
 button{font-family:inherit;border:0;cursor:pointer;border-radius:12px;font-size:16px}
 .btn{background:var(--vinho);color:#fff;width:100%;padding:15px;font-weight:700;margin-top:8px}
 .btn:active{background:var(--vinho-escuro)}
@@ -71,6 +71,29 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .lista-item .info{flex:1;min-width:0}
 .lista-item .t{font-weight:600;font-size:15px}
 .lista-item .s{font-size:12.5px;color:var(--cinza);margin-top:1px}
+/* item do estoque: nome em cima, valores numa tabelinha alinhada (24/11/2026) */
+.prod-item{padding:14px 2px;border-bottom:1px solid var(--linha);cursor:pointer}
+.prod-item:last-child{border-bottom:0}
+.prod-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.prod-topo .t{font-weight:600;font-size:15px;min-width:0}
+.prod-grade{display:grid;grid-template-columns:auto 1fr 1fr 1fr;column-gap:8px;row-gap:5px;
+  background:var(--rose);border-radius:10px;padding:9px 10px;font-size:12.5px;
+  font-variant-numeric:tabular-nums;align-items:baseline}
+.prod-grade>span{text-align:right;white-space:nowrap;color:var(--tinta)}
+.prod-grade .cab{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--cinza)}
+.prod-grade .rot{text-align:left;color:var(--tinta);font-size:12px;font-weight:700}
+.prod-grade .luc{color:var(--verde);font-weight:600}
+.prod-grade .luc.forte{font-weight:800}
+.prod-grade .luc.neg{color:var(--verm)}
+.prod-grade .rot i,.prod-grade i.cf{font-style:normal}
+.prod-grade.compacta i.cf{display:none}
+.prod-grade.compacta{font-size:12px}
+@media (max-width:370px){
+  .prod-grade{column-gap:6px;padding:8px;font-size:11.5px}
+  .prod-grade .rot{font-size:11px} .prod-grade .rot i{display:none}
+  .prod-grade .cab{font-size:9.5px}
+  .prod-grade.compacta{font-size:11px}
+}
 .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
 .badge.ok{background:var(--verde-bg);color:var(--verde)}
 .badge.baixo{background:var(--ambar-bg);color:var(--ambar)}
@@ -200,6 +223,17 @@ nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .venda-topo .info{flex:1;min-width:0}
 .venda-topo .t{font-weight:600;font-size:15px;line-height:1.3}
 .venda-topo .s{font-size:12.5px;color:var(--cinza);margin-top:3px;line-height:1.45}
+.v-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12.5px;color:var(--cinza)}
+.v-meta span{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.v-meta svg{width:14px;height:14px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.v-extra{font-size:12px;color:var(--cinza);margin-top:4px}
+.v-din{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--verde);
+  background:var(--verde-bg);border-radius:8px;padding:4px 9px;white-space:nowrap}
+.v-din b{font-weight:800}
+.v-din.neg{color:var(--verm);background:var(--verm-bg)}
+/* fiado: o que ja entrou em azul, o nada recebido neutro; o amarelo fica so no "a receber" */
+.v-din.recebido{color:#1d5fa8;background:#e5effa}
+.v-din.aberto{color:var(--cinza);background:var(--rose)}
 .venda-valor{text-align:right;flex-shrink:0}
 .venda-valor .vv{font-weight:800;font-size:16px;white-space:nowrap}
 .venda-valor .badge{display:inline-block;margin-top:4px}
@@ -2269,25 +2303,29 @@ const Tela = {
        zero, e a linha diz "a receber" em vez de anunciar lucro que nao chegou.
        Antes de 14/09/2026 a lista mostrava o lucro cheio de um fiado nao pago. */
     const parc = textoParcelas(v);
+    /* ===== LINHA DA VENDA EM PARTES (24/11/2026) =====
+       Antes data, cliente, desconto, parcelas e lucro vinham numa linha corrida com
+       " · ", tudo grudado. Agora: data e cliente com icone, extras numa linha
+       propria e o dinheiro destacado (lucro verde, fiado ja recebido azul, nada recebido cinza). */
     let dinheiro;
     if(ehFiado && falta>0)
-      dinheiro = parcial
-        ? `recebeu ${rs(pago)} de ${rs(v.total)}`
-        : `nada recebido ainda`;
-    else
-      dinheiro = `lucro ${rs(v.total-v.custo)}`;
-    const detalhe = [
-      v.data.split('-').reverse().join('/'),
-      v.cliente || null,
-      descontoDe(v) ? 'desconto '+textoDesconto(v) : null,
-      parc || null,
-      dinheiro
-    ].filter(Boolean).join(' · ');
+      dinheiro = `<div class="v-din ${parcial?'recebido':'aberto'}">${parcial
+        ? `já recebeu <b>${rs(pago)}</b>`
+        : `nada recebido ainda`}</div>`;
+    else{
+      const l=v.total-v.custo;
+      dinheiro = `<div class="v-din${l<0?' neg':''}">lucro <b>${rs(l)}</b></div>`;
+    }
+    const icoData='<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+    const icoCli='<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
+    const extras=[descontoDe(v) ? 'desconto '+textoDesconto(v) : null, parc || null].filter(Boolean);
     return `<div class="venda-bloco">
       <div class="venda-topo">
         <div class="info">
           <div class="t">${esc(v.itens.map(i=>i.nome+(i.qtd>1?' x'+i.qtd:'')).join(', '))}</div>
-          <div class="s">${esc(detalhe)}</div>
+          <div class="v-meta"><span>${icoData}${esc(dataBR(v.data))}</span>${v.cliente?`<span>${icoCli}${esc(v.cliente)}</span>`:''}</div>
+          ${extras.length?`<div class="v-extra">${esc(extras.join(' · '))}</div>`:''}
+          ${dinheiro}
         </div>
         <div class="venda-valor"><div class="vv">${rs(v.total)}</div>${badge}</div>
       </div>
@@ -2321,22 +2359,39 @@ const Tela = {
      como na busca do "Registrar venda" desde 19/10/2026. */
   estoqueFiltrado(){
     let ps=[...D.dados.produtos].sort((a,b)=>a.nome.localeCompare(b.nome));
-    const investido=ps.reduce((s,p)=>s+p.custo*p.qtd,0);
+    /* ===== VALOR DO ESTOQUE EM VENDA E LUCRO (24/11/2026) =====
+       Pedido de cliente: a tela so mostrava o custo parado. Agora soma tambem quanto
+       o estoque vale vendido e o lucro que esta nele, no total e por produto.
+       Estoque negativo (venda registrada com estoque zerado) conta como zero: antes
+       ele abatia do investido e das pecas. */
+    const un=p=>Math.max(0,Number(p.qtd)||0);
+    const investido=ps.reduce((s,p)=>s+p.custo*un(p),0);
+    const emVenda=ps.reduce((s,p)=>s+p.preco*un(p),0);
     const total=ps.length;
     if(this.buscaEstoque) ps=ps.filter(p=>p.nome.toLowerCase().includes(this.buscaEstoque.toLowerCase()));
     if(this.filtroEstoque==='acabando') ps=ps.filter(p=>p.qtd>0&&p.qtd<=2);
     if(this.filtroEstoque==='acabou') ps=ps.filter(p=>p.qtd<=0);
-    return {ps, investido, total};
+    return {ps, investido, emVenda, lucro:emVenda-investido, total};
   },
   estoqueListaHTML(){
     const {ps,total}=this.estoqueFiltrado();
     const pg=paginar(ps, this.pagEstoque);
     return `<div class="card" style="margin-top:12px">
         ${pg.itens.length?pg.itens.map(p=>{
-          const b = p.qtd<=0?'<span class="badge zero">acabou</span>':p.qtd<=2?'<span class="badge baixo">acabando</span>':'<span class="badge ok">'+esc(p.qtd)+' un</span>';
-          return `<div class="lista-item" onclick="Produto.form(${idn(p.id)})" style="cursor:pointer">
-            <div class="info"><div class="t">${esc(p.nome)}</div>
-            <div class="s">custo ${rs(p.custo)} · venda ${rs(p.preco)} · lucro ${rs(p.preco-p.custo)}/un</div></div>${b}</div>`;
+          const b = p.qtd<=0?'<span class="badge zero">acabou</span>':p.qtd<=2?'<span class="badge baixo" title="acabando">'+esc(p.qtd)+' un</span>':'<span class="badge ok">'+esc(p.qtd)+' un</span>';
+          const neg=p.preco<p.custo?' neg':'';
+          /* valor de 5 digitos (ex.: 40 un de R$ 890) estourava a tabela no celular:
+             nesse produto a tabela fica compacta, sem o "R$" nas celulas */
+          const vals=[p.custo,p.preco,p.preco-p.custo].concat(p.qtd>0?[p.custo*p.qtd,p.preco*p.qtd,(p.preco-p.custo)*p.qtd]:[]);
+          const comp=vals.some(n=>Math.abs(n)>=10000)?' compacta':'';
+          const c=n=>rs(n).replace('R$ ','<i class="cf">R$ </i>');
+          return `<div class="prod-item" onclick="Produto.form(${idn(p.id)})">
+            <div class="prod-topo"><div class="t">${esc(p.nome)}</div>${b}</div>
+            <div class="prod-grade${comp}">
+              <span></span><span class="cab">custo</span><span class="cab">venda</span><span class="cab">lucro</span>
+              <span class="rot"><i>por </i>unidade</span><span>${c(p.custo)}</span><span>${c(p.preco)}</span><span class="luc${neg}">${c(p.preco-p.custo)}</span>
+              ${p.qtd>0?`<span class="rot"><i>no </i>estoque</span><span>${c(p.custo*p.qtd)}</span><span>${c(p.preco*p.qtd)}</span><span class="luc forte${neg}">${c((p.preco-p.custo)*p.qtd)}</span>`:''}
+            </div></div>`;
         }).join(''):`<div class="vazio">${total?'Nenhum produto encontrado.':'Cadastra seus produtos pra vender em 3 toques.'}</div>`}
       </div>
       ${barraPag(pg,'Tela.irPagEstoque')}`;
@@ -2345,12 +2400,15 @@ const Tela = {
   pintarEstoque(){ const el=document.getElementById('estoqueLista'), k=document.getElementById('estoquePecas');
     if(!el){ this.render(); return; }
     el.innerHTML=this.estoqueListaHTML();
-    if(k) k.textContent=this.estoqueFiltrado().ps.reduce((s,p)=>s+p.qtd,0); },
+    if(k) k.textContent=this.estoqueFiltrado().ps.reduce((s,p)=>s+Math.max(0,Number(p.qtd)||0),0); },
   telaEstoque(){
-    const {ps,investido,total}=this.estoqueFiltrado();
+    const {ps,investido,emVenda,lucro,total}=this.estoqueFiltrado();
+    const g=n=>Math.abs(n)>=10000?'grande':'';
     return `<div class="card"><div class="kpis">
-        <div class="kpi"><div class="v" id="estoquePecas">${ps.reduce((s,p)=>s+p.qtd,0)}</div><div class="l">peças em estoque</div></div>
-        <div class="kpi"><div class="v ${investido>=10000?'grande':''}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
+        <div class="kpi"><div class="v" id="estoquePecas">${ps.reduce((s,p)=>s+Math.max(0,Number(p.qtd)||0),0)}</div><div class="l">peças em estoque</div></div>
+        <div class="kpi"><div class="v ${g(investido)}">${rs(investido)}</div><div class="l">investido em estoque</div></div>
+        <div class="kpi"><div class="v ${g(emVenda)}">${rs(emVenda)}</div><div class="l">valor de venda do estoque</div></div>
+        <div class="kpi"><div class="v ${lucro<0?'neg':'pos'} ${g(lucro)}">${rs(lucro)}</div><div class="l">lucro no estoque</div></div>
       </div></div>
       <button class="btn" onclick="Produto.form()">+ Cadastrar produto</button>
       ${total>8?`<input id="buscaEstoque" enterkeyhint="search" placeholder="buscar produto..." aria-label="buscar produto" value="${escA(this.buscaEstoque||'')}" autocomplete="off"
